@@ -1,0 +1,396 @@
+@model Repository.Models.Leave
+
+@{
+  ViewBag.Title = "Create";
+  Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- left column -->
+<div class="col-md-6">
+  <!-- general form elements -->
+  <div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Apply Leave</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+
+
+
+
+    <div class="card-body">
+      @if (TempData["ErrorMessage"] != null)
+      {
+        <div class="alert alert-danger" role="alert">
+          @TempData["ErrorMessage"]
+        </div>
+      }
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "Create", id = "Create" }))
+        {
+          @Html.AntiForgeryToken()
+          @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+          @*<div class="form-group">
+            @Html.LabelFor(model => model.UserId, htmlAttributes: new { @class = "control-label" })
+            <div class="col-md-10">
+              @Html.EditorFor(model => model.UserId, new { htmlAttributes = new { @class = "form-control" } })
+              @Html.ValidationMessageFor(model => model.UserId, "", new { @class = "text-danger" })
+            </div>
+          </div>*@
+
+          <div class="form-group">
+            @Html.Label("User Name")
+
+            @Html.Editor("UserName", new { htmlAttributes = new { @class = "form-control", @Value = ViewBag.UserName, @readonly = "readonly" } })
+            @*@Html.Editor((string)ViewBag.UserName)*@
+          </div>
+          <div class="form-group">
+            @{
+              var leaveTypes = (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd;
+            }
+            @Html.LabelFor(model => model.LeaveTypeId, "Leave Type", htmlAttributes: new { @class = "" })
+
+            @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
+            @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })*@
+            @Html.ValidationMessageFor(model => model.LeaveTypeId, "", new { @class = "text-danger" })
+
+          </div>
+
+          <div class="form-group">
+            @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+            <br>
+            @*<textarea name="Reason" class="form-control " rows="3">
+
+            </textarea>*@
+
+            @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
+
+
+            @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
+
+          </div>
+
+          @*<div class="form-group">
+
+            <label>Start Date:</label>
+
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">
+                  <i class="far fa-calendar-alt"></i>
+                </span>
+              </div>
+
+              <input type="text" class="form-control float-right" id="reservation">
+
+            </div>
+
+          </div>*@
+                <div id="leaveDate">
+
+          <div class="form-group">
+            @Html.LabelFor(model => model.StartDate, "Start Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+            @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", @id = "datepickerStart", required = "required " } })
+            @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
+
+          </div>
+
+          <div class="form-group">
+            @Html.LabelFor(model => model.EndDate, "End Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+            @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", @id = "datepickerEnd", required = "required " } })
+            @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
+
+          </div>
+
+                </div>
+          <div id="timeDiv" class="form-group">
+            <b style="color:black">Start time</b> <b style="color:red">*</b> <input id="startTime" type="text" class="time" /> <br />
+            <b style="color:black">End time</b> <b style="color:red">*&nbsp;&nbsp;</b> <input id="endTime" type="text" class="time" />
+          </div>
+
+
+          <div class="form-group">
+            @*@Html.LabelFor(model => model.TotalDays, "Total Days", htmlAttributes: new { @class = " " })*@
+
+            @Html.HiddenFor(model => model.TotalDays, new { htmlAttributes = new { @class = "form-control", id = "diff", @readonly = "readonly" } })
+            @Html.ValidationMessageFor(model => model.TotalDays, "", new { @class = "text-danger" })
+
+          </div>
+
+          <div class="form-group">
+            @Html.LabelFor(model => model.EmergencyContact, "Emergency Contact", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+            @Html.EditorFor(model => model.EmergencyContact, new { htmlAttributes = new { @class = "form-control", required = "required " } })
+            @Html.ValidationMessageFor(model => model.EmergencyContact, "", new { @class = "text-danger" })
+
+          </div>
+          <div class="form-group">
+            @Html.LabelFor(model => model.LineManager1Id, "Line Manager", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+
+            @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
+            @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control",  required = "required " })
+            @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
+
+            @*@Html.EditorFor(model => model.LineManager1Id, new { htmlAttributes = new { @class = "form-control" } })*@
+
+          </div>
+
+          <div  class="form-group" id="LineManager2IdParent">
+            @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
+
+
+            @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
+            @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })
+            @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
+
+            @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
+
+          </div>
+
+
+
+          <div class="form-group">
+            <div class="class=" card-footer">
+              <input type="submit" value="Apply" id="btnApply" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
+
+            </div>
+          </div>
+
+          <div>
+            @Html.ActionLink("Back to List", "Index")
+          </div>
+
+        }
+    </div>
+
+
+
+
+  </div>
+</div>
+
+<!-- right column -->
+@{
+  //Html.RenderPartial("Edit1");
+  //Html.RenderAction("Edit","UserLeavePolicies",new { id = 7});
+  //Html.RenderPartial("Edit", Repository.Models., new { id = 7 });
+  //Html.Action("Edit", "UserLeavePolicies", new { id = 7 });
+
+  //Html.Partial("../UserLeavePolicies/Edit",)
+  //Html.RenderPartial("_Edit", ViewBag.UserLeavePolicy);
+
+}
+<div id="UserLeavePolicyData" class="col-md-6"></div>
+<!--/.col (right) -->
+
+
+
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+@*<script src="https://code.jquery.com/jquery-1.12.4.js"></script>*@
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+<link href="~/plugins/jquery-timepicker-master/jquery.timepicker.min.css" rel="stylesheet" />
+<script src="~/plugins/jquery-timepicker-master/jquery.timepicker.min.js"></script>
+
+@*<link href="~/plugins/Datetime-Picker-jQuery-Moment/css/datetimepicker.css" rel="stylesheet" />*@
+@*<script src="~/plugins/Datetime-Picker-jQuery-Moment/js/datetimepicker.js"></script>*@
+
+<script>
+  $(function () {
+    $("#timeDiv").hide();
+    $.get('@Url.Action("Edit","UserLeavePolicies")?id=' + "@ViewBag.UserLeavePolicyId" + '&Caller=' + "LeaveRequest" + "&leaveUserId=" + "@ViewBag.LeaveUserId" , function (data) {
+        $("#UserLeavePolicyData").append(data);
+    });
+
+
+    $(document).ready(function () {
+
+
+      $('#LeaveTypeId').on('change', function () {
+        //alert(this.value);
+        if (this.value == '7')//7 causal short leave
+        //.....................^.......
+        {
+          $("#timeDiv").show();
+          $('#startTime').prop('required', true);
+          $('#endTime').prop('required', true);
+
+          
+        }
+        else {
+          $("#timeDiv").hide();
+          $('#startTime').prop('required', false);
+          $('#endTime').prop('required', false);
+
+          $("#datepickerStart").val($.datepicker.formatDate("DD, MM, d, yy", new Date()));
+          $("#datepickerEnd").val($.datepicker.formatDate("DD, MM, d, yy", new Date()));
+          $('#startTime').val("");
+          $('#endTime').val("");
+        }
+      });
+
+      $(document).ready(function () {
+        $('#LeaveTypeId').change(function () {
+          var selectedLeaveTypeId = $(this).val();
+          if (selectedLeaveTypeId === '2') { // Assuming '2' represents Annual Leave
+            $('#LineManager2Id').parent().hide(); // Hide the Line Manager 2 div
+          } else {
+            $('#LineManager2Id').parent().show(); // Show the Line Manager 2 div
+          }
+        });
+      });
+      //$('#startTime').on('change', function () {
+      //  $("#datepickerStart").val($("#startTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
+      //});
+      //$('#endTime').on('change', function () {
+      //  $("#datepickerEnd").val($("#endTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
+      //});
+      
+      $('#startTime').timepicker({
+        'scrollDefault': 'now',
+        'step': 60
+      });
+      $('#endTime').timepicker({
+        'scrollDefault': 'now',
+        'step': 60
+      });
+
+      //$('#startTime').dateTimePicker();
+      //$('#endTime').dateTimePicker();
+
+      //keydown
+      //keypress
+
+      $('#btnApply').click(function () {
+        if ($("#timeDiv").is(':visible')) {
+            $("#datepickerStart").val($("#startTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
+            $("#datepickerEnd").val($("#endTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
+        }
+        if (IsDatesCorrect() == false) {
+          //alert('false');
+          return false;
+        }
+        else {
+          //alert('true');
+          return true;
+        }
+
+      });
+
+      //alert('@ViewBag.FiscalYearStart');
+      var momentDate = moment('@ViewBag.FiscalYearStart', 'DD-MM-YYYY HH:mm:ss');
+      //alert(momentDate);
+      var fiscalYearStart = momentDate.toDate();
+      //alert(fiscalYearStart);
+      momentDate = moment('@ViewBag.FiscalYearEnd', 'DD-MM-YYYY HH:mm:ss');
+      var fiscalYearEnd = momentDate.toDate();
+      //alert(momentDate);
+
+
+      $("#LineManager1Id").change(function () {
+        $('#LineManager2Id').val($('#LineManager1Id').val());
+      });
+
+      //01/07/2021 00:00:00
+
+      //alert(new Date());
+      var message = "@ViewBag.PolicyAlert";
+      if (message != "") {
+         $("#Create :input").prop("disabled", true);
+         alert(message);
+      }
+
+      $("#datepickerStart").val($.datepicker.formatDate("DD, MM, d, yy", new Date()));
+      $("#datepickerEnd").val($.datepicker.formatDate("DD, MM, d, yy", new Date()));
+
+      $("#datepickerStart").datepicker({
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        changeMonth: true,
+        changeYear: true,
+        numberOfMonths: 2,
+        dateFormat: 'DD, MM, d, yy',
+        //showButtonPanel: true
+
+        showOn: "both"
+        //buttonImage: "images/calendar.gif",
+        //buttonImageOnly: true,
+        //buttonText: "Select date",
+
+        //minDate: -20,
+        //maxDate: "+1M +10D"
+      });
+
+      $("#datepickerEnd").datepicker({
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        changeMonth: true,
+        changeYear: true,
+        numberOfMonths: 2,
+        dateFormat: 'DD, MM, d, yy',
+        showOn: "both",
+        onSelect: function () {
+          IsDatesCorrect();
+          //SubmitButtonStatus();
+        }
+      });
+      //function SubmitButtonStatus() {
+      //  $(':input[type="submit"]').prop('disabled', true);
+      //}
+      //$('#Apply').keydown(function () {
+      //  if (IsDatesCorrect() == false) {
+      //    return false;
+      //  }
+      //});
+      function IsDatesCorrect() {
+        var start = $("#datepickerStart").datepicker("getDate");
+        var end = $("#datepickerEnd").datepicker("getDate");
+        var diff = new Date(end - start);
+
+        var days = diff / 1000 / 60 / 60 / 24 + 1;
+        if (days == 0 || days < 0) {
+          alert("End date should be greater than start date");
+          $("#datepickerEnd").val("");
+          return false;
+        }
+        if (days > 365) {
+          alert("Can not apply leave more than a year");
+          $("#datepickerEnd").val("");
+          return false;
+        }
+        if (start < fiscalYearStart || end > fiscalYearEnd || start > fiscalYearEnd || end < fiscalYearStart) {
+          alert("You can claim leave of current fiscal year only.");
+          $("#datepickerStart").val("");
+          $("#datepickerEnd").val("");
+          return false;
+        }
+         //alert(days);
+        $('#diff').val(days);
+        return true;
+      }
+
+      //showButtonPanel: true
+
+
+      //showOn: "button",
+      //buttonImage: "images/calendar.gif",
+      //buttonImageOnly: true,
+      //buttonText: "Select date",
+
+      //minDate: -20,
+      //maxDate: "+1M +10D"
+    });
+
+  });
+</script>
+
+@*@section Scripts {
+      @Scripts.Render("~/bundles/jqueryval")
+  }*@
+

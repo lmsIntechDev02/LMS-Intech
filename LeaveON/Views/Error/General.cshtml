@@ -1,0 +1,26 @@
+@model LeaveON.Models.ErrorViewModel
+
+
+<div class="card-body">
+  <div class="list-header clearfix">
+    <span>@Model.Message</span>
+  </div>
+
+  <div class="list-sfs-holder">
+    <div class="alert alert-error">
+      @if (!string.IsNullOrEmpty(Model.CustomMessage))
+      {
+        <p><strong>Additional Information:</strong> @Model.CustomMessage </p> }
+      else
+      {
+        <p>
+          <strong>Additional Information:</strong> No Additional Information available. Please get in touch with our support team for help.
+        </p>
+      }
+
+    </div>
+
+    <a id="goBackButton" href="javascript:history.go(-1);" class="btn btn-primary" style="display: none;">Go Back</a>
+  </div>
+</div>
+
