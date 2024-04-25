@@ -29,13 +29,7 @@
         {
           @Html.AntiForgeryToken()
           @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-          @*<div class="form-group">
-            @Html.LabelFor(model => model.UserId, htmlAttributes: new { @class = "control-label" })
-            <div class="col-md-10">
-              @Html.EditorFor(model => model.UserId, new { htmlAttributes = new { @class = "form-control" } })
-              @Html.ValidationMessageFor(model => model.UserId, "", new { @class = "text-danger" })
-            </div>
-          </div>*@
+         
 
           <div class="form-group">
             @Html.Label("User Name")
@@ -59,9 +53,7 @@
             @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
             <br>
-            @*<textarea name="Reason" class="form-control " rows="3">
-
-            </textarea>*@
+           
 
             @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
 
@@ -70,22 +62,7 @@
 
           </div>
 
-          @*<div class="form-group">
-
-            <label>Start Date:</label>
-
-            <div class="input-group">
-              <div class="input-group-prepend">
-                <span class="input-group-text">
-                  <i class="far fa-calendar-alt"></i>
-                </span>
-              </div>
-
-              <input type="text" class="form-control float-right" id="reservation">
-
-            </div>
-
-          </div>*@
+        
                 <div id="leaveDate">
 
           <div class="form-group">
@@ -221,7 +198,7 @@
           $('#startTime').prop('required', true);
           $('#endTime').prop('required', true);
 
-          
+
         }
         else {
           $("#timeDiv").hide();
@@ -269,8 +246,21 @@
 
       $('#btnApply').click(function () {
         if ($("#timeDiv").is(':visible')) {
-            $("#datepickerStart").val($("#startTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
-            $("#datepickerEnd").val($("#endTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
+          // Retrieve the currently selected dates from the datepickers
+          var selectedStartDate = $("#datepickerStart").datepicker("getDate");
+          var selectedEndDate = $("#datepickerEnd").datepicker("getDate");
+
+          // Format these dates as strings
+          var formattedStartDate = $.datepicker.formatDate("DD, MM, d, yy", selectedStartDate);
+          var formattedEndDate = $.datepicker.formatDate("DD, MM, d, yy", selectedEndDate);
+
+          // Retrieve the times
+          var startTime = $('#startTime').val();
+          var endTime = $('#endTime').val();
+
+          // Combine the date and time
+          $("#datepickerStart").val(startTime + ", " + formattedStartDate);
+          $("#datepickerEnd").val(endTime + ", " + formattedEndDate);
         }
         if (IsDatesCorrect() == false) {
           //alert('false');
