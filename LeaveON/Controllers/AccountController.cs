@@ -191,50 +191,51 @@ namespace LeaveON.Controllers
       //ADUser = "nouman.sial@intechww.com";
       //ADUser = "lms.dev02@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
-       //ali.raza@intechww.com
+      //ADUser = "Haseeb.hayat@intechww.com";
+      //ali.raza@intechww.com
 #endif
-       //var path = System.Web.HttpContext.Current.Server.MapPath(@"~/myLog.txt");
-       //var identityName = HttpContext.User.Identity.Name;
-       //using (HostingEnvironment.Impersonate())
-       //{
-       //  using (var context = new PrincipalContext(ContextType.Domain, "intechww.com", null, ContextOptions.Negotiate | ContextOptions.SecureSocketLayer))
-       //  using (var userPrincipal = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, @"NT AUTHORITY\IUSR"))
-       //  {
-       //    var emailAddress = userPrincipal.EmailAddress;
-       //    var lastname = userPrincipal.Surname;
-       //    var firstname = userPrincipal.GivenName;
-       //  }
-       //}
-       //string ab= User.Identity.Name;
-       //var identityName = HttpContext.User.Identity.Name;
+      //var path = System.Web.HttpContext.Current.Server.MapPath(@"~/myLog.txt");
+      //var identityName = HttpContext.User.Identity.Name;
+      //using (HostingEnvironment.Impersonate())
+      //{
+      //  using (var context = new PrincipalContext(ContextType.Domain, "intechww.com", null, ContextOptions.Negotiate | ContextOptions.SecureSocketLayer))
+      //  using (var userPrincipal = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, @"NT AUTHORITY\IUSR"))
+      //  {
+      //    var emailAddress = userPrincipal.EmailAddress;
+      //    var lastname = userPrincipal.Surname;
+      //    var firstname = userPrincipal.GivenName;
+      //  }
+      //}
+      //string ab= User.Identity.Name;
+      //var identityName = HttpContext.User.Identity.Name;
 
-       //System.IO.File.AppendAllLines(path, new List<string>(new string[] { identityName}));
+      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { identityName}));
 
-       //UserPrincipal currentUser = UserPrincipal.Current;
+      //UserPrincipal currentUser = UserPrincipal.Current;
 
-       //string Name1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-       //System.IO.File.AppendAllLines(path, new List<string>(new string[] { Name1 }));
+      //string Name1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { Name1 }));
 
-       //PrincipalContext ctx = new PrincipalContext(ContextType.Domain, "intechww.com");
-       //UserPrincipal user = UserPrincipal.FindByIdentity(ctx, HttpContext.Request.LogonUserIdentity.Name);
-       //string assdf = HttpContext.User.Identity.Name;
-       //System.IO.File.AppendAllLines(path, new List<string>(new string[] { user.Name.ToString(), assdf }));
+      //PrincipalContext ctx = new PrincipalContext(ContextType.Domain, "intechww.com");
+      //UserPrincipal user = UserPrincipal.FindByIdentity(ctx, HttpContext.Request.LogonUserIdentity.Name);
+      //string assdf = HttpContext.User.Identity.Name;
+      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { user.Name.ToString(), assdf }));
 
-       //List<string> loginsList = new List<string>();
-       ////string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-       ////string id4 = Request.LogonUserIdentity.Name;
-       ////PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-       ////UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
-       //loginsList.Add(currentUser.Name);
-       //loginsList.Add(currentUser.DisplayName);
-       //loginsList.Add(currentUser.GivenName);
-       //loginsList.Add(currentUser.SamAccountName);
-       //loginsList.Add(currentUser.UserPrincipalName);
+      //List<string> loginsList = new List<string>();
+      ////string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+      ////string id4 = Request.LogonUserIdentity.Name;
+      ////PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+      ////UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+      //loginsList.Add(currentUser.Name);
+      //loginsList.Add(currentUser.DisplayName);
+      //loginsList.Add(currentUser.GivenName);
+      //loginsList.Add(currentUser.SamAccountName);
+      //loginsList.Add(currentUser.UserPrincipalName);
 
-       //System.IO.File.AppendAllLines(path, loginsList);
+      //System.IO.File.AppendAllLines(path, loginsList);
 
 
-       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
+      AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
       //if (user != null)
       //{
       //  UserManager.AddToRoleAsync(user.Id, "User");
@@ -292,7 +293,7 @@ namespace LeaveON.Controllers
         //return View(model);
         return RedirectToAction("Error404", "Error");
       }
-    
+
       // This doesn't count login failures towards account lockout
       // To enable password failures to trigger account lockout, change to shouldLockout: true
 
@@ -304,7 +305,7 @@ namespace LeaveON.Controllers
       //var result = await SignInManager.PasswordSignInAsync("Mubashar.ali@intechww.com", "Leaves12*", model.RememberMe, shouldLockout: false);
       //var result = await SignInManager.PasswordSignInAsync("umer@tenf.loc", "Leaves12*", model.RememberMe, shouldLockout: false);
 
-     
+
 
       //-----------------------
       switch (result)
