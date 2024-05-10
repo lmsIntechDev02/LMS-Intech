@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using TimeManagement.Models;
 
@@ -52,7 +51,7 @@ namespace LeaveON.Controllers
       foreach (int Id in UserIds)
       {
         int UserId = Id;
-       
+
         cmd = new SqlCommand("select user_id,devdt,bsevtdt,DEVID,devnm from punchlog where USER_ID ='" + UserId + "' and devdt BETWEEN '" + reqDate1.ToString("yyyy-MM-dd") + "' AND '" + reqDate2.ToString("yyyy-MM-dd") + "' order by devdt", con);//last good
 
         dr = cmd.ExecuteReader();
@@ -422,7 +421,7 @@ namespace LeaveON.Controllers
             LstTimeData.Add(attendance);
           }
         }
-    // print it or whatever
+        // print it or whatever
 
 
 
@@ -899,13 +898,13 @@ namespace LeaveON.Controllers
         //-----------------------------------
         TimeData timeData = null;
         string abc = "abc";
-        if( UserId==2205)
+        if (UserId == 2205)
         {
           abc = "";
         }
         foreach (DateTime day in EachDay(reqDate1, reqDate2.AddDays(-1)))
         {
-          timeData = LstTimeData.FirstOrDefault(x => x.Date == day.Date && x.EmployeeNumber==UserId);
+          timeData = LstTimeData.FirstOrDefault(x => x.Date == day.Date && x.EmployeeNumber == UserId);
           if (timeData == null && day.DayOfWeek != DayOfWeek.Saturday && day.DayOfWeek != DayOfWeek.Sunday)
           {
             mm = firstDateTime.Month.ToString("00");
@@ -915,7 +914,7 @@ namespace LeaveON.Controllers
             attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = blankDateTime, Day = blankDateTime.DayOfWeek.ToString(), Status = "Absent" };
             LstTimeData.Add(attendance);
           }
-          else if (timeData !=null &&  timeData.EmployeeNumber == UserId && (day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday))
+          else if (timeData != null && timeData.EmployeeNumber == UserId && (day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday))
           {
             timeData.Status = "Weekend";
             //mm = firstDateTime.Month.ToString("00");
@@ -966,13 +965,9 @@ namespace LeaveON.Controllers
     }
     private Task<List<TimeData>> ConnectToDBandReturnWorkingHours(string ReqMonthYear, List<int> UserIds)
     {
-
-      //ReqMonthYear = "07-2019";
-
-      List<string> dateAttr = ReqMonthYear.Split('-').ToList(); 
+      List<string> dateAttr = ReqMonthYear.Split('-').ToList();
       string countryName = string.Empty;
       string previousCountryName = string.Empty;
-      //string connection = @"Data Source=10.1.10.28;Initial Catalog=BiostarAC;User Id=sa;Password=@Intech#123;";
       string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
       SqlConnection con = new SqlConnection(connection);
       SqlCommand cmd;
@@ -1075,7 +1070,7 @@ namespace LeaveON.Controllers
           dtrw[5] = dr["devnm"];
           dt.Rows.Add(dtrw);
           //this will add the row at the end of the datatable
-         //This step is repeated for each row returned by the SQL query, building up the attendance data for the user.
+          //This step is repeated for each row returned by the SQL query, building up the attendance data for the user.
         }
 
 
@@ -1094,9 +1089,9 @@ namespace LeaveON.Controllers
 
         /*
          
-         Initialization of Variables for Attendance Calculation:
-          Variables like firstDateTime, lastDateTime, firstDay, lastDay, and counters are initialized. 
-          These will be used to track the dates, times, and other details for each punch.
+        Initialization of Variables for Attendance Calculation:
+        Variables like firstDateTime, lastDateTime, firstDay, lastDay, and counters are initialized. 
+        These will be used to track the dates, times, and other details for each punch.
 
         */
         DateTime firstDateTime = (DateTime)dt.Rows[0]["devdt"];//ConvertToCountryTimeZone(dt, 0, timeZone);//(DateTime)dt.Rows[0]["SRVDT"];
@@ -1130,7 +1125,7 @@ namespace LeaveON.Controllers
           {
             timeZone = "W. Central Africa Standard Time";
             countryName = "Nigeria Port Harcourt";
-          } 
+          }
           else
           {
             switch (shortCountryName)
@@ -1227,7 +1222,7 @@ namespace LeaveON.Controllers
               {
                 countryChanged = true;
               }
-              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryChanged ? previousCountryName : countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName  };
+              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryChanged ? previousCountryName : countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName };
 
               LstTimeData.Add(attendance);
               TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
@@ -1244,7 +1239,7 @@ namespace LeaveON.Controllers
           k = j + 1;
 
           //get actual working hour of this date
-         
+
           if ((k <= rowsCount - 1) && LstCardReadersIn.Contains((int)dt.Rows[j]["DEVID"]) && !LstCardReadersIn.Contains((int)dt.Rows[k]["DEVID"]) &&
             Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
           {
@@ -1282,51 +1277,7 @@ namespace LeaveON.Controllers
         }
 
         ////Leaves Processing
-        //List<Leave> thisMonthsLeaves = dbLeaveOn.Leaves.Where(x => x.StartDate.Day >= 1 && x.EndDate.Day <= ThisMonthTotalDays && x.StartDate.Month == reqDate.Month && x.StartDate.Year == reqDate.Year && x.UserId == aspNetUser.Id).ToList<Leave>();
         List<TimeData> offDays = new List<TimeData>();
-
-        ////------get Leave days
-        //int iEmpNum = aspNetUser.BioStarEmpNum.Value;
-        //if (aspNetUser.UserLeavePolicyId != null)
-        //{
-        //  int UserLeavePolicyId = aspNetUser.UserLeavePolicyId.Value;
-        //  foreach (Leave leave in thisMonthsLeaves)
-        //  {
-        //    for (int i = 0; i < (leave.EndDate - leave.StartDate).TotalDays + 1; i++)
-        //    {
-        //      var leaveName = dbLeaveOn.LeaveTypes.Where(x => x.Id == leave.LeaveTypeId).Select(x => x.Name).FirstOrDefault();
-        //      TimeData leaveDay = new TimeData
-        //      {
-        //        EmployeeName = UserName,
-        //        EmployeeNumber = leave.AspNetUser.BioStarEmpNum.Value,
-        //        TimeZone = countryName,
-        //        Policy = userLeavePolicyDescription,
-        //        Date = leave.StartDate.AddDays(i),
-        //        Day = leave.StartDate.AddDays(i).ToString("dddd"),
-        //        Status = leaveName,
-        //      };
-        //      offDays.Add(leaveDay);
-        //    }
-        //  }
-
-        //  //------get natioanl holidays
-        //  foreach (AnnualOffDay annualHoliday in dbLeaveOn.AnnualOffDays.Where(x => x.OffDay.Value.Month == reqDate.Month && x.OffDay.Value.Year == reqDate.Year && x.UserLeavePolicyId == UserLeavePolicyId).ToList<AnnualOffDay>())
-        //  {
-        //    TimeData annualOff = new TimeData
-        //    {
-        //      EmployeeName = UserName,
-        //      EmployeeNumber = iEmpNum,
-        //      TimeZone = countryName,
-        //      Policy = userLeavePolicyDescription,
-        //      Date = annualHoliday.OffDay.Value,
-        //      Day = annualHoliday.OffDay.Value.ToString("dddd"),
-        //      Status = annualHoliday.Description
-        //    };
-        //    offDays.Add(annualOff);
-        //  }
-
-        //}
-        
         List<int> LstThisMonthsWeekEnds = new List<int>();
         if (aspNetUser.UserLeavePolicy == null || string.IsNullOrEmpty(aspNetUser.UserLeavePolicy.WeeklyOffDays))
         {
@@ -1347,7 +1298,6 @@ namespace LeaveON.Controllers
           }
           else
           {
-
             DateTime weekEndDate = DateTime.ParseExact(dateAttr[1] + "/" + dateAttr[0] + "/" + weekEndDay.ToString("00"), "yyyy/MM/dd", CultureInfo.InvariantCulture);
             TimeData weekEndOffDate = new TimeData
             {
@@ -1364,7 +1314,7 @@ namespace LeaveON.Controllers
           }
         }
         LstTimeData.AddRange(offDays);
-        
+
 
         for (int absentDay = 1; absentDay <= ThisMonthTotalDays; absentDay++)
         {
@@ -1408,7 +1358,7 @@ namespace LeaveON.Controllers
       LstThisMonthsWeekEnds.Sort();
       return LstThisMonthsWeekEnds;
     }
-    private DateTime ConvertToCountryTimeZoneNew(DataTable dt, int rowNo, string timeZone)
+    public DateTime ConvertToCountryTimeZoneNew(DataTable dt, int rowNo, string timeZone)
     {
       TimeZoneInfo customeTimeZone;
       DateTime ConvertedDateTime;
@@ -1526,7 +1476,6 @@ namespace LeaveON.Controllers
     public async Task<ActionResult> UserData(string ReqMonthYear, string UserId)
     {
       ViewBag.MonthSelectList = GetMonthSelectList();
-      //ViewBag.SelectedMonth = monthSelectList[0];
       DateTime reqDate;
       int dEmpNum;
 
@@ -1535,59 +1484,36 @@ namespace LeaveON.Controllers
       {
 
         dEmpNum = int.Parse(UserId);
-        //user.DepartmentId;//User.Identity.GetUserId();//
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
                                  System.Globalization.CultureInfo.CurrentCulture);
-        //reqDate = reqDate.AddYears(-2);
       }
       else
       {
         //in case of empty parameters or First Time
-
         reqDate = DateTime.Now;
         string userId = User.Identity.GetUserId();
         dEmpNum = (int)dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum;
-        //dUserId = decimal.Parse(userId);
-        //dUserId = (decimal)dbBioStar.UD_TB_AD_USER.FirstOrDefault(x => x.EmployeeNumber == dUserId).EmployeeNumber;
 
         List<string> SelectedEmps = new List<string>();
         SelectedEmps.Add(dEmpNum.ToString());
         ViewBag.SelectedEmployees = SelectedEmps;
-        //ViewBag.Employees = new SelectList(dbBioStar.UD_TB_AD_USER, "EmployeeNumber", "EmployeeName");
         ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
 
       }
 
-      //IQueryable<UD_TB_AccessTime_Data> empData = null;
-      //List<UD_TB_AccessTime_Data> LstEmpData = null;
 
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
-        //var identity = (ClaimsIdentity)User.Identity;
-        //IEnumerable<Claim> claims = identity.Claims;
-        //Claim claim = claims.Where(x => x.Value == DepartmentId).FirstOrDefault();
-
-        //if (claim is null) return null;
-
-
-
-        //string userId = User.Identity.GetUserId();
-
-        //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
-
-        //IQueryable<UD_TB_AccessTime_Data> allUsersData = null;
+        //
         List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.BioStarEmpNum == dEmpNum).ToList<AspNetUser>();
         string GuidUserId = users[0].Id;
         List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-        //foreach (AspNetUser user in users)
-        //{
         string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
         List<int> User_Ids = new List<int>();
         User_Ids.Add(dEmpNum);
         LstAttendances = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, User_Ids);
 
       }
-      //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
       if (string.IsNullOrEmpty(ReqMonthYear))
       {
         //in case of null param or first time
@@ -1605,8 +1531,6 @@ namespace LeaveON.Controllers
       {
         return PartialView("_UserData", LstAttendances.OrderBy(i => i.Date).ToList());
       }
-
-      //return View();
     }
     public List<SelectListItem> GetMonthSelectList()
     {
@@ -1712,7 +1636,7 @@ namespace LeaveON.Controllers
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> CountriesData(string startDate, string endDate, string CountryName)
     {
-      
+
       //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
       //                                 System.Globalization.CultureInfo.InvariantCulture);
       ViewBag.MonthSelectList = GetMonthSelectList();
@@ -1755,8 +1679,8 @@ namespace LeaveON.Controllers
         //string ReqMonthYearFormated = startDate + "," + endDate; 
         depData = await ConnectToDBandReturnCountriesData(startDate, endDate, userIds);
       }
-      
-     
+
+
       //return View(await db.Attendance.ToListAsync());
       if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
       {
@@ -2158,6 +2082,5 @@ namespace LeaveON.Controllers
 
       return View("_UserDataToday", await Task.FromResult(LstAttendances));
     }
-
   }
 }
