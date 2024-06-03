@@ -370,8 +370,36 @@ namespace LeaveON.Controllers
     }
     public void CalculateAndChangeLeaveBalance(ref Leave leave)
     {
-      ///////////////
+      // Calculate the leave balance
       LeaveBalance leaveBalance = CalculateLeaveBalance(ref leave);
+
+      if (leave.LeaveTypeId != 7 && leave.LeaveTypeId != 8)
+      {
+        // Update the attendance records to reflect the leave
+        // Extract necessary data into local variables
+        var empNum = leave.AspNetUser.BioStarEmpNum;
+        var startDate = leave.StartDate;
+        var endDate = leave.EndDate;
+        var leaveType = leave.LeaveType.Name;
+        var leaveTypeID = leave.LeaveTypeId;
+
+        var attendanceRecordsToUpdate = db.AttendanceDatas
+            .Where(ad => ad.EmployeeID == empNum
+                         && ad.CreatedDate >= startDate
+                         && ad.CreatedDate <= endDate)
+            .ToList();
+
+        foreach (var record in attendanceRecordsToUpdate)
+        {
+          record.IsLeave = true;
+          record.LeaveType = leaveType;
+          record.LeaveTypeID = leaveTypeID;
+
+
+        }
+
+        db.SaveChanges();
+      }
 
       if (leaveBalance == null)
       {

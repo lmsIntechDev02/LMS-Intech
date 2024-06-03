@@ -91,9 +91,9 @@ namespace LeaveON.Controllers
       ViewBag.LeaveUserId = userId;
       ViewBag.FiscalYearStart = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearStart;
       ViewBag.FiscalYearEnd = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearEnd;
-      //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");
-      //var result= UserLeavePolicies.Edit(7);
-      //ViewBag.UserLeavePolicy= UserLeavePolicies.Edit(7);
+     
+      ViewBag.ShortLeaveMessage = "test message";
+
       return View();
     }
 
@@ -232,7 +232,7 @@ namespace LeaveON.Controllers
       leave.DateCreated = DateTime.Now;
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
-
+      var shortLeaveMessage = "";
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
         leave.IsShortLeave = true;
@@ -242,6 +242,9 @@ namespace LeaveON.Controllers
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == 1)//sick casual leave
           .Select(detail => detail.Balance).FirstOrDefault();
+
+        shortLeaveMessage = "Your Remannig Sick/Casual Leave Balance is" + balanceCheck;
+
 
         if (balanceCheck <= 0)
         {
@@ -366,7 +369,7 @@ namespace LeaveON.Controllers
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
-
+      ViewBag.ShortLeaveMessage = shortLeaveMessage;
       return View(leave);
     }
     // POST: Leaves/Create

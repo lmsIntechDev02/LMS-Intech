@@ -188,10 +188,12 @@ namespace LeaveON.Controllers
       //ADUser = "testing@intechww.com";
       //ADUser = "Muzammil.Riaz@intechww.com";
       //ADUser = "laiba.khan@intechww.com";
-      //ADUser = "nouman.sial@intechww.com";
+      ADUser = "nouman.sial@intechww.com";
       //ADUser = "lms.dev02@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
-      ADUser = "Haseeb.hayat@intechww.com";
+      //ADUser = "Haseeb.hayat@intechww.com";
+      //ADUser = "haseeb.aslam@intechww.com";
+      //ADUser = "Khawaja.jawad@intechww.com";
        //ali.raza@intechww.com
 #endif
       //var path = System.Web.HttpContext.Current.Server.MapPath(@"~/myLog.txt");

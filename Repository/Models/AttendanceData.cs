@@ -30,5 +30,6 @@ namespace Repository.Models
         public Nullable<int> LeaveTypeID { get; set; }
         public string LeaveType { get; set; }
         public Nullable<bool> IsLeave { get; set; }
+        public string CountryName { get; set; }
     }
 }

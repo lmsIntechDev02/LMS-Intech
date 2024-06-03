@@ -154,10 +154,10 @@ namespace LeaveON.Controllers
         TimeSpan ThidDayWorkingHours = new TimeSpan();
         //string depName = string.Empty;
         int k = 0;//-1;
-        //for (int k = dayCounter; k < thisDay; k++)
-        //{
-        //  LstEmptyDays.Add(k);
-        //}
+                  //for (int k = dayCounter; k < thisDay; k++)
+                  //{
+                  //  LstEmptyDays.Add(k);
+                  //}
 
         for (int j = 0; j <= rowsCount - 1; j++)
         {
@@ -222,7 +222,7 @@ namespace LeaveON.Controllers
           //------get actual working hour of this date--------
           //if ((j + 1 <= rowsCount - 1) && (int)dt.Rows[j]["TNAKEY"] == 1 && (int)dt.Rows[j + 1]["TNAKEY"] == 2 &&
           if ((k <= rowsCount - 1) && LstCardReadersIn.Contains((int)dt.Rows[j]["DEVID"]) && !LstCardReadersIn.Contains((int)dt.Rows[k]["DEVID"]) &&
-            Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
+          Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
           {
             if (IsCardIn == false)
             {//get first time in
@@ -416,7 +416,7 @@ namespace LeaveON.Controllers
             mm = firstDateTime.Month.ToString("00");
             yy = firstDateTime.Year.ToString();
             blankDateTime = day;//DateTime.ParseExact(yy + "/" + mm + "/" + absentDay.ToString("00"), "yyyy/MM/dd", CultureInfo.InvariantCulture);
-            //depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
+                                //depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
             attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = blankDateTime, Day = blankDateTime.DayOfWeek.ToString(), Status = "Absent" };
             LstTimeData.Add(attendance);
           }
@@ -581,10 +581,10 @@ namespace LeaveON.Controllers
         TimeSpan ThidDayWorkingHours = new TimeSpan();
         //string depName = string.Empty;
         int k = 0;//-1;
-        //for (int k = dayCounter; k < thisDay; k++)
-        //{
-        //  LstEmptyDays.Add(k);
-        //}
+                  //for (int k = dayCounter; k < thisDay; k++)
+                  //{
+                  //  LstEmptyDays.Add(k);
+                  //}
 
         for (int j = 0; j <= rowsCount - 1; j++)
         {
@@ -710,7 +710,7 @@ namespace LeaveON.Controllers
           //------get actual working hour of this date--------
           //if ((j + 1 <= rowsCount - 1) && (int)dt.Rows[j]["TNAKEY"] == 1 && (int)dt.Rows[j + 1]["TNAKEY"] == 2 &&
           if ((k <= rowsCount - 1) && LstCardReadersIn.Contains((int)dt.Rows[j]["DEVID"]) && !LstCardReadersIn.Contains((int)dt.Rows[k]["DEVID"]) &&
-            Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
+          Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
           {
             if (IsCardIn == false)
             {//get first time in
@@ -910,7 +910,7 @@ namespace LeaveON.Controllers
             mm = firstDateTime.Month.ToString("00");
             yy = firstDateTime.Year.ToString();
             blankDateTime = day;//DateTime.ParseExact(yy + "/" + mm + "/" + absentDay.ToString("00"), "yyyy/MM/dd", CultureInfo.InvariantCulture);
-            //depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
+                                //depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
             attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = blankDateTime, Day = blankDateTime.DayOfWeek.ToString(), Status = "Absent" };
             LstTimeData.Add(attendance);
           }
@@ -1088,7 +1088,7 @@ namespace LeaveON.Controllers
         if (rowsCount <= 0) continue;
 
         /*
-         
+
         Initialization of Variables for Attendance Calculation:
         Variables like firstDateTime, lastDateTime, firstDay, lastDay, and counters are initialized. 
         These will be used to track the dates, times, and other details for each punch.
@@ -1241,7 +1241,7 @@ namespace LeaveON.Controllers
           //get actual working hour of this date
 
           if ((k <= rowsCount - 1) && LstCardReadersIn.Contains((int)dt.Rows[j]["DEVID"]) && !LstCardReadersIn.Contains((int)dt.Rows[k]["DEVID"]) &&
-            Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
+          Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
           {
             if (IsCardIn == false)
             {
@@ -1315,17 +1315,36 @@ namespace LeaveON.Controllers
         }
         LstTimeData.AddRange(offDays);
 
-
-        for (int absentDay = 1; absentDay <= ThisMonthTotalDays; absentDay++)
+        for (int day = 1; day <= ThisMonthTotalDays; day++)
         {
-          if (LstTimeData.FirstOrDefault(x => x.Date.Day == absentDay) == null)
+          DateTime currentDay = new DateTime(reqDate.Year, reqDate.Month, day);
+          var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Day == day);
+          var annualOffDay = dbLeaveOn.AnnualOffDays.FirstOrDefault(x => x.OffDay.HasValue && x.OffDay == currentDay && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
+
+          if (timeDataForDay == null) // Employee was absent
           {
-            blankDateTime = DateTime.ParseExact(dateAttr[1] + "/" + dateAttr[0] + "/" + absentDay.ToString("00"), "yyyy/MM/dd", CultureInfo.InvariantCulture);
-            depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
-            attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = blankDateTime, Day = blankDateTime.DayOfWeek.ToString(), Status = "Absent" };
+            string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
+            depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
+
+            attendance = new TimeData()
+            {
+              EmployeeName = UserName,
+              EmployeeNumber = UserId,
+              TimeZone = countryName,
+              Policy = userLeavePolicyDescription,
+              Department = depName,
+              Date = annualOffDay?.OffDay ?? currentDay,
+              Day = (annualOffDay?.OffDay ?? currentDay).DayOfWeek.ToString(),
+              Status = status
+            };
             LstTimeData.Add(attendance);
           }
+          else if (annualOffDay != null) // Employee worked on an annual holiday
+          {
+            timeDataForDay.Status = annualOffDay.Description; // Append 'Worked' to the holiday description
+          }
         }
+
       }
       //to avaid showing current month all data which is not happend yet
       foreach (var itm in LstTimeData.ToList())
@@ -1485,7 +1504,7 @@ namespace LeaveON.Controllers
 
         dEmpNum = int.Parse(UserId);
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
-                                 System.Globalization.CultureInfo.CurrentCulture);
+              System.Globalization.CultureInfo.CurrentCulture);
       }
       else
       {
@@ -1571,7 +1590,7 @@ namespace LeaveON.Controllers
         //intDepartmentId = int.Parse(DepartmentId);
         //user.DepartmentId;//User.Identity.GetUserId();//
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
-                                 System.Globalization.CultureInfo.CurrentCulture);
+              System.Globalization.CultureInfo.CurrentCulture);
         //reqDate = reqDate.AddYears(-2);
       }
       else
@@ -1801,7 +1820,7 @@ namespace LeaveON.Controllers
         //intDepartmentId = int.Parse(DepartmentId);
         //user.DepartmentId;//User.Identity.GetUserId();//
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
-                                 System.Globalization.CultureInfo.CurrentCulture);
+              System.Globalization.CultureInfo.CurrentCulture);
         //reqDate = reqDate.AddYears(-2);
         dEmpNum = int.Parse(UserId);
       }
@@ -1888,9 +1907,9 @@ namespace LeaveON.Controllers
         //intDepartmentId = int.Parse(DepartmentId);
         //user.DepartmentId;//User.Identity.GetUserId();//
         reqFromDate = DateTime.ParseExact(ReqFromMonth, "MM-yyyy",
-                                 System.Globalization.CultureInfo.CurrentCulture);
+              System.Globalization.CultureInfo.CurrentCulture);
         reqToDate = DateTime.ParseExact(ReqToMonth, "MM-yyyy",
-                                 System.Globalization.CultureInfo.CurrentCulture);
+              System.Globalization.CultureInfo.CurrentCulture);
         //reqDate = reqDate.AddYears(-2);
       }
       else

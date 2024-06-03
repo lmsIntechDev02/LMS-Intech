@@ -36,6 +36,7 @@
           <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="ClaimType" Type="nvarchar(max)" />
           <Property Name="ClaimValue" Type="nvarchar(max)" />
+          <Property Name="isReportEmail" Type="bit" />
         </EntityType>
         <EntityType Name="AspNetUserLogins">
           <Key>
@@ -105,6 +106,7 @@
           <Property Name="LeaveTypeID" Type="int" />
           <Property Name="LeaveType" Type="varchar" MaxLength="255" />
           <Property Name="IsLeave" Type="bit" />
+          <Property Name="CountryName" Type="varchar" MaxLength="255" />
         </EntityType>
         <EntityType Name="CountryNames">
           <Key>
@@ -149,6 +151,7 @@
           <Property Name="DateCreated" Type="datetime" />
           <Property Name="DateModified" Type="datetime" />
           <Property Name="IsShortLeave" Type="bit" />
+          <Property Name="UserLeavePolicyID" Type="int" />
         </EntityType>
         <EntityType Name="LeaveBalance">
           <Key>
@@ -555,6 +558,7 @@
           <Property Name="ClaimType" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="ClaimValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUserClaim" ToRole="AspNetUser" />
+          <Property Name="isReportEmail" Type="Boolean" />
         </EntityType>
         <EntityType Name="AspNetUserLogin">
           <Key>
@@ -651,6 +655,7 @@
           <Property Name="DateModified" Type="DateTime" Precision="3" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
           <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="Leave" ToRole="LeaveType" />
+          <Property Name="UserLeavePolicyID" Type="Int32" />
         </EntityType>
         <EntityType Name="LeaveBalance">
           <Key>
@@ -911,6 +916,7 @@
           <Property Name="LeaveTypeID" Type="Int32" />
           <Property Name="LeaveType" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="IsLeave" Type="Boolean" />
+          <Property Name="CountryName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
         </EntityType>
         </Schema>
     </edmx:ConceptualModels>
@@ -947,6 +953,7 @@
           <EntitySetMapping Name="AspNetUserClaims">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUserClaim">
               <MappingFragment StoreEntitySet="AspNetUserClaims">
+                <ScalarProperty Name="isReportEmail" ColumnName="isReportEmail" />
                 <ScalarProperty Name="ClaimValue" ColumnName="ClaimValue" />
                 <ScalarProperty Name="ClaimType" ColumnName="ClaimType" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
@@ -1014,6 +1021,7 @@
           <EntitySetMapping Name="Leaves">
             <EntityTypeMapping TypeName="LeaveONModels.Leave">
               <MappingFragment StoreEntitySet="Leave">
+                <ScalarProperty Name="UserLeavePolicyID" ColumnName="UserLeavePolicyID" />
                 <ScalarProperty Name="DateModified" ColumnName="DateModified" />
                 <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
                 <ScalarProperty Name="Remarks2" ColumnName="Remarks2" />
@@ -1104,6 +1112,7 @@
           <EntitySetMapping Name="AttendanceDatas">
             <EntityTypeMapping TypeName="LeaveONModels.AttendanceData">
               <MappingFragment StoreEntitySet="AttendanceData">
+                <ScalarProperty Name="CountryName" ColumnName="CountryName" />
                 <ScalarProperty Name="IsLeave" ColumnName="IsLeave" />
                 <ScalarProperty Name="LeaveType" ColumnName="LeaveType" />
                 <ScalarProperty Name="LeaveTypeID" ColumnName="LeaveTypeID" />
