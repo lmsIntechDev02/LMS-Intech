@@ -36,6 +36,7 @@
           <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="ClaimType" Type="nvarchar(max)" />
           <Property Name="ClaimValue" Type="nvarchar(max)" />
+          <Property Name="isReportEmail" Type="bit" />
         </EntityType>
         <EntityType Name="AspNetUserLogins">
           <Key>
@@ -84,6 +85,8 @@
           <Property Name="IsRelocated" Type="bit" Nullable="false" />
           <Property Name="EmpolyeeName" Type="nvarchar(max)" />
           <Property Name="Gender" Type="bit" Nullable="false" />
+          <Property Name="ManagerID" Type="nvarchar" MaxLength="128" />
+          <Property Name="ManagerName" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="CountryNames">
           <Key>
@@ -533,6 +536,7 @@
           <Property Name="ClaimType" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="ClaimValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUserClaim" ToRole="AspNetUser" />
+          <Property Name="isReportEmail" Type="Boolean" />
         </EntityType>
         <EntityType Name="AspNetUserLogin">
           <Key>
@@ -581,6 +585,8 @@
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
           <NavigationProperty Name="AspNetRoles" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
           <Property Name="Gender" Type="Boolean" Nullable="false" />
+          <Property Name="ManagerID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -905,6 +911,7 @@
           <EntitySetMapping Name="AspNetUserClaims">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUserClaim">
               <MappingFragment StoreEntitySet="AspNetUserClaims">
+                <ScalarProperty Name="isReportEmail" ColumnName="isReportEmail" />
                 <ScalarProperty Name="ClaimValue" ColumnName="ClaimValue" />
                 <ScalarProperty Name="ClaimType" ColumnName="ClaimType" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
@@ -924,6 +931,8 @@
           <EntitySetMapping Name="AspNetUsers">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUser">
               <MappingFragment StoreEntitySet="AspNetUsers">
+                <ScalarProperty Name="ManagerName" ColumnName="ManagerName" />
+                <ScalarProperty Name="ManagerID" ColumnName="ManagerID" />
                 <ScalarProperty Name="Gender" ColumnName="Gender" />
                 <ScalarProperty Name="EmpolyeeName" ColumnName="EmpolyeeName" />
                 <ScalarProperty Name="IsRelocated" ColumnName="IsRelocated" />

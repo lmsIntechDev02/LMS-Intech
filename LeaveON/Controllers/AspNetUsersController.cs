@@ -9,6 +9,7 @@ using System.Web;
 using System.Web.Mvc;
 using Repository.Models;
 using LeaveON.UtilityClasses;
+using System.Globalization;
 
 namespace LeaveON.Controllers
 {
@@ -52,7 +53,7 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Create([Bind(Include = "Id,Hometown,Email,EmailConfirmed,PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentId")] AspNetUser aspNetUser)
+    public async Task<ActionResult> Create([Bind(Include = "Id,Hometown,Email,EmailConfirmed,PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentId, ManagerID, ManagerName")] AspNetUser aspNetUser)
     {
       if (ModelState.IsValid)
       {
@@ -94,6 +95,10 @@ namespace LeaveON.Controllers
       }
 
       ViewBag.CountryNames = new SelectList(db.CountryNames, "Name", "Name", aspNetUser.CountryName);
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+      //ViewBag.DepartmentId = new SelectList(db.DepartmentNames, "Id", "Name", aspNetUser.DepartmentId);
       //ViewBag.DepartmentId = new SelectList(db.DepartmentNames, "Id", "Name", aspNetUser.DepartmentId);
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
       return View(aspNetUser);
@@ -104,36 +109,30 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentId,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated")] AspNetUser aspNetUser)//,int CountryId)
+    public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentId,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName")] AspNetUser aspNetUser)
     {
       aspNetUser.DateModified = DateTime.Now;
+      var managerNameQuery = db.AspNetUsers
+                          .Where(u => u.Id == aspNetUser.ManagerID)
+                          .Select(u => u.UserName)
+                          .FirstOrDefault();
 
+      aspNetUser.ManagerName = managerNameQuery.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " ") ?? "No Manager";
       if (ModelState.IsValid)
       {
-        //db.Entry(aspNetUser).State = EntityState.Modified;
         db.AspNetUsers.Attach(aspNetUser);
-
-        //db.Entry(aspNetUser).Property(x => x.Email).IsModified = true;
-        //db.Entry(aspNetUser).Property(x => x.UserName).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.DateModified).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.Remarks).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.Gender).IsModified = true;
-        //db.Entry(aspNetUser).Property(x => x.DepartmentId).IsModified = true;
-        //db.Entry(aspNetUser).Property(x => x.CountryId).IsModified = true;
-        //db.Entry(aspNetUser).Property(x => x.CntryName).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.ManagerID).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.ManagerName).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.UserLeavePolicyId).IsModified = true;
-        //db.Entry(aspNetUser).Property(x => x.BioStarEmpNum).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.CntryNameTemp).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.IsRelocated).IsModified = true;
-        //UserLeavePolicyId
-
-        //payment.PaymentMethod = collection.Get("TempName");//"Cash"; //cash//other
-        //payment.Remarks = collection.Get("CountryName.IsRelocated.HasValue");
         await db.SaveChangesAsync();
         await Utility.AdjustLeaveBalance((decimal)aspNetUser.UserLeavePolicyId);
         return RedirectToAction("Index");
       }
-      //ViewBag.DepartmentId = new SelectList(db.DepartmentNames, "Id", "Name", aspNetUser.DepartmentId);
       return View(aspNetUser);
     }
 

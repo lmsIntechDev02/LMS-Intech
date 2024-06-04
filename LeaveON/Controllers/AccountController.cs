@@ -188,7 +188,7 @@ namespace LeaveON.Controllers
       //ADUser = "testing@intechww.com";
       //ADUser = "Muzammil.Riaz@intechww.com";
       //ADUser = "laiba.khan@intechww.com";
-      //ADUser = "nouman.sial@intechww.com";
+      ADUser = "nouman.sial@intechww.com";
       //ADUser = "lms.dev02@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
       //ADUser = "Haseeb.hayat@intechww.com";
@@ -269,50 +269,16 @@ namespace LeaveON.Controllers
     //public async Task<ActionResult> Login(LoginViewModel model, string returnUrl, FormCollection formCollection)
     public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
     {
-      //string abc =User.Identity.Name;
-      //List<string> loginsList = new List<string>();
-      //string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-      //string id4 = Request.LogonUserIdentity.Name;
-
-      //PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-      //UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
-      //loginsList.Add(currentUser.Name);
-      //loginsList.Add(currentUser.DisplayName);
-      //loginsList.Add(currentUser.GivenName);
-      //loginsList.Add(currentUser.SamAccountName);
-      //loginsList.Add(currentUser.UserPrincipalName);
-
-
-
-      //var path = Server.MapPath(@"~/myLog.txt");
-      //System.IO.File.AppendAllLines(path, loginsList);
-
-
       if (!ModelState.IsValid)
       {
-        //return View(model);
         return RedirectToAction("Error404", "Error");
       }
 
-      // This doesn't count login failures towards account lockout
-      // To enable password failures to trigger account lockout, change to shouldLockout: true
-
-      //string userName = formCollection.Get("UserName");//"Cash"; //cash//other
-      //string IsAuthenticated = formCollection.Get("IsAuthenticated");
-
       var result = await SignInManager.PasswordSignInAsync(model.Email, "Leaves12*", model.RememberMe, shouldLockout: false);
-      //Mubashar.ali@intechww.com
-      //var result = await SignInManager.PasswordSignInAsync("Mubashar.ali@intechww.com", "Leaves12*", model.RememberMe, shouldLockout: false);
-      //var result = await SignInManager.PasswordSignInAsync("umer@tenf.loc", "Leaves12*", model.RememberMe, shouldLockout: false);
-
-
-
-      //-----------------------
       switch (result)
       {
         case SignInStatus.Success:
           return Redirect(returnUrl);
-        //return RedirectToAction("Index", "LeavesRequest");
         case SignInStatus.LockedOut:
           return View("Lockout");
         case SignInStatus.RequiresVerification:
@@ -320,7 +286,6 @@ namespace LeaveON.Controllers
         case SignInStatus.Failure:
         default:
           ModelState.AddModelError("", "Invalid login attempt.");
-          //return View(model);
           return RedirectToAction("Error404", "Error");
       }
     }

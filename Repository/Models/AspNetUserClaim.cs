@@ -18,6 +18,7 @@ namespace Repository.Models
         public string UserId { get; set; }
         public string ClaimType { get; set; }
         public string ClaimValue { get; set; }
+        public Nullable<bool> isReportEmail { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }
     }

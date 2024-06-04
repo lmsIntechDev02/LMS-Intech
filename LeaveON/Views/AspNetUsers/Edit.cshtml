@@ -130,6 +130,12 @@
       @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
 
     </div>
+    <div class="form-group">
+      @Html.LabelFor(model => model.ManagerID, "Manager", htmlAttributes: new { @class = " " })
+
+      @Html.DropDownList("ManagerID", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })
+      @Html.ValidationMessageFor(model => model.ManagerID, "", new { @class = "text-danger" })
+    </div>
 
     @*<div class="form-group">
       @Html.LabelFor(model => model.DateCreated, "Date Created", htmlAttributes: new { @class = " " })
