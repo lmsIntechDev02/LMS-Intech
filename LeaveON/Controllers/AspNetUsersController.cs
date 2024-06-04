@@ -112,12 +112,25 @@ namespace LeaveON.Controllers
     public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentId,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName")] AspNetUser aspNetUser)
     {
       aspNetUser.DateModified = DateTime.Now;
-      var managerNameQuery = db.AspNetUsers
-                          .Where(u => u.Id == aspNetUser.ManagerID)
-                          .Select(u => u.UserName)
-                          .FirstOrDefault();
+      var managerEmail = db.AspNetUsers
+                           .Where(u => u.Id == aspNetUser.ManagerID)
+                           .Select(u => u.UserName)
+                           .FirstOrDefault();
 
-      aspNetUser.ManagerName = managerNameQuery.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " ") ?? "No Manager";
+      // Check if the managerEmail is not null, then extract and format the name part
+      if (!string.IsNullOrEmpty(managerEmail))
+      {
+        // Extract the name part before the '@' and replace '.' with ' '
+        var namePart = managerEmail.Split('@')[0].Replace('.', ' ');
+
+        // Use CultureInfo to properly capitalize the first letter of each name part
+        aspNetUser.ManagerName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(namePart);
+      }
+      else
+      {
+        // If no managerEmail is found, default to "No Manager"
+        aspNetUser.ManagerName = "No Manager";
+      }
       if (ModelState.IsValid)
       {
         db.AspNetUsers.Attach(aspNetUser);
