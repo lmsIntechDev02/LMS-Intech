@@ -85,6 +85,12 @@
           <Property Name="IsRelocated" Type="bit" Nullable="false" />
           <Property Name="EmpolyeeName" Type="nvarchar(max)" />
           <Property Name="Gender" Type="bit" Nullable="false" />
+          <Property Name="ManagerID" Type="nvarchar" MaxLength="128" />
+          <Property Name="ManagerName" Type="nvarchar(max)" />
+          <Property Name="ManagerEmail" Type="nvarchar(max)" />
+          <Property Name="Manager2ID" Type="nvarchar" MaxLength="128" />
+          <Property Name="Manager2Name" Type="nvarchar(max)" />
+          <Property Name="Manager2Email" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="AttendanceData">
           <Key>
@@ -106,7 +112,9 @@
           <Property Name="LeaveTypeID" Type="int" />
           <Property Name="LeaveType" Type="varchar" MaxLength="255" />
           <Property Name="IsLeave" Type="bit" />
-          <Property Name="CountryName" Type="varchar" MaxLength="255" />
+          <Property Name="ManagerEmail" Type="nvarchar(max)" />
+          <Property Name="CountryName" Type="nvarchar(max)" />
+          <Property Name="Manager2Email" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="CountryNames">
           <Key>
@@ -607,6 +615,12 @@
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
           <NavigationProperty Name="AspNetRoles" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
           <Property Name="Gender" Type="Boolean" Nullable="false" />
+          <Property Name="ManagerID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerEmail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2ID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2Name" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -916,7 +930,9 @@
           <Property Name="LeaveTypeID" Type="Int32" />
           <Property Name="LeaveType" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="IsLeave" Type="Boolean" />
-          <Property Name="CountryName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="ManagerEmail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CountryName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         </Schema>
     </edmx:ConceptualModels>
@@ -973,6 +989,12 @@
           <EntitySetMapping Name="AspNetUsers">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUser">
               <MappingFragment StoreEntitySet="AspNetUsers">
+                <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
+                <ScalarProperty Name="Manager2Name" ColumnName="Manager2Name" />
+                <ScalarProperty Name="Manager2ID" ColumnName="Manager2ID" />
+                <ScalarProperty Name="ManagerEmail" ColumnName="ManagerEmail" />
+                <ScalarProperty Name="ManagerName" ColumnName="ManagerName" />
+                <ScalarProperty Name="ManagerID" ColumnName="ManagerID" />
                 <ScalarProperty Name="Gender" ColumnName="Gender" />
                 <ScalarProperty Name="EmpolyeeName" ColumnName="EmpolyeeName" />
                 <ScalarProperty Name="IsRelocated" ColumnName="IsRelocated" />
@@ -1112,7 +1134,9 @@
           <EntitySetMapping Name="AttendanceDatas">
             <EntityTypeMapping TypeName="LeaveONModels.AttendanceData">
               <MappingFragment StoreEntitySet="AttendanceData">
+                <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
                 <ScalarProperty Name="CountryName" ColumnName="CountryName" />
+                <ScalarProperty Name="ManagerEmail" ColumnName="ManagerEmail" />
                 <ScalarProperty Name="IsLeave" ColumnName="IsLeave" />
                 <ScalarProperty Name="LeaveType" ColumnName="LeaveType" />
                 <ScalarProperty Name="LeaveTypeID" ColumnName="LeaveTypeID" />

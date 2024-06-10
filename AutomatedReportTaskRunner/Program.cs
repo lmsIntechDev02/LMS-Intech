@@ -24,7 +24,7 @@ namespace AutomatedReportTaskRunner
             }
             else
             {
-                service.GetMonthlyReportData(4, 2024, true);
+                service.GetMonthlyReportData(5, 2024, false);
             }
             Console.WriteLine("Automated Report Made");
         }

@@ -23,7 +23,7 @@ namespace LeaveOnTaskRunner
 
             // Define specific start and end dates
             DateTime startDate = new DateTime(DateTime.Today.Year, 5, 1);  
-            DateTime endDate = new DateTime(DateTime.Today.Year, 5, 23);  
+            DateTime endDate = new DateTime(DateTime.Today.Year, 5, 31);  
 
             // Initialize the service
             AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved

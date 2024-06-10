@@ -225,7 +225,7 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id")] Leave leave, string StartDate)
+    public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id, UserLeavePolicyID")] Leave leave, string StartDate)
     {
       leave.UserId = User.Identity.GetUserId();
       leave.AspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
@@ -233,6 +233,7 @@ namespace LeaveON.Controllers
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
       var shortLeaveMessage = "";
+      leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
         leave.IsShortLeave = true;
@@ -279,7 +280,7 @@ namespace LeaveON.Controllers
         int daysCount = duration.Days + 1; //total days including weekends
         var balanceCheck = db.LeaveBalances
           .Where(leaveBalance =>
-            leaveBalance.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
+            leaveBalance.UserLeavePolicyId == leave.UserLeavePolicyID &&
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == leave.LeaveTypeId)
           .Select(detail => detail.Balance).FirstOrDefault();

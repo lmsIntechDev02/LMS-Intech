@@ -22,7 +22,7 @@
     <div class="col-12">
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Users List </h3>
+          <h3 class="card-title">Users List</h3>
 
 
         </div>
@@ -52,7 +52,12 @@
                       <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="UserName: activate to sort column ascending" aria-sort="descending">
                         @Html.DisplayNameFor(model => model.UserName)
                       </th>
-
+                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="ManagerID: activate to sort column ascending" aria-sort="descending">
+                        @Html.DisplayNameFor(model => model.ManagerName)
+                      </th>
+                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Manager2ID: activate to sort column ascending" aria-sort="descending">
+                        @Html.DisplayNameFor(model => model.Manager2Name)
+                      </th>
                       <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
                         @*@Html.DisplayNameFor(model => model.Department.Name)*@
                         Department
@@ -83,30 +88,35 @@
                   @foreach (var item in Model)
                   {
                 <tr role="row" class="odd">
-                
+
                   @*<td>
-                    @Html.DisplayFor(modelItem => item.Email)
-                  </td>*@
+      @Html.DisplayFor(modelItem => item.Email)
+    </td>*@
                   <td>
                     @Html.DisplayFor(modelItem => item.BioStarEmpNum)
                   </td>
- 
+
                   <td>
                     @Html.DisplayFor(modelItem => item.UserName)
                   </td>
-
+                  <td>
+                    @Html.DisplayFor(modelItem => item.ManagerName)
+                  </td>
+                  <td>
+                    @Html.DisplayFor(modelItem => item.Manager2Name)
+                  </td>
                   <td>
                     @if (item.DepartmentName != null)
                     {
-                  @Html.DisplayFor(modelItem => item.DepartmentName)}
+                      @Html.DisplayFor(modelItem => item.DepartmentName)}
 
                   </td>
                   <td>
                     @*@if (item.Country != null)
-                    {*@
-                      @Html.DisplayFor(modelItem => item.CntryName)
+      {*@
+                    @Html.DisplayFor(modelItem => item.CntryName)
                     @*}*@
-                    </td>
+                  </td>
                   <td>
                     @Html.DisplayFor(modelItem => item.CntryNameTemp)
                   </td>
@@ -115,7 +125,7 @@
                     {
                       @Html.DisplayFor(modelItem => item.UserLeavePolicy.Description)
                     }
-                    </td>
+                  </td>
                   <td>
                     @Html.DisplayFor(modelItem => item.DateCreated)
                   </td>
