@@ -998,14 +998,15 @@ namespace LeaveON.Controllers
 
         string UserName = string.Empty;
         string timeZone = string.Empty;
+        string userGuidId = string.Empty;
 
         AspNetUser aspNetUser = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum.Value == UserId);
-        //Fetches user-related data from dbLeaveOn.AspNetUsers based on UserId.
 
         //processing
         UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
         string depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
         string userLeavePolicyDescription = string.Empty;
+        userGuidId = aspNetUser.Id;
         if (aspNetUser.CountryName == null)
         { logg.Add(aspNetUser.UserName); dr.Close(); continue; }
         if (aspNetUser.UserLeavePolicy != null) userLeavePolicyDescription = aspNetUser.UserLeavePolicy.Description;
@@ -1022,7 +1023,6 @@ namespace LeaveON.Controllers
         }
         //Processes user data to get UserName, depName, timeZone, countryName, and leave policy data.
         //Checks for relocation and adjusts timeZone and countryName accordingly.
-
 
         //Creating and Filling the DataTable:
         DataColumn dc = new DataColumn("USER_ID", typeof(String));
@@ -1230,6 +1230,7 @@ namespace LeaveON.Controllers
             }
             //re-intiallize variables to next date calculations
             firsTimeIn = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//firstDateTime;//DateTime.Today;
+            
             lastTimeOut = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//lastDateTime;//DateTime.Today;
             ThidDayWorkingHours = new TimeSpan();
             IsCardIn = false; IsCardOut = false;
@@ -1320,10 +1321,26 @@ namespace LeaveON.Controllers
           DateTime currentDay = new DateTime(reqDate.Year, reqDate.Month, day);
           var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Day == day);
           var annualOffDay = dbLeaveOn.AnnualOffDays.FirstOrDefault(x => x.OffDay.HasValue && x.OffDay == currentDay && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
-
+          // Check for any leave that spans the current day
+          var leave = dbLeaveOn.Leaves.FirstOrDefault(x => x.StartDate <= currentDay && x.EndDate >= currentDay && x.IsAccepted1 != null && x.IsAccepted2 != null && x.UserId == userGuidId);
           if (timeDataForDay == null) // Employee was absent
           {
-            string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
+            string status = "Absent"; // Default to "Absent"
+                                      // Check for holiday and leave
+            if (annualOffDay != null)
+            {
+              status = annualOffDay.Description; // Holiday description
+            }
+            else if (leave != null)
+            {
+                // If a leave record exists, retrieve the corresponding leave type name
+                var leaveTypeName = dbLeaveOn.LeaveTypes
+                    .Where(l => l.Id == leave.LeaveTypeId)
+                    .Select(l => l.Name)
+                    .FirstOrDefault();
+                status = leaveTypeName; // Leave type ID if on leave
+            }
+            //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
             depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
 
             attendance = new TimeData()

@@ -34,18 +34,11 @@ namespace LeaveON.Services
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       string managerEmail = string.Empty;
+      string manager2Email = string.Empty;
       con.Open();
       foreach (int Id in userIds)
       {
           //"' and devdt BETWEEN '" + "2024-01-01" + "' AND '" + "2024-04-04" + "' order by devdt"
-          if(Id == 2434)
-          {
-            Console.WriteLine("Hello");
-          }
-          else
-          {
-            continue;
-          }
           int UserId = Id;//Assigns the current UserId for processing.//startDate.ToString("yyyy-MM-dd")
           cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + "and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
           dr = cmd.ExecuteReader();
@@ -60,7 +53,8 @@ namespace LeaveON.Services
 
           //processing
           UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
-          managerEmail = dbLeaveOn.AspNetUsers.Where(x => x.Id == aspNetUser.ManagerID).Select(x => x.UserName).FirstOrDefault(); ;
+          managerEmail = dbLeaveOn.AspNetUsers.Where(x => x.Id == aspNetUser.ManagerID).Select(x => x.UserName).FirstOrDefault();
+          manager2Email = dbLeaveOn.AspNetUsers.Where(x => x.Id == aspNetUser.Manager2ID).Select(x => x.UserName).FirstOrDefault();
           userGuidId = aspNetUser.Id;
           string depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
           string userLeavePolicyDescription = string.Empty;
@@ -487,6 +481,7 @@ namespace LeaveON.Services
           LeaveType = item.leaveType,
           CountryName = item.TimeZone,
           ManagerEmail= managerEmail,
+          Manager2Email= manager2Email,
         };
         dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
       }

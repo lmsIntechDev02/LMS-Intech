@@ -382,20 +382,18 @@ namespace LeaveON.Controllers
         var leaveType = leave.LeaveType.Name;
         var leaveTypeID = leave.LeaveTypeId;
 
-        var attendanceRecordsToUpdate = db.AttendanceDatas
-            .Where(ad => ad.EmployeeID == empNum
-                         && ad.CreatedDate >= startDate
-                         && ad.CreatedDate <= endDate)
-            .ToList();
+        //var attendanceRecordsToUpdate = db.AttendanceDatas
+        //    .Where(ad => ad.EmployeeID == empNum
+        //                 && ad.CreatedDate >= startDate
+        //                 && ad.CreatedDate <= endDate)
+        //    .ToList();
 
-        foreach (var record in attendanceRecordsToUpdate)
-        {
-          record.IsLeave = true;
-          record.LeaveType = leaveType;
-          record.LeaveTypeID = leaveTypeID;
-
-
-        }
+        //foreach (var record in attendanceRecordsToUpdate)
+        //{
+        //  record.IsLeave = true;
+        //  record.LeaveType = leaveType;
+        //  record.LeaveTypeID = leaveTypeID;
+        //}
 
         db.SaveChanges();
       }

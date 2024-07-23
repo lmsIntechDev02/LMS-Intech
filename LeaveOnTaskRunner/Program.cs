@@ -22,8 +22,8 @@ namespace LeaveOnTaskRunner
             //service.ConnectToDBandFillAttendanceData(yesterday, today);
 
             // Define specific start and end dates
-            DateTime startDate = new DateTime(DateTime.Today.Year, 5, 1);  
-            DateTime endDate = new DateTime(DateTime.Today.Year, 5, 31);  
+            DateTime startDate = new DateTime(DateTime.Today.Year - 1, 6, 1);  
+            DateTime endDate = new DateTime(DateTime.Today.Year - 1, 6, 30);  
 
             // Initialize the service
             AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved

@@ -181,6 +181,15 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="256" />
         </EntityType>
+        <EntityType Name="Managers">
+          <Key>
+            <PropertyRef Name="UserID" />
+          </Key>
+          <Property Name="UserID" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="BioStarEmpNum" Type="int" />
+          <Property Name="Email" Type="nvarchar" MaxLength="256" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="128" />
+        </EntityType>
         <EntityType Name="UserLeavePolicy">
           <Key>
             <PropertyRef Name="Id" />
@@ -401,6 +410,7 @@
           <EntitySet Name="Leave" EntityType="Self.Leave" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveBalance" EntityType="Self.LeaveBalance" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveType" EntityType="Self.LeaveType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Managers" EntityType="Self.Managers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicy" EntityType="Self.UserLeavePolicy" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicyDetail" EntityType="Self.UserLeavePolicyDetail" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_AnnualOffDays_UserLeavePolicy" Association="Self.FK_AnnualOffDays_UserLeavePolicy">
@@ -531,6 +541,7 @@
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
           <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
+          <EntitySet Name="Managers" EntityType="LeaveONModels.Manager" />
         </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -934,6 +945,15 @@
           <Property Name="CountryName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
+        <EntityType Name="Manager">
+          <Key>
+            <PropertyRef Name="UserID" />
+          </Key>
+          <Property Name="UserID" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="BioStarEmpNum" Type="Int32" />
+          <Property Name="Email" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="UserName" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1153,6 +1173,16 @@
                 <ScalarProperty Name="UserName" ColumnName="UserName" />
                 <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
                 <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Managers">
+            <EntityTypeMapping TypeName="LeaveONModels.Manager">
+              <MappingFragment StoreEntitySet="Managers">
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
+                <ScalarProperty Name="UserID" ColumnName="UserID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

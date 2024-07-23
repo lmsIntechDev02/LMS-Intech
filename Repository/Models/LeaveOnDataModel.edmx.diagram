@@ -33,6 +33,7 @@
         <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" />
         <AssociationConnector Association="LeaveONModels.AspNetUserRoles" />
         <EntityTypeShape EntityType="LeaveONModels.AttendanceData" Width="1.5" PointX="3.375" PointY="3.75" />
+        <EntityTypeShape EntityType="LeaveONModels.Manager" Width="1.5" PointX="5.375" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

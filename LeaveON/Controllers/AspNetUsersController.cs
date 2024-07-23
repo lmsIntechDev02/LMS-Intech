@@ -96,7 +96,8 @@ namespace LeaveON.Controllers
 
       ViewBag.CountryNames = new SelectList(db.CountryNames, "Name", "Name", aspNetUser.CountryName);
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
-      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != aspNetUser.UserName)
+      var currentEditUser = aspNetUser.UserName.Split('@')[0].Replace('.', ' ').ToLower();
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName.ToLower() != currentEditUser)
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
       ViewBag.Departments = new SelectList(db.DepartmentNames.OrderBy(x => x.Name), "Name", "Name");
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
@@ -111,6 +112,9 @@ namespace LeaveON.Controllers
     public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName, ManagerEmail, Manager2ID, Manager2Name, Manager2Email")] AspNetUser aspNetUser)
     {
       aspNetUser.DateModified = DateTime.Now;
+
+
+     
       var managerEmail = db.AspNetUsers
                            .Where(u => u.Id == aspNetUser.ManagerID)
                            .Select(u => u.UserName)
@@ -140,6 +144,37 @@ namespace LeaveON.Controllers
       {
         aspNetUser.Manager2Name = "No Manager";
       }
+      // Ensure Manager 1 exists
+      if (!string.IsNullOrEmpty(aspNetUser.ManagerID))
+      {
+        var managerExists = db.Managers.Any(m => m.UserID == aspNetUser.ManagerID);
+        if (!managerExists)
+        {
+          var newManager = new Manager
+          {
+            UserID = aspNetUser.ManagerID,
+            UserName = aspNetUser.ManagerName,
+            Email = aspNetUser.ManagerEmail
+          };
+          db.Managers.Add(newManager);
+        }
+      }
+
+      // Ensure Manager 2 exists
+      if (!string.IsNullOrEmpty(aspNetUser.Manager2ID))
+      {
+        var manager2Exists = db.Managers.Any(m => m.UserID == aspNetUser.Manager2ID);
+        if (!manager2Exists)
+        {
+          var newManager2 = new Manager
+          {
+            UserID = aspNetUser.Manager2ID,
+            UserName = aspNetUser.Manager2Name,
+            Email = aspNetUser.Manager2Email
+          };
+          db.Managers.Add(newManager2);
+        }
+      }
       if (ModelState.IsValid)
       {
         db.AspNetUsers.Attach(aspNetUser);
@@ -156,7 +191,16 @@ namespace LeaveON.Controllers
         db.Entry(aspNetUser).Property(x => x.UserLeavePolicyId).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.CntryNameTemp).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.IsRelocated).IsModified = true;
-        await db.SaveChangesAsync();
+
+        
+        try
+        {
+          await db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine("Hello", ex);
+        }
         await Utility.AdjustLeaveBalance((decimal)aspNetUser.UserLeavePolicyId);
         return RedirectToAction("Index");
       }

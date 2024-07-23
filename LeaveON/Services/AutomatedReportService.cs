@@ -14,274 +14,278 @@ using System.Globalization;
 namespace LeaveON.Services
 {
 
-    public class AutomatedReportService
+  public class AutomatedReportService
+  {
+    public const string LeavON_Email = "LMS@intechww.com";
+    public const string LeavON_Password = "Pakistan12345678*";
+    public class EmployeeReportData
     {
-        public const string LeavON_Email = "LMS@intechww.com";
-        public const string LeavON_Password = "Pakistan12345678*";
-        public class EmployeeReportData
-        {
-            public int? EmployeeID { get; set; }
-            public string EmployeeName { get; set; }
-            public string Department { get; set; }
-            public long? TotalWorkHours { get; set; }
-            public long? TotalBreakHours { get; set; }
-            public int LateArrivals { get; set; }
-            public int EarlyDepartures { get; set; }
-            public int AbsentDays { get; set; }
-            public int LeaveDays { get; set; }
-            public int WorkFromHomeDays { get; set; }
-            public int OfficialDaysOff { get; set; }
-            public string AverageTimeIn { get; set; }
-            public string AverageTimeOut { get; set; }
-            public string CountryName { get; set; }
-            public string ManagerEmail { get; set; }
+      public int? EmployeeID { get; set; }
+      public string EmployeeName { get; set; }
+      public string Department { get; set; }
+      public long? TotalWorkHours { get; set; }
+      public long? TotalBreakHours { get; set; }
+      public int LateArrivals { get; set; }
+      public int EarlyDepartures { get; set; }
+      public int AbsentDays { get; set; }
+      public int LeaveDays { get; set; }
+      public int WorkFromHomeDays { get; set; }
+      public int OfficialDaysOff { get; set; }
+      public string AverageTimeIn { get; set; }
+      public string AverageTimeOut { get; set; }
+      public string CountryName { get; set; }
+      public string ManagerEmail { get; set; }
+      public string Manager2Email { get; set; }
     }
-        public class EmailAndIDs
+    public class EmailAndIDs
+    {
+      public int? userId { get; set; }
+      public string email { get; set; }
+      public int? userLeavePolicyID { get; set; }
+    }
+    public List<EmailAndIDs> GetUserEmailsAndIDs(string managerEmail)
+    {
+      using (var context = new LeaveONEntities())
+      {
+        var users = context.AspNetUsers.Where(y => y.CntryName == "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
+        .Select(x => new EmailAndIDs
         {
-            public int? userId { get; set; }
-            public string email { get; set; }
-            public int? userLeavePolicyID { get; set; }
-        }
-        public List<EmailAndIDs> GetUserEmailsAndIDs()
+          userId = x.BioStarEmpNum.Value,
+          email = x.Email,
+          userLeavePolicyID = x.UserLeavePolicyId,
+        })
+        .ToList();
+
+        return users;
+      }
+
+    }
+    public List<EmailAndIDs> GetLegitemacyChckers()
+    {
+      using (var context = new LeaveONEntities())
+      {
+        int[] legitimacyCheckers = new int[3] { 2205, 2696, 2434 }; // these are the biostar numbers of legitimacy checkers
+
+        var users = context.AspNetUsers
+                           .Where(y => y.BioStarEmpNum.HasValue && legitimacyCheckers.Contains(y.BioStarEmpNum.Value))
+                           .Select(x => new EmailAndIDs
+                           {
+                             userId = x.BioStarEmpNum.Value,
+                             email = x.Email,
+                             userLeavePolicyID = x.UserLeavePolicyId
+                           })
+                           .ToList();
+
+        return users;
+      }
+    }
+    public static string GetMonthName(int monthNumber)
+    {
+      if (monthNumber < 1 || monthNumber > 12)
+        throw new ArgumentOutOfRangeException("monthNumber", "Month number must be between 1 and 12.");
+
+      return CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthNumber);
+    }
+    public Task GetMonthlyReportData(int month, int year, bool legetimacyCheckForReports)
+    {
+      string monthName = GetMonthName(month);
+      var legitimacyCheckers = GetLegitemacyChckers();
+      var managerEmails = GetManagersIDs();
+      foreach (var managerEmail in managerEmails)
+      {
+        var usersAgainstManagers = GetUserEmailsAndIDs(managerEmail);
+        List<EmployeeReportData> managerReportOfUsersList = new List<EmployeeReportData>();
+        var totalWorkDays = 0;
+        foreach (var user in usersAgainstManagers)
         {
-            using (var context = new LeaveONEntities())
+          totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
+          using (var context = new LeaveONEntities())
+          {
+            DateTime invalidDate = new DateTime(0001, 01, 01);
+
+            var attendanceData = context.AttendanceDatas.Distinct()
+            .Where(a => a.EmployeeID == user.userId && a.CreatedDate.Value.Month == month && a.CreatedDate.Value.Year == year &&
+            a.IsLeave != true)
+            .ToList();
+
+            if (attendanceData.Any())
             {
-                var users = context.AspNetUsers.Where(y => y.CntryName == "Pakistan")
-                .Select(x => new EmailAndIDs
+              // Filter out entries with invalid FirstPunchIn or LastPunchOut times
+              var validPunchIns = attendanceData
+              .Where(x => x.FirstPunchIn.HasValue && x.FirstPunchIn.Value != invalidDate)
+              .Select(x => x.FirstPunchIn.Value.TimeOfDay.TotalSeconds);
+
+              var validPunchOuts = attendanceData
+              .Where(x => x.LastPunchOut.HasValue && x.LastPunchOut.Value != invalidDate)
+              .Select(x => x.LastPunchOut.Value.TimeOfDay.TotalSeconds);
+
+              // Compute averages only if there are valid entries
+              double averageTimeInSecondsIn = validPunchIns.Any() ? validPunchIns.Average() : 0;
+              double averageTimeInSecondsOut = validPunchOuts.Any() ? validPunchOuts.Average() : 0;
+
+              // Convert average seconds to TimeSpan
+              TimeSpan averageTimeIn = TimeSpan.FromSeconds(averageTimeInSecondsIn);
+              TimeSpan averageTimeOut = TimeSpan.FromSeconds(averageTimeInSecondsOut);
+
+              // Format TimeSpan to 12-hour format with AM/PM
+              string formattedAverageTimeIn = new DateTime(averageTimeIn.Ticks).ToString("hh:mm tt");
+              string formattedAverageTimeOut = new DateTime(averageTimeOut.Ticks).ToString("hh:mm tt");
+
+              var reportData = new EmployeeReportData
+              {
+                EmployeeID = user.userId,
+                EmployeeName = attendanceData.First().UserName,
+                Department = attendanceData.First().DepartmentName,
+                TotalWorkHours = attendanceData.Sum(x => x.TotalWorkHours),
+                TotalBreakHours = attendanceData.Sum(x => x.BreakHours),
+                LateArrivals = attendanceData.Count(x => x.IsLateArrival == true),
+                EarlyDepartures = attendanceData.Count(x => x.IsEarlyDeparture == true),
+                AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
+                LeaveDays = attendanceData.Count(x => x.IsLeave == true),
+                AverageTimeIn = averageTimeIn.ToString(@"hh\:mm\:ss"),
+                AverageTimeOut = averageTimeOut.ToString(@"hh\:mm\:ss"),
+                WorkFromHomeDays = attendanceData.Count(x => x.LeaveTypeID == 10),
+                OfficialDaysOff = attendanceData.Count(x => x.LeaveTypeID == 8 || x.LeaveTypeID == 9),
+                CountryName = attendanceData.First().CountryName,
+                ManagerEmail = attendanceData.First().ManagerEmail,
+                Manager2Email = attendanceData.First().Manager2Email,
+              };
+              managerReportOfUsersList.Add(reportData);
+              if (legetimacyCheckForReports)//make it true again, false is for testing
+              {
+                foreach (EmailAndIDs legitChecker in legitimacyCheckers)
                 {
-                    userId = x.BioStarEmpNum.Value,
-                    email = x.Email,
-                    userLeavePolicyID = x.UserLeavePolicyId,
-                })
-                .ToList();
-
-                return users;
-            }
-
-        }
-        public List<EmailAndIDs> GetLegitemacyChckers()
-        {
-            using (var context = new LeaveONEntities())
-            {
-                int[] legitimacyCheckers = new int[3] { 2205, 2696, 2434 }; // these are the biostar numbers of legitimacy checkers
-
-                var users = context.AspNetUsers
-                                   .Where(y => y.BioStarEmpNum.HasValue && legitimacyCheckers.Contains(y.BioStarEmpNum.Value))
-                                   .Select(x => new EmailAndIDs
-                                   {
-                                       userId = x.BioStarEmpNum.Value,
-                                       email = x.Email,
-                                       userLeavePolicyID = x.UserLeavePolicyId
-                                   })
-                                   .ToList();
-
-                return users;
-            }
-        }
-        public static string GetMonthName(int monthNumber)
-        {
-            if (monthNumber < 1 || monthNumber > 12)
-                throw new ArgumentOutOfRangeException("monthNumber", "Month number must be between 1 and 12.");
-
-            return CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthNumber);
-        }
-        public Task GetMonthlyReportData(int month, int year, bool legetimacyCheckForReports)
-        {
-            string monthName = GetMonthName(month);
-            var users = GetUserEmailsAndIDs();
-            var legitimacyCheckers = GetLegitemacyChckers();
-            List<EmployeeReportData> managerReportOfUsersList = new List<EmployeeReportData>();
-            var totalWorkDays = 0;
-            foreach (var user in users)
-            {
-                totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
-
-                using (var context = new LeaveONEntities())
-                {
-                    DateTime invalidDate = new DateTime(0001, 01, 01);
-
-                    var attendanceData = context.AttendanceDatas.Distinct()
-                    .Where(a => a.EmployeeID == user.userId && a.CreatedDate.Value.Month == month && a.CreatedDate.Value.Year == year &&
-                    a.IsLeave != true)
-                    .ToList();
-
-                    if (attendanceData.Any())
-                    {
-
-                        // Filter out entries with invalid FirstPunchIn or LastPunchOut times
-                        var validPunchIns = attendanceData
-                        .Where(x => x.FirstPunchIn.HasValue && x.FirstPunchIn.Value != invalidDate)
-                        .Select(x => x.FirstPunchIn.Value.TimeOfDay.TotalSeconds);
-
-                        var validPunchOuts = attendanceData
-                        .Where(x => x.LastPunchOut.HasValue && x.LastPunchOut.Value != invalidDate)
-                        .Select(x => x.LastPunchOut.Value.TimeOfDay.TotalSeconds);
-
-                        // Compute averages only if there are valid entries
-                        double averageTimeInSecondsIn = validPunchIns.Any() ? validPunchIns.Average() : 0;
-                        double averageTimeInSecondsOut = validPunchOuts.Any() ? validPunchOuts.Average() : 0;
-
-                        // Convert average seconds to TimeSpan
-                        TimeSpan averageTimeIn = TimeSpan.FromSeconds(averageTimeInSecondsIn);
-                        TimeSpan averageTimeOut = TimeSpan.FromSeconds(averageTimeInSecondsOut);
-
-                        // Format TimeSpan to 12-hour format with AM/PM
-                        string formattedAverageTimeIn = new DateTime(averageTimeIn.Ticks).ToString("hh:mm tt");
-                        string formattedAverageTimeOut = new DateTime(averageTimeOut.Ticks).ToString("hh:mm tt");
-
-                        var reportData = new EmployeeReportData
-                        {
-                            EmployeeID = user.userId,
-                            EmployeeName = attendanceData.First().UserName,
-                            Department = attendanceData.First().DepartmentName,
-                            TotalWorkHours = attendanceData.Sum(x => x.TotalWorkHours),
-                            TotalBreakHours = attendanceData.Sum(x => x.BreakHours),
-                            LateArrivals = attendanceData.Count(x => x.IsLateArrival == true),
-                            EarlyDepartures = attendanceData.Count(x => x.IsEarlyDeparture == true),
-                            AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
-                            LeaveDays = attendanceData.Count(x => x.IsLeave == true),
-                            AverageTimeIn = averageTimeIn.ToString(@"hh\:mm\:ss"),
-                            AverageTimeOut = averageTimeOut.ToString(@"hh\:mm\:ss"),
-                            WorkFromHomeDays = attendanceData.Count(x => x.LeaveTypeID == 10),
-                            OfficialDaysOff = attendanceData.Count(x => x.LeaveTypeID == 8 || x.LeaveTypeID == 9),
-                            CountryName = attendanceData.First().CountryName,
-                            ManagerEmail= attendanceData.First().ManagerEmail,
-                        };
-                        managerReportOfUsersList.Add(reportData);
-                        if (legetimacyCheckForReports)//make it true again, false is for testing
-                        {
-                            foreach (EmailAndIDs legitChecker in legitimacyCheckers)
-                            {
-                                GeneratePDFIndividuals(reportData, legitChecker.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
-                            }
-                        }
-                        else
-                        {
-
-                            //if(reportData.Department.ToLower() == "is&t")
-                            //{
-                            // GeneratePDFIndividuals(reportData, user.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
-                        }
-                    }
+                  GeneratePDFIndividuals(reportData, legitChecker.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
                 }
+              }
+              else
+              {
 
+                //if(reportData.Department.ToLower() == "is&t")
+                //{
+                // GeneratePDFIndividuals(reportData, user.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
+              }
             }
-            GeneratePDFManager(managerReportOfUsersList, totalWorkDays, monthName, legetimacyCheckForReports, legitimacyCheckers);
-            return null;
+          }
+
         }
-        public void GeneratePDFIndividuals(EmployeeReportData reportData, string userEmail, int totalWorkDays, string monthName)
+        GeneratePDFManager(managerReportOfUsersList, totalWorkDays, monthName, legetimacyCheckForReports, legitimacyCheckers);
+      }
+      return null;
+    }
+    public void GeneratePDFIndividuals(EmployeeReportData reportData, string userEmail, int totalWorkDays, string monthName)
+    {
+      MailMessage mail = new MailMessage();
+      SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com");
+      smtpServer.UseDefaultCredentials = false;
+      smtpServer.Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password);
+      smtpServer.Port = 587;
+      smtpServer.EnableSsl = true;
+
+      try
+      {
+        mail.From = new MailAddress(LeavON_Email);
+        mail.To.Add(new MailAddress("haiderali98.ha61@gmail.com"));
+        mail.Subject = $"Monthly Report - {reportData.EmployeeName}";
+        mail.Body = $"Attached is the monthly report for {reportData.EmployeeName}.";
+
+        using (MemoryStream memoryStream = new MemoryStream())
         {
-            MailMessage mail = new MailMessage();
-            SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com");
-            smtpServer.UseDefaultCredentials = false;
-            smtpServer.Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password);
-            smtpServer.Port = 587;
-            smtpServer.EnableSsl = true;
+          Document document = new Document(PageSize.A4, 50, 50, 25, 25);
+          PdfWriter writer = PdfWriter.GetInstance(document, memoryStream);
+          document.Open();
 
-            try
+          PdfPTable table = new PdfPTable(2); // Two columns
+          table.WidthPercentage = 100; // Table size is set to 100% of the page
+
+          // Define a single-cell header
+          PdfPCell header = new PdfPCell(new Phrase("Your Monthly Report", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD, BaseColor.WHITE)));
+          header.Colspan = 2;
+          header.HorizontalAlignment = Element.ALIGN_CENTER;
+          header.BackgroundColor = new BaseColor(0, 51, 102); // Light blue background
+          header.Border = Rectangle.BOTTOM_BORDER; // Only bottom border
+          header.PaddingBottom = 10;
+          table.AddCell(header);
+
+          // Helper method to create a cell with specific styles
+          void AddStyledCell(string content, int colspan = 1, bool isHeader = false)
+          {
+            PdfPCell cell = new PdfPCell(new Phrase(content, new Font(Font.FontFamily.HELVETICA, 12, isHeader ? Font.BOLD : Font.NORMAL, isHeader ? BaseColor.WHITE : BaseColor.BLACK)));
+            cell.Colspan = colspan;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.Padding = 5;
+            cell.Border = Rectangle.BOTTOM_BORDER;
+            if (isHeader)
             {
-                mail.From = new MailAddress(LeavON_Email);
-                mail.To.Add(new MailAddress("haiderali98.ha61@gmail.com"));
-                mail.Subject = $"Monthly Report - {reportData.EmployeeName}";
-                mail.Body = $"Attached is the monthly report for {reportData.EmployeeName}.";
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    Document document = new Document(PageSize.A4, 50, 50, 25, 25);
-                    PdfWriter writer = PdfWriter.GetInstance(document, memoryStream);
-                    document.Open();
-
-                    PdfPTable table = new PdfPTable(2); // Two columns
-                    table.WidthPercentage = 100; // Table size is set to 100% of the page
-
-                    // Define a single-cell header
-                    PdfPCell header = new PdfPCell(new Phrase("Your Monthly Report", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD, BaseColor.WHITE)));
-                    header.Colspan = 2;
-                    header.HorizontalAlignment = Element.ALIGN_CENTER;
-                    header.BackgroundColor = new BaseColor(0, 51, 102); // Light blue background
-                    header.Border = Rectangle.BOTTOM_BORDER; // Only bottom border
-                    header.PaddingBottom = 10;
-                    table.AddCell(header);
-
-                    // Helper method to create a cell with specific styles
-                    void AddStyledCell(string content, int colspan = 1, bool isHeader = false)
-                    {
-                        PdfPCell cell = new PdfPCell(new Phrase(content, new Font(Font.FontFamily.HELVETICA, 12, isHeader ? Font.BOLD : Font.NORMAL, isHeader ? BaseColor.WHITE : BaseColor.BLACK)));
-                        cell.Colspan = colspan;
-                        cell.HorizontalAlignment = Element.ALIGN_CENTER;
-                        cell.Padding = 5;
-                        cell.Border = Rectangle.BOTTOM_BORDER;
-                        if (isHeader)
-                        {
-                            cell.BackgroundColor = new BaseColor(0, 51, 102); // Slightly darker blue for header cells
-                        }
-                        table.AddCell(cell);
-                    }
-                    Font dataFont = new Font(Font.FontFamily.HELVETICA, 15, Font.NORMAL);
-
-                    //// Adding dynamic data
-                    AddStyledCell($"Number working days in {monthName}: {totalWorkDays}", 2, true);
-                    AddStyledCell(reportData.EmployeeName.ToUpper() + " (" + reportData.EmployeeID + ")", 2, true);
-                    AddStyledCell("Average Entry Time:", 1, true);
-                    AddStyledCell(reportData.AverageTimeIn, 1);
-                    AddStyledCell("Average Exit Time:", 1, true);
-                    AddStyledCell(reportData.AverageTimeOut, 1);
-                    AddStyledCell("Working days of Employee", 1, true);
-                    AddStyledCell((totalWorkDays - ((reportData.AbsentDays))).ToString(), 1);
-                    AddStyledCell("Absents (Casual/Annual)", 1, true);
-                    AddStyledCell(reportData.AbsentDays.ToString(), 1);
-                    AddStyledCell("Work from home", 1, true);
-                    AddStyledCell(reportData.WorkFromHomeDays.ToString(), 1);
-                    AddStyledCell("Official Days off", 1, true);
-                    AddStyledCell(reportData.OfficialDaysOff.ToString(), 1);
-
-                    document.Add(table);
-                    document.Close();
-
-                    // Convert the memory stream to an array of bytes
-                    byte[] bytes = memoryStream.ToArray();
-
-                    // Attach the PDF as an email attachment
-                    mail.Attachments.Add(new Attachment(new MemoryStream(bytes), "MonthlyReport.pdf", "application/pdf"));
-                }
-
-                smtpServer.Send(mail);
+              cell.BackgroundColor = new BaseColor(0, 51, 102); // Slightly darker blue for header cells
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error sending email: " + ex.Message);
-            }
+            table.AddCell(cell);
+          }
+          Font dataFont = new Font(Font.FontFamily.HELVETICA, 15, Font.NORMAL);
+
+          //// Adding dynamic data
+          AddStyledCell($"Number working days in {monthName}: {totalWorkDays}", 2, true);
+          AddStyledCell(reportData.EmployeeName.ToUpper() + " (" + reportData.EmployeeID + ")", 2, true);
+          AddStyledCell("Average Entry Time:", 1, true);
+          AddStyledCell(reportData.AverageTimeIn, 1);
+          AddStyledCell("Average Exit Time:", 1, true);
+          AddStyledCell(reportData.AverageTimeOut, 1);
+          AddStyledCell("Working days of Employee", 1, true);
+          AddStyledCell((totalWorkDays - ((reportData.AbsentDays))).ToString(), 1);
+          AddStyledCell("Absents (Casual/Annual)", 1, true);
+          AddStyledCell(reportData.AbsentDays.ToString(), 1);
+          AddStyledCell("Work from home", 1, true);
+          AddStyledCell(reportData.WorkFromHomeDays.ToString(), 1);
+          AddStyledCell("Official Days off", 1, true);
+          AddStyledCell(reportData.OfficialDaysOff.ToString(), 1);
+
+          document.Add(table);
+          document.Close();
+
+          // Convert the memory stream to an array of bytes
+          byte[] bytes = memoryStream.ToArray();
+
+          // Attach the PDF as an email attachment
+          mail.Attachments.Add(new Attachment(new MemoryStream(bytes), "MonthlyReport.pdf", "application/pdf"));
         }
-        public static int GetWorkingDays(int year, int month, int? userLeavePolicyID)
+
+        smtpServer.Send(mail);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("Error sending email: " + ex.Message);
+      }
+    }
+    public static int GetWorkingDays(int year, int month, int? userLeavePolicyID)
+    {
+      DateTime startOfMonth = new DateTime(year, month, 1);
+      DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+      int workingDays = 0;
+      for (DateTime date = startOfMonth; date <= endOfMonth; date = date.AddDays(1))
+      {
+        if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
         {
-            DateTime startOfMonth = new DateTime(year, month, 1);
-            DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
-
-            int workingDays = 0;
-            for (DateTime date = startOfMonth; date <= endOfMonth; date = date.AddDays(1))
-            {
-                if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
-                {
-                    workingDays++;
-                }
-            }
-
-            var context = new LeaveONEntities();
-            // Get all off days for the user that fall within the specified month and year
-            var annualOffDays = context.AnnualOffDays
-                                        .Where(x => x.UserLeavePolicyId == userLeavePolicyID
-                                                && x.OffDay >= startOfMonth
-                                                && x.OffDay <= endOfMonth)
-                                        .ToList();
-
-            // Subtract off days that are weekdays
-            foreach (var offDay in annualOffDays)
-            {
-                workingDays--;
-            }
-
-            return workingDays;
+          workingDays++;
         }
+      }
+
+      var context = new LeaveONEntities();
+      // Get all off days for the user that fall within the specified month and year
+      var annualOffDays = context.AnnualOffDays
+                                  .Where(x => x.UserLeavePolicyId == userLeavePolicyID
+                                          && x.OffDay >= startOfMonth
+                                          && x.OffDay <= endOfMonth)
+                                  .ToList();
+
+      // Subtract off days that are weekdays
+      foreach (var offDay in annualOffDays)
+      {
+        workingDays--;
+      }
+
+      return workingDays;
+    }
     public void GeneratePDFManager(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
     {
       SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
@@ -291,7 +295,7 @@ namespace LeaveON.Services
         Port = 587,
         EnableSsl = true
       };
-
+      var managerEmails = GetManagersIDs();
       foreach (var data in reportData)
       {
         MailMessage mail = new MailMessage
@@ -312,8 +316,10 @@ namespace LeaveON.Services
         }
         else
         {
-          // Send to the manager's email if no legitimacy check is required
-          mail.To.Add(new MailAddress(data.ManagerEmail)); // Assuming ManagerEmail is part of EmployeeReportData
+          foreach (var manager in managerEmails)
+          {
+            mail.To.Add(new MailAddress(manager));
+          }
         }
 
         using (MemoryStream memoryStream = new MemoryStream())
@@ -366,38 +372,48 @@ namespace LeaveON.Services
     }
 
     public static string ConvertSecondsToReadableTime(long totalSeconds)
-        {
-            long hours = totalSeconds / 3600;
-            long minutes = (totalSeconds % 3600) / 60;
-            long seconds = totalSeconds % 60;
+    {
+      long hours = totalSeconds / 3600;
+      long minutes = (totalSeconds % 3600) / 60;
+      long seconds = totalSeconds % 60;
 
-            return $"{hours} hours, {minutes} minutes, {seconds} seconds";
-        }
+      return $"{hours} hours, {minutes} minutes, {seconds} seconds";
+    }
+
+    private List<string> GetManagersIDs()
+    {
+      using (var context = new LeaveONEntities())
+      {
+        var managersIDs = context.Managers.Select(x => x.UserID).ToList();
+
+        return managersIDs;
+      }
+    }
     private List<string> GetManagerEmailByDepartment(string department)
+    {
+      using (var context = new LeaveONEntities())
+      {
+        var managers = context.AspNetUserClaims.Where(x => x.ClaimType == department && x.isReportEmail == true)
+        .Select(x => x.UserId).ToList();
+
+        var managerEmails = new List<string>();
+        foreach (var manager in managers)
         {
-            using (var context = new LeaveONEntities())
-            {
-                var managers = context.AspNetUserClaims.Where(x => x.ClaimType == department && x.isReportEmail == true)
-                .Select(x => x.UserId).ToList();
+          // Fetch the email of the manager, make sure only one email is added
+          var email = context.AspNetUsers
+          .Where(x => x.Id == manager)
+          .Select(x => x.Email)
+          .FirstOrDefault(); // Ensures you get a single result or null, not a collection
 
-                var managerEmails = new List<string>();
-                foreach (var manager in managers)
-                {
-                    // Fetch the email of the manager, make sure only one email is added
-                    var email = context.AspNetUsers
-                    .Where(x => x.Id == manager)
-                    .Select(x => x.Email)
-                    .FirstOrDefault(); // Ensures you get a single result or null, not a collection
-
-                    if (!string.IsNullOrEmpty(email))
-                    {
-                        managerEmails.Add(email);
-                    }
-                }
-
-                return managerEmails;
-            }
+          if (!string.IsNullOrEmpty(email))
+          {
+            managerEmails.Add(email);
+          }
         }
+
+        return managerEmails;
+      }
+    }
 
     //public void GeneratePDFManager(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, bool legetimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
     //{

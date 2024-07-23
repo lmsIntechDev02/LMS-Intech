@@ -1,5 +1,3 @@
-using System;
-using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -11,9 +9,6 @@ using Microsoft.Owin.Security;
 using LeaveON.Models;
 using Repository.Models;
 using System.Collections.Generic;
-using System.DirectoryServices.AccountManagement;
-using System.DirectoryServices;
-using System.Web.Hosting;
 
 namespace LeaveON.Controllers
 {
@@ -139,10 +134,6 @@ namespace LeaveON.Controllers
           await UserManager.RemoveFromRoleAsync(UserId, "User");
           break;
       }
-
-      //AspNetUserClaim aspNetUserClaim = await db.AspNetUserClaims.FindAsync(UserIdRoleId);
-      //db.AspNetUserClaims.Remove(aspNetUserClaim);
-      //await db.SaveChangesAsync();
       return RedirectToAction("Index");
 
     }
@@ -171,11 +162,9 @@ namespace LeaveON.Controllers
       //ADUser = "Ahsan.Ahmad@intechww.com";
       //ADUser = "umar.nazir@intechww.com";
       //ADUser = "suha.alialmutlaq@intechww.com ";
-
       //ADUser = "Fatima.Khalil@intechww.com";
       //ADUser = "nouman.sial@intechww.com";
       //ADUser = "kashif.ijaz@intechww.com";
-
       //ADUser = "usama.abbas@intechww.com";
       //ADUser = "bilal.hussain@intechww.com";
       //ADUser = "asrar.ahmed@intechww.com";
@@ -194,54 +183,12 @@ namespace LeaveON.Controllers
       //ADUser = "Haseeb.hayat@intechww.com";
       //ADUser = "haseeb.aslam@intechww.com";
       //ADUser = "Khawaja.jawad@intechww.com";
-       //ali.raza@intechww.com
+      //ADUser = "abdullah.abusalah@intechww.com";
+      //ADUser = "waseem.ahmad@intechww.com";
+      //ali.raza@intechww.com
 #endif
-      //var path = System.Web.HttpContext.Current.Server.MapPath(@"~/myLog.txt");
-      //var identityName = HttpContext.User.Identity.Name;
-      //using (HostingEnvironment.Impersonate())
-      //{
-      //  using (var context = new PrincipalContext(ContextType.Domain, "intechww.com", null, ContextOptions.Negotiate | ContextOptions.SecureSocketLayer))
-      //  using (var userPrincipal = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, @"NT AUTHORITY\IUSR"))
-      //  {
-      //    var emailAddress = userPrincipal.EmailAddress;
-      //    var lastname = userPrincipal.Surname;
-      //    var firstname = userPrincipal.GivenName;
-      //  }
-      //}
-      //string ab= User.Identity.Name;
-      //var identityName = HttpContext.User.Identity.Name;
-
-      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { identityName}));
-
-      //UserPrincipal currentUser = UserPrincipal.Current;
-
-      //string Name1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { Name1 }));
-
-      //PrincipalContext ctx = new PrincipalContext(ContextType.Domain, "intechww.com");
-      //UserPrincipal user = UserPrincipal.FindByIdentity(ctx, HttpContext.Request.LogonUserIdentity.Name);
-      //string assdf = HttpContext.User.Identity.Name;
-      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { user.Name.ToString(), assdf }));
-
-      //List<string> loginsList = new List<string>();
-      ////string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-      ////string id4 = Request.LogonUserIdentity.Name;
-      ////PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-      ////UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
-      //loginsList.Add(currentUser.Name);
-      //loginsList.Add(currentUser.DisplayName);
-      //loginsList.Add(currentUser.GivenName);
-      //loginsList.Add(currentUser.SamAccountName);
-      //loginsList.Add(currentUser.UserPrincipalName);
-
-      //System.IO.File.AppendAllLines(path, loginsList);
-
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
-      //if (user != null)
-      //{
-      //  UserManager.AddToRoleAsync(user.Id, "User");
-      //}
 
       if (user != null && !UserManager.IsInRole(user.Id, "User"))
       {
@@ -258,7 +205,6 @@ namespace LeaveON.Controllers
 
       ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
       ViewBag.ReturnUrl = returnUrl;
-      //ViewBag.ReturnUrl = @"\LeavesRequest\Index";
 
       return View();
     }
@@ -268,7 +214,6 @@ namespace LeaveON.Controllers
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    //public async Task<ActionResult> Login(LoginViewModel model, string returnUrl, FormCollection formCollection)
     public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
     {
       if (!ModelState.IsValid)
