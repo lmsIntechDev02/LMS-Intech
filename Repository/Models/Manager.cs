@@ -12,14 +12,11 @@ namespace Repository.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class AspNetUserClaim
+    public partial class Manager
     {
-        public int Id { get; set; }
-        public string UserId { get; set; }
-        public string ClaimType { get; set; }
-        public string ClaimValue { get; set; }
-        public Nullable<bool> isReportEmail { get; set; }
-    
-        public virtual AspNetUser AspNetUser { get; set; }
+        public string UserID { get; set; }
+        public Nullable<int> BioStarEmpNum { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
     }
 }
