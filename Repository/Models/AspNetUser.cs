@@ -51,6 +51,10 @@ namespace Repository.Models
         public bool Gender { get; set; }
         public string ManagerID { get; set; }
         public string ManagerName { get; set; }
+        public string ManagerEmail { get; set; }
+        public string Manager2ID { get; set; }
+        public string Manager2Name { get; set; }
+        public string Manager2Email { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AspNetUserClaim> AspNetUserClaims { get; set; }

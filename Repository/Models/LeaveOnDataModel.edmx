@@ -87,6 +87,34 @@
           <Property Name="Gender" Type="bit" Nullable="false" />
           <Property Name="ManagerID" Type="nvarchar" MaxLength="128" />
           <Property Name="ManagerName" Type="nvarchar(max)" />
+          <Property Name="ManagerEmail" Type="nvarchar(max)" />
+          <Property Name="Manager2ID" Type="nvarchar" MaxLength="128" />
+          <Property Name="Manager2Name" Type="nvarchar(max)" />
+          <Property Name="Manager2Email" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="AttendanceData">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="EmployeeID" Type="int" />
+          <Property Name="UserName" Type="varchar" MaxLength="255" />
+          <Property Name="DepartmentName" Type="varchar" MaxLength="255" />
+          <Property Name="UserLeavePolicyID" Type="varchar" MaxLength="255" />
+          <Property Name="CreatedDate" Type="datetime" />
+          <Property Name="FirstPunchIn" Type="datetime2" Precision="7" />
+          <Property Name="LastPunchOut" Type="datetime2" Precision="7" />
+          <Property Name="TotalWorkHours" Type="bigint" />
+          <Property Name="BreakHours" Type="bigint" />
+          <Property Name="IsLateArrival" Type="bit" />
+          <Property Name="IsEarlyDeparture" Type="bit" />
+          <Property Name="IsAbsent" Type="bit" />
+          <Property Name="LeaveTypeID" Type="int" />
+          <Property Name="LeaveType" Type="varchar" MaxLength="255" />
+          <Property Name="IsLeave" Type="bit" />
+          <Property Name="ManagerEmail" Type="nvarchar(max)" />
+          <Property Name="CountryName" Type="nvarchar(max)" />
+          <Property Name="Manager2Email" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="CountryNames">
           <Key>
@@ -152,6 +180,15 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="256" />
+        </EntityType>
+        <EntityType Name="Managers">
+          <Key>
+            <PropertyRef Name="UserID" />
+          </Key>
+          <Property Name="UserID" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="BioStarEmpNum" Type="int" />
+          <Property Name="Email" Type="nvarchar" MaxLength="256" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="128" />
         </EntityType>
         <EntityType Name="UserLeavePolicy">
           <Key>
@@ -367,11 +404,13 @@
           <EntitySet Name="AspNetUserLogins" EntityType="Self.AspNetUserLogins" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AttendanceData" EntityType="Self.AttendanceData" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CountryNames" EntityType="Self.CountryNames" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DepartmentNames" EntityType="Self.DepartmentNames" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Leave" EntityType="Self.Leave" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveBalance" EntityType="Self.LeaveBalance" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveType" EntityType="Self.LeaveType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Managers" EntityType="Self.Managers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicy" EntityType="Self.UserLeavePolicy" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicyDetail" EntityType="Self.UserLeavePolicyDetail" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_AnnualOffDays_UserLeavePolicy" Association="Self.FK_AnnualOffDays_UserLeavePolicy">
@@ -501,6 +540,8 @@
             <End Role="AspNetRole" EntitySet="AspNetRoles" />
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
+          <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
+          <EntitySet Name="Managers" EntityType="LeaveONModels.Manager" />
         </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -587,6 +628,10 @@
           <Property Name="Gender" Type="Boolean" Nullable="false" />
           <Property Name="ManagerID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="ManagerName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerEmail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2ID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2Name" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -876,6 +921,39 @@
           <End Type="LeaveONModels.AspNetRole" Role="AspNetRole" Multiplicity="*" />
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
         </Association>
+        <EntityType Name="AttendanceData">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="EmployeeID" Type="Int32" />
+          <Property Name="UserName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DepartmentName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="UserLeavePolicyID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="FirstPunchIn" Type="DateTime" Precision="7" />
+          <Property Name="LastPunchOut" Type="DateTime" Precision="7" />
+          <Property Name="TotalWorkHours" Type="Int64" />
+          <Property Name="BreakHours" Type="Int64" />
+          <Property Name="IsLateArrival" Type="Boolean" />
+          <Property Name="IsEarlyDeparture" Type="Boolean" />
+          <Property Name="IsAbsent" Type="Boolean" />
+          <Property Name="LeaveTypeID" Type="Int32" />
+          <Property Name="LeaveType" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="IsLeave" Type="Boolean" />
+          <Property Name="ManagerEmail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CountryName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Manager">
+          <Key>
+            <PropertyRef Name="UserID" />
+          </Key>
+          <Property Name="UserID" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="BioStarEmpNum" Type="Int32" />
+          <Property Name="Email" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="UserName" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -931,6 +1009,10 @@
           <EntitySetMapping Name="AspNetUsers">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUser">
               <MappingFragment StoreEntitySet="AspNetUsers">
+                <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
+                <ScalarProperty Name="Manager2Name" ColumnName="Manager2Name" />
+                <ScalarProperty Name="Manager2ID" ColumnName="Manager2ID" />
+                <ScalarProperty Name="ManagerEmail" ColumnName="ManagerEmail" />
                 <ScalarProperty Name="ManagerName" ColumnName="ManagerName" />
                 <ScalarProperty Name="ManagerID" ColumnName="ManagerID" />
                 <ScalarProperty Name="Gender" ColumnName="Gender" />
@@ -1069,6 +1151,41 @@
               <ScalarProperty Name="Id" ColumnName="RoleId" />
             </EndProperty>
           </AssociationSetMapping>
+          <EntitySetMapping Name="AttendanceDatas">
+            <EntityTypeMapping TypeName="LeaveONModels.AttendanceData">
+              <MappingFragment StoreEntitySet="AttendanceData">
+                <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
+                <ScalarProperty Name="CountryName" ColumnName="CountryName" />
+                <ScalarProperty Name="ManagerEmail" ColumnName="ManagerEmail" />
+                <ScalarProperty Name="IsLeave" ColumnName="IsLeave" />
+                <ScalarProperty Name="LeaveType" ColumnName="LeaveType" />
+                <ScalarProperty Name="LeaveTypeID" ColumnName="LeaveTypeID" />
+                <ScalarProperty Name="IsAbsent" ColumnName="IsAbsent" />
+                <ScalarProperty Name="IsEarlyDeparture" ColumnName="IsEarlyDeparture" />
+                <ScalarProperty Name="IsLateArrival" ColumnName="IsLateArrival" />
+                <ScalarProperty Name="BreakHours" ColumnName="BreakHours" />
+                <ScalarProperty Name="TotalWorkHours" ColumnName="TotalWorkHours" />
+                <ScalarProperty Name="LastPunchOut" ColumnName="LastPunchOut" />
+                <ScalarProperty Name="FirstPunchIn" ColumnName="FirstPunchIn" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="UserLeavePolicyID" ColumnName="UserLeavePolicyID" />
+                <ScalarProperty Name="DepartmentName" ColumnName="DepartmentName" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Managers">
+            <EntityTypeMapping TypeName="LeaveONModels.Manager">
+              <MappingFragment StoreEntitySet="Managers">
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
+                <ScalarProperty Name="UserID" ColumnName="UserID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

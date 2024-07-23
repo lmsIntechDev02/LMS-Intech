@@ -53,7 +53,7 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Create([Bind(Include = "Id,Hometown,Email,EmailConfirmed,PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName, ManagerID, ManagerName")] AspNetUser aspNetUser)
+    public async Task<ActionResult> Create([Bind(Include = "Id,Hometown,Email,EmailConfirmed,PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName, ManagerID, ManagerName, ManagerEmail, Manager2ID, Manager2Name, Manager2Email")] AspNetUser aspNetUser)
     {
       if (ModelState.IsValid)
       {
@@ -96,7 +96,8 @@ namespace LeaveON.Controllers
 
       ViewBag.CountryNames = new SelectList(db.CountryNames, "Name", "Name", aspNetUser.CountryName);
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
-      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+      var currentEditUser = aspNetUser.UserName.Split('@')[0].Replace('.', ' ').ToLower();
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName.ToLower() != currentEditUser)
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
       ViewBag.Departments = new SelectList(db.DepartmentNames.OrderBy(x => x.Name), "Name", "Name");
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
@@ -108,27 +109,71 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName")] AspNetUser aspNetUser)
+    public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName, ManagerEmail, Manager2ID, Manager2Name, Manager2Email")] AspNetUser aspNetUser)
     {
       aspNetUser.DateModified = DateTime.Now;
+
+
+     
       var managerEmail = db.AspNetUsers
                            .Where(u => u.Id == aspNetUser.ManagerID)
                            .Select(u => u.UserName)
                            .FirstOrDefault();
 
-      // Check if the managerEmail is not null, then extract and format the name part
+      var manager2Email = db.AspNetUsers
+                     .Where(u => u.Id == aspNetUser.Manager2ID)
+                     .Select(u => u.UserName)
+                     .FirstOrDefault();
+      aspNetUser.ManagerEmail = managerEmail;
+      aspNetUser.Manager2Email = manager2Email;
       if (!string.IsNullOrEmpty(managerEmail))
       {
-        // Extract the name part before the '@' and replace '.' with ' '
         var namePart = managerEmail.Split('@')[0].Replace('.', ' ');
-
-        // Use CultureInfo to properly capitalize the first letter of each name part
         aspNetUser.ManagerName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(namePart);
       }
       else
       {
-        // If no managerEmail is found, default to "No Manager"
         aspNetUser.ManagerName = "No Manager";
+      }
+      if (!string.IsNullOrEmpty(manager2Email))
+      {
+        var namePart = manager2Email.Split('@')[0].Replace('.', ' ');
+        aspNetUser.Manager2Name = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(namePart);
+      }
+      else
+      {
+        aspNetUser.Manager2Name = "No Manager";
+      }
+      // Ensure Manager 1 exists
+      if (!string.IsNullOrEmpty(aspNetUser.ManagerID))
+      {
+        var managerExists = db.Managers.Any(m => m.UserID == aspNetUser.ManagerID);
+        if (!managerExists)
+        {
+          var newManager = new Manager
+          {
+            UserID = aspNetUser.ManagerID,
+            UserName = aspNetUser.ManagerName,
+            Email = aspNetUser.ManagerEmail
+          };
+          db.Managers.Add(newManager);
+        }
+      }
+
+      // Ensure Manager 2 exists
+      if (!string.IsNullOrEmpty(aspNetUser.Manager2ID))
+      {
+        var manager2Exists = db.Managers.Any(m => m.UserID == aspNetUser.Manager2ID);
+        if (!manager2Exists)
+        {
+          var newManager2 = new Manager
+          {
+            UserID = aspNetUser.Manager2ID,
+            UserName = aspNetUser.Manager2Name,
+            Email = aspNetUser.Manager2Email
+          };
+          db.Managers.Add(newManager2);
+        }
       }
       if (ModelState.IsValid)
       {
@@ -137,12 +182,25 @@ namespace LeaveON.Controllers
         db.Entry(aspNetUser).Property(x => x.Remarks).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.Gender).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.ManagerID).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.DepartmentName).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.ManagerName).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.ManagerEmail).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.Manager2ID).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.Manager2Name).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.Manager2Email).IsModified = true;
+        db.Entry(aspNetUser).Property(x => x.DepartmentName).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.UserLeavePolicyId).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.CntryNameTemp).IsModified = true;
         db.Entry(aspNetUser).Property(x => x.IsRelocated).IsModified = true;
-        await db.SaveChangesAsync();
+
+        
+        try
+        {
+          await db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine("Hello", ex);
+        }
         await Utility.AdjustLeaveBalance((decimal)aspNetUser.UserLeavePolicyId);
         return RedirectToAction("Index");
       }
