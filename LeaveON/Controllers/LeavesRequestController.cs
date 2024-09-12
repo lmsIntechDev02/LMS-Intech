@@ -85,15 +85,16 @@ namespace LeaveON.Controllers
 
       //LstAspNetUser.Select(m => m.UserName.Substring(0, m.UserName.IndexOf('@')).Replace(".", " ")).ToList();
 
-      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
-
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+
       ViewBag.LeaveUserId = userId;
       ViewBag.FiscalYearStart = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearStart;
       ViewBag.FiscalYearEnd = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearEnd;
-      //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");
-      //var result= UserLeavePolicies.Edit(7);
-      //ViewBag.UserLeavePolicy= UserLeavePolicies.Edit(7);
+     
+      ViewBag.ShortLeaveMessage = "test message";
+
       return View();
     }
 
@@ -128,8 +129,10 @@ namespace LeaveON.Controllers
       }
       //List<AspNetUser> Seniors = GetSeniorStaff();
       //ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
-      ViewBag.UserName = User.Identity.Name;//"LoggedIn User";
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+
       ViewBag.LeaveUserId = userId;
       //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");
       //var result= UserLeavePolicies.Edit(7);
@@ -223,14 +226,15 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id")] Leave leave, string StartDate)
+    public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id, UserLeavePolicyID")] Leave leave, string StartDate)
     {
       leave.UserId = User.Identity.GetUserId();
       leave.AspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.DateCreated = DateTime.Now;
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
-
+      var shortLeaveMessage = "";
+      leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
         leave.IsShortLeave = true;
@@ -240,6 +244,9 @@ namespace LeaveON.Controllers
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == 1)//sick casual leave
           .Select(detail => detail.Balance).FirstOrDefault();
+
+        shortLeaveMessage = "Your Remannig Sick/Casual Leave Balance is" + balanceCheck;
+
 
         if (balanceCheck <= 0)
         {
@@ -274,7 +281,7 @@ namespace LeaveON.Controllers
         int daysCount = duration.Days + 1; //total days including weekends
         var balanceCheck = db.LeaveBalances
           .Where(leaveBalance =>
-            leaveBalance.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
+            leaveBalance.UserLeavePolicyId == leave.UserLeavePolicyID &&
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == leave.LeaveTypeId)
           .Select(detail => detail.Balance).FirstOrDefault();
@@ -419,7 +426,10 @@ namespace LeaveON.Controllers
 
       var itmes = db.AspNetUsers.Include(x => x.AspNetRoles.Select(rl => rl.Name)).ToList();
 
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+
       return View(leave);
     }
 
@@ -444,9 +454,9 @@ namespace LeaveON.Controllers
       }
       List<AspNetUser> Seniors = GetSeniorStaff();
 
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
-      ViewBag.UserName = User.Identity.Name;//"LoggedIn User";
-      //ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
 
       string userId = User.Identity.GetUserId();
       int policyId = db.AspNetUsers.FirstOrDefault(x => x.Id == userId).UserLeavePolicyId.GetValueOrDefault();
@@ -483,8 +493,9 @@ namespace LeaveON.Controllers
         return RedirectToAction("Index");
       }
       List<AspNetUser> Seniors = GetSeniorStaff();
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
-      ViewBag.UserName = User.Identity.Name;//"LoggedIn User";
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
       string userId = User.Identity.GetUserId();

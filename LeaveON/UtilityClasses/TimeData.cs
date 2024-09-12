@@ -33,6 +33,11 @@ namespace LeaveON.UtilityClasses
     public TimeSpan WorkingHours { get; set; }
     public TimeSpan TotalTime { get; set; }
     public string Status { get; set; }
+    public bool isLateArrival { get; set; }
+    public bool isEarlyDeparture { get; set; }
+    public bool isAbsent { get; set; }
+    public string leaveType { get; set; }
+    public int leaveTypeID { get; set; }
 
   }
   public class OffTimeDetial

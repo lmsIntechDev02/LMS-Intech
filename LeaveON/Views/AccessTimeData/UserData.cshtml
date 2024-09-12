@@ -11,7 +11,7 @@
     @Html.ActionLink("Create New", "Create")
   </p>*@
 <div>
-  @if (User.IsInRole("Admin"))
+  @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
   {
     @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees), htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
   }
