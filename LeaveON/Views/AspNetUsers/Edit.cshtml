@@ -204,6 +204,11 @@
 
     </div>
 
+    <div class="form-group">
+      @Html.LabelFor(model => model.RoleId, "Select Role")
+      @Html.DropDownListFor(model => model.RoleId, new MultiSelectList(ViewBag.Role, "Value", "Text"), htmlAttributes: new { @class = "form-control" })
+    </div>
+
 
     <div class="form-group">
       @Html.LabelFor(model => model.UserLeavePolicyId, "LeavePolicy", htmlAttributes: new { @class = " " })

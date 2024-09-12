@@ -54,7 +54,17 @@ namespace LeaveON.Controllers
 
     public ActionResult Index()
     {
-      ViewBag.Employees = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
+
+      var sortedEmployees = db.AspNetUsers
+         .AsEnumerable()
+         .Select(user => new
+              {
+                user.Id,
+                UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
+              })
+         .OrderBy(x => x.UserName)
+         .ToList();
+      ViewBag.Employees = new SelectList(sortedEmployees, "Id", "UserName");
       //ViewBag.LeaveTypes = new SelectList(db.LeaveTypes, "Id", "Name");
       ViewBag.Roles = new SelectList(db.AspNetRoles.OrderBy(x => x.Name), "Id", "Name");
       //var aspNetUserClaims = db.AspNetUserClaims.Include(a => a.AspNetUser);
@@ -167,17 +177,19 @@ namespace LeaveON.Controllers
       //ADUser = "kashif.ijaz@intechww.com";
       //ADUser = "usama.abbas@intechww.com";
       //ADUser = "bilal.hussain@intechww.com";
-      //ADUser = "asrar.ahmed@intechww.com";
+
       //ADUser = "Khaleel.khan@intechww.com";
-      //ADUser = "Usman.Javed@intechww.com";
       //ADUser = "kashif.ali@intechww.com";
       //ADUser = "Hassan.masood@intechww.com";
-      //ADUser = "salman.saleem@intechww.com";
       //ADUser = "waqqasjavaid@gmail.com";
       //ADUser = "testing@intechww.com";
+      //ADUser = "Usman.Javed@intechww.com";
+      //ADUser = "salman.saleem@intechww.com";
+      //ADUser = "asrar.ahmed@intechww.com";
       //ADUser = "Muzammil.Riaz@intechww.com";
-      //ADUser = "laiba.khan@intechww.com";
-      ADUser = "nouman.sial@intechww.com";
+      //ADUser = "nouman.sial@intechww.com";
+      ADUser = "laiba.khan@intechww.com";
+      //ADUser = "nouman.sial@intechww.com";
       //ADUser = "lms.dev02@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
       //ADUser = "Haseeb.hayat@intechww.com";
@@ -656,8 +668,8 @@ namespace LeaveON.Controllers
     {
       //return Redirect("http://lms-stage.intechww.com/");
 
-      return Redirect("https://lms.intechww.com:1001/");
-      //return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
+      //return Redirect("https://lms.intechww.com:1001/");
+      return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
     }
     //
     // GET: /Account/ExternalLoginFailure

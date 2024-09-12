@@ -79,6 +79,9 @@
     <Compile Include="Models\CountryName.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\C__MigrationHistory.cs">
+      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\DepartmentName.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
@@ -109,6 +112,9 @@
     </Compile>
     <Compile Include="Models\Leave_Metadata.cs" />
     <Compile Include="Models\Manager.cs">
+      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\sysdiagram.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\UserLeavePolicy.cs">

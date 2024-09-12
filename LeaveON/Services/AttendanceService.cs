@@ -36,11 +36,11 @@ namespace LeaveON.Services
       string managerEmail = string.Empty;
       string manager2Email = string.Empty;
       con.Open();
-      foreach (int Id in userIds)
-      {
-          //"' and devdt BETWEEN '" + "2024-01-01" + "' AND '" + "2024-04-04" + "' order by devdt"
-          int UserId = Id;//Assigns the current UserId for processing.//startDate.ToString("yyyy-MM-dd")
-          cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + "and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
+      //foreach (int Id in userIds)
+      //{
+          //" and devdt BETWEEN '" + "2024-01-01" + "' AND '" + "2024-04-04" + "' order by devdt"
+          int UserId = 2205;//Assigns the current UserId for processing.//startDate.ToString("yyyy-MM-dd")
+          cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + "2024-01-01" + "' AND '" + "2024-01-29" + "' order by devdt", con);
           dr = cmd.ExecuteReader();
 
           DataTable dt = new DataTable();//A new DataTable dt is created for storing data related to the current user.
@@ -60,7 +60,7 @@ namespace LeaveON.Services
           string userLeavePolicyDescription = string.Empty;
           if (aspNetUser.CountryName == null)
           {
-            logg.Add(aspNetUser.UserName); dr.Close(); continue;
+            logg.Add(aspNetUser.UserName); dr.Close(); //continue;
           }
           if (aspNetUser.UserLeavePolicy != null) userLeavePolicyDescription = aspNetUser.UserLeavePolicy.Description;
           if (aspNetUser.IsRelocated == true)
@@ -139,7 +139,7 @@ namespace LeaveON.Services
           dt = view.ToTable();
 
           int rowsCount = dt.Rows.Count;
-          if (rowsCount <= 0) continue;
+         // if (rowsCount <= 0) //continue;
 
           /*
 
@@ -339,7 +339,7 @@ namespace LeaveON.Services
           List<DateTime> lstThisMonthsWeekEnds = GetWeekEndList(startDate, endDate, aspNetUser.UserLeavePolicy?.WeeklyOffDays ?? "6,0");
           foreach (DateTime weekEndDate in lstThisMonthsWeekEnds)
           {
-            TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date && x.EmployeeNumber == Id);
+            TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date && x.EmployeeNumber == UserId);
             if (thisWeekEnd != null)
             {
               thisWeekEnd.Status = "Weekend";
@@ -349,7 +349,7 @@ namespace LeaveON.Services
               TimeData weekEndOffDate = new TimeData
               {
                 EmployeeName = UserName,
-                EmployeeNumber = Id,
+                EmployeeNumber = UserId,
                 TimeZone = countryName,
                 Department = depName,
                 Policy = userLeavePolicyDescription,
@@ -442,7 +442,7 @@ namespace LeaveON.Services
               LstTimeData.Add(attendance);
             }
           }
-      }
+      //}
 
       //to avaid showing current month all data which is not happend yet
       foreach (var itm in LstTimeData.ToList())
@@ -489,6 +489,7 @@ namespace LeaveON.Services
       try
       {
         dbLeaveOn.SaveChanges();
+        Console.Read();
       }
       catch (DbEntityValidationException dbEx)
       {

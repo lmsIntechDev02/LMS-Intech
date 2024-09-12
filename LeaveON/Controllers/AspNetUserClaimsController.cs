@@ -19,7 +19,16 @@ namespace LeaveON.Controllers
     // GET: AspNetUserClaims
     public async Task<ActionResult> Index()
     {
-      ViewBag.Employees = new SelectList(db.AspNetUsers.OrderBy(x=>x.UserName), "Id", "UserName");
+      var sortedEmployees = db.AspNetUsers
+     .AsEnumerable()
+     .Select(user => new
+     {
+       user.Id, 
+       UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
+        })
+     .OrderBy(x => x.UserName)
+     .ToList();
+      ViewBag.Employees = new SelectList(sortedEmployees, "Id", "UserName");
       //ViewBag.LeaveTypes = new SelectList(db.LeaveTypes, "Id", "Name");
       ViewBag.Departments = new SelectList(db.DepartmentNames.OrderBy(x=>x.Name), "Name", "Name");
       var aspNetUserClaims = db.AspNetUserClaims.Include(a => a.AspNetUser);

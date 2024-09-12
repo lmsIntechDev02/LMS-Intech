@@ -78,6 +78,7 @@ namespace LeaveON.Controllers
       {
         return HttpNotFound();
       }
+
       var genderList = new List<SelectListItem>
       {
         new SelectListItem { Value = "true", Text = "Male" },
@@ -93,6 +94,7 @@ namespace LeaveON.Controllers
       {
         ViewBag.Gender = new SelectList(genderList, "Value", "Text", "Select Gender");
       }
+     // aspNetUser.RoleId = aspNetUser.AspNetRoles.ToList()[0].Id;
 
       ViewBag.CountryNames = new SelectList(db.CountryNames, "Name", "Name", aspNetUser.CountryName);
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
@@ -101,6 +103,8 @@ namespace LeaveON.Controllers
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
       ViewBag.Departments = new SelectList(db.DepartmentNames.OrderBy(x => x.Name), "Name", "Name");
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
+   //   ViewBag.Role = new SelectList(db.AspNetRoles.ToHashSet(), "Id", "Name", aspNetUser.RoleId);
+       
       return View(aspNetUser);
     }
 

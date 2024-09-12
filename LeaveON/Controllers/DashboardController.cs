@@ -47,12 +47,20 @@ namespace LeaveON.Controllers
       List<Leave> LstLeaveAprovalApproved = db.Leaves.Where(x => x.UserId == userId && x.IsAccepted1 > 0).ToList();
       dashboard.MyLeavesApproved = LstLeaveAprovalApproved.Count;
 
+      List<UserLeavePolicyDetail> TotalAnnualLeaves = userLeavePolicy.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId &&  x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
+      dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Count;
+
+      List<Leave> BalanceAnnualLeaves = db.Leaves.Where(x => x.UserId == userId && x.IsAccepted1 > 0 && x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
+      int approvedAnnaulLeaves = BalanceAnnualLeaves.Count;
+      dashboard.BalanceAnnualLeaves = dashboard.TotalAnnualLeaves - approvedAnnaulLeaves;
+
+
       AspNetUser aspNetUser = db.AspNetUsers.Find(userId);
       dashboard.EmployeeNumber = aspNetUser.BioStarEmpNum.Value;
       dashboard.EmployeeName=aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
       dashboard.Policy = userLeavePolicy.Description;
       dashboard.Country = aspNetUser.CntryName;
-
+      
       return View(dashboard);
 
     }
