@@ -52,6 +52,10 @@
                       <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="UserName: activate to sort column ascending" aria-sort="descending">
                         @Html.DisplayNameFor(model => model.UserName)
                       </th>
+                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
+                        @*@Html.DisplayNameFor(model => model.Department.Name)*@
+                        Manager
+                      </th>
 
                       <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
                         @*@Html.DisplayNameFor(model => model.Department.Name)*@
@@ -83,30 +87,59 @@
                   @foreach (var item in Model)
                   {
                 <tr role="row" class="odd">
-                
+
                   @*<td>
-                    @Html.DisplayFor(modelItem => item.Email)
-                  </td>*@
+      @Html.DisplayFor(modelItem => item.Email)
+    </td>*@
                   <td>
                     @Html.DisplayFor(modelItem => item.BioStarEmpNum)
                   </td>
- 
+
                   <td>
-                    @Html.DisplayFor(modelItem => item.UserName)
+                    @*@{ var nameParts = item.UserName.Split('@')[0].Split('.');
+        var firstName = nameParts.Length > 0 ? nameParts[0] : "";
+        var lastName = nameParts.Length > 1 ? nameParts[1] : ""; }
+
+      @Html.DisplayFor(modelItem => firstName + " " + lastName)*@
+                    @{ string fullName = "";
+                      if (!string.IsNullOrEmpty(item.UserName))
+                      {
+                        var nameParts = item.UserName.Split('@')[0].Split('.');
+                        var firstName = nameParts.Length > 0 ? nameParts[0] : "";
+                        var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+                        if (!string.IsNullOrEmpty(firstName))
+                        {
+                          firstName = char.ToUpper(firstName[0]) + firstName.Substring(1).ToLower();
+                        }
+
+                        if (!string.IsNullOrEmpty(lastName))
+                        {
+                          lastName = char.ToUpper(lastName[0]) + lastName.Substring(1).ToLower();
+                        }
+                        fullName = firstName + " " + lastName;
+                      } }
+
+                    <span>@fullName</span>
+                  </td>
+                  <td>
+                    @if (item.ManagerName != null)
+                    {
+                      @Html.DisplayFor(modelItem => item.ManagerName)}
+
                   </td>
 
                   <td>
                     @if (item.DepartmentName != null)
                     {
-                  @Html.DisplayFor(modelItem => item.DepartmentName)}
+                      @Html.DisplayFor(modelItem => item.DepartmentName)}
 
                   </td>
                   <td>
                     @*@if (item.Country != null)
-                    {*@
-                      @Html.DisplayFor(modelItem => item.CntryName)
+      {*@
+                    @Html.DisplayFor(modelItem => item.CntryName)
                     @*}*@
-                    </td>
+                  </td>
                   <td>
                     @Html.DisplayFor(modelItem => item.CntryNameTemp)
                   </td>
@@ -115,7 +148,7 @@
                     {
                       @Html.DisplayFor(modelItem => item.UserLeavePolicy.Description)
                     }
-                    </td>
+                  </td>
                   <td>
                     @Html.DisplayFor(modelItem => item.DateCreated)
                   </td>

@@ -59,6 +59,7 @@ namespace LeaveON.Controllers
       //ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes.Where(x => x.UserLeavePolicyDetails.Where(y => y.UserLeavePolicyId == policyId)), "Id", "Name");
       var filtereLeaves = new SelectList(Utility.FilteredLeavesTaken(userId, policyId), "Id", "Name", "1");
 
+
       ViewBag.LeaveTypeIdd = filtereLeaves;
       //ViewBag.Leave1TypeId = new SelectList(db.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId).ToList <UserLeavePolicyDetail>(), "Id", "Name");
 
@@ -361,6 +362,8 @@ namespace LeaveON.Controllers
       var itmes = db.AspNetUsers.Include(x => x.AspNetRoles.Select(rl => rl.Name)).ToList();
 
       ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
+      
+      
       return View(leave);
     }
     // POST: Leaves/Create
@@ -617,6 +620,6 @@ namespace LeaveON.Controllers
         db.Dispose();
       }
       base.Dispose(disposing);
-    }
+      }
   }
 }

@@ -77,6 +77,7 @@ namespace LeaveON.Controllers
       {
         return HttpNotFound();
       }
+
       var genderList = new List<SelectListItem>
       {
         new SelectListItem { Value = "true", Text = "Male" },
@@ -92,10 +93,13 @@ namespace LeaveON.Controllers
       {
         ViewBag.Gender = new SelectList(genderList, "Value", "Text", "Select Gender");
       }
+      aspNetUser.RoleId = aspNetUser.AspNetRoles.ToList()[0].Id;
 
       ViewBag.CountryNames = new SelectList(db.CountryNames, "Name", "Name", aspNetUser.CountryName);
       //ViewBag.DepartmentId = new SelectList(db.DepartmentNames, "Id", "Name", aspNetUser.DepartmentId);
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
+      ViewBag.Role = new SelectList(db.AspNetRoles.ToHashSet(), "Id", "Name", aspNetUser.RoleId);
+       
       return View(aspNetUser);
     }
 
