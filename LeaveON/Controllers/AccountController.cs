@@ -185,10 +185,15 @@ namespace LeaveON.Controllers
       //ADUser = "testing@intechww.com";
       //ADUser = "Usman.Javed@intechww.com";
       //ADUser = "salman.saleem@intechww.com";
-      //ADUser = "asrar.ahmed@intechww.com";
-      //ADUser = "Muzammil.Riaz@intechww.com";
+
+      /*Admin*/
+      ADUser = "asrar.ahmed@intechww.com";
+      /*Manager*/
+     //ADUser = "Muzammil.Riaz@intechww.com";
+      /*User*/
       //ADUser = "nouman.sial@intechww.com";
-      ADUser = "laiba.khan@intechww.com";
+
+      //ADUser = "laiba.khan@intechww.com";
       //ADUser = "nouman.sial@intechww.com";
       //ADUser = "lms.dev02@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
@@ -204,8 +209,8 @@ namespace LeaveON.Controllers
 
       if (user != null && !UserManager.IsInRole(user.Id, "User"))
       {
-        UserManager.AddToRole(user.Id, "User");
-        UserManager.AddToRole(user.Id, "Manager");
+       // UserManager.AddToRole(user.Id, "User");
+       // UserManager.AddToRole(user.Id, "Manager");
       }
 
       if (user?.UserLeavePolicyId == null)
