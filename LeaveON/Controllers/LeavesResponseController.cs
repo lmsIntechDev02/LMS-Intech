@@ -15,7 +15,7 @@ using LMS.Constants;
 namespace LeaveON.Controllers
 {
 
-  [Authorize(Roles = "Admin,Manager")]
+  [Authorize(Roles = "Admin,Manager, User")]
   public class LeavesResponseController : Controller
   {
     private LeaveONEntities db = new LeaveONEntities();
@@ -47,7 +47,7 @@ namespace LeaveON.Controllers
       {
         foreach (AspNetRole role in user.AspNetRoles.ToList<AspNetRole>())
         {
-          if (role.Name == "Admin" || role.Name == "Manager")
+          if (role.Name == "Admin" || role.Name == "Manager" || role.Name == "User")
           {
             AspNetUser userFound = Seniors.Find(x => x.Id == user.Id);
             if (userFound == null)
