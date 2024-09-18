@@ -221,6 +221,7 @@ namespace LeaveON.UtilityClasses
                             db.DepartmentNames.Add(departmentName);
                         }
                     }
+                    
                     //-------------remove department name which does not exist in AD-------------
                     foreach (var itm in db.DepartmentNames.ToList())
                     {

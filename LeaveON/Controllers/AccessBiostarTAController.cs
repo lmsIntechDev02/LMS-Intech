@@ -992,7 +992,6 @@ namespace LeaveON.Controllers
       foreach (int Id in UserIds)
       {
         int UserId = Id;//Assigns the current UserId for processing.
-
         cmd = new SqlCommand("select user_id,devdt,bsevtdt,DEVID,devnm from punchlog where USER_ID ='" + UserId + "' and devdt BETWEEN '" + dateAttr[1] + "-" + dateAttr[0] + "-01' AND '" + toYear + "-" + toMonth + "-" + "1" + "' order by devdt", con);//last good
         dr = cmd.ExecuteReader();//SqlCommand and SqlDataReader (cmd, dr) are initialized.
 
@@ -1232,7 +1231,7 @@ namespace LeaveON.Controllers
             }
             //re-intiallize variables to next date calculations
             firsTimeIn = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//firstDateTime;//DateTime.Today;
-            
+
             lastTimeOut = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//lastDateTime;//DateTime.Today;
             ThidDayWorkingHours = new TimeSpan();
             IsCardIn = false; IsCardOut = false;
@@ -1335,12 +1334,12 @@ namespace LeaveON.Controllers
             }
             else if (leave != null)
             {
-                // If a leave record exists, retrieve the corresponding leave type name
-                var leaveTypeName = dbLeaveOn.LeaveTypes
-                    .Where(l => l.Id == leave.LeaveTypeId)
-                    .Select(l => l.Name)
-                    .FirstOrDefault();
-                status = leaveTypeName; // Leave type ID if on leave
+              // If a leave record exists, retrieve the corresponding leave type name
+              var leaveTypeName = dbLeaveOn.LeaveTypes
+                  .Where(l => l.Id == leave.LeaveTypeId)
+                  .Select(l => l.Name)
+                  .FirstOrDefault();
+              status = leaveTypeName; // Leave type ID if on leave
             }
             //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
             depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
@@ -1511,121 +1510,45 @@ namespace LeaveON.Controllers
       return View("OffTimeDetail", await Task.FromResult(LstOffTimeDetial));
     }
     // GET: AccessBiostarAC
-    public async Task<ActionResult> UserData(string ReqMonthYear, string[] UserId, string[] deptId)
+    public async Task<ActionResult> UserDataX(string ReqMonthYear, string UserId)
     {
       ViewBag.MonthSelectList = GetMonthSelectList();
-      List<DepartmentName> Departments = dbLeaveOn.DepartmentNames.ToList();
-      ViewBag.DeptList = new SelectList(Departments, "Id", "Name", 0);
-      
       //ViewBag.SelectedMonth = monthSelectList[0];
       DateTime reqDate;
-      List<int> dEmpNums = new List<int>();
+      int dEmpNum;
+
       List<TimeData> LstAttendances = new List<TimeData>();
-
-
-      // var userId = User.Identity.GetUserId();
-      //  var userRoles = dbLeaveOn.AspNetUsers.Where(ur => ur.Id == userId).ToList();
-
-      var userId = User.Identity.GetUserId();
-      var userRoles = dbLeaveOn.AspNetUsers.Where(ur => ur.Id == userId).Include("AspNetRoles").FirstOrDefault();
-   //   var userRoles = dbLeaveOn.AspNetUsers.Where(ur => ur.Id == userId).Include("AspNetRoles").toLi();
-      
-      var isManager = userRoles != null && userRoles.AspNetRoles.Any(role => role.Id == "2");
-      var isUser = userRoles != null && userRoles.AspNetRoles.Any(role => role.Id == "3");
-
-
-      if (isManager || isUser)
-      {      
-        var managerDepartment = dbLeaveOn.AspNetUsers
-            .Where(u => u.Id == userId)
-            .Select(u => u.DepartmentName)
-            .FirstOrDefault();
-
-        var userName = dbLeaveOn.AspNetUsers
-           .Where(u => u.Id == userId)
-           .Select(u => u.UserName)
-          // .Select(u => u.UserName.Substring(0, u.UserName.IndexOf('@')).Replace(".", " "))
-           .FirstOrDefault();
-
-        Departments = Departments.Where(d => d.Name == managerDepartment).ToList();
-        ViewBag.DeptList = new SelectList(Departments, "Id", "Name", managerDepartment);
-
-        var departmentEmployees = dbLeaveOn.AspNetUsers
-            .Where(u => u.DepartmentName == managerDepartment)
-            .AsEnumerable()
-            .Select(user => new
-            {
-              user.BioStarEmpNum,
-              DisplayName = CapitalizeName(user.UserName)
-            })
-            .OrderBy(i => i.DisplayName)
-            .ToList();
-
-        ViewBag.Employees = new SelectList(departmentEmployees, "BioStarEmpNum", "DisplayName");
-        ViewBag.User = userName.ToString().Substring(0, userName.ToString().IndexOf('@')).Replace(".", " ");
-
-        // Auto-select manager's department
-        ViewBag.SelectedDepartment = managerDepartment.ToString();
-      }
-      else
-      {
-        var sortedEmployees = dbLeaveOn.AspNetUsers
-            .AsEnumerable()
-            .Select(user => new
-            {
-              user.BioStarEmpNum,
-              DisplayName = CapitalizeName(user.UserName)
-            })
-            .OrderBy(i => i.DisplayName)
-            .ToList();
-
-        ViewBag.Employees = new SelectList(sortedEmployees, "BioStarEmpNum", "DisplayName");
-      }
-
-
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
-        if(UserId != null && UserId.Length > 0)
-        {
-          dEmpNums = UserId.Select(id => int.Parse(id)).ToList(); 
-        }
 
+        dEmpNum = int.Parse(UserId);
         //user.DepartmentId;//User.Identity.GetUserId();//
-        reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy", System.Globalization.CultureInfo.CurrentCulture);
+        reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
+                                 System.Globalization.CultureInfo.CurrentCulture);
         //reqDate = reqDate.AddYears(-2);
-
       }
       else
       {
         //in case of empty parameters or First Time
-        reqDate = DateTime.Now;
-        //string userId = User.Identity.GetUserId();
-        dEmpNums.Add((int)dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId)?.BioStarEmpNum);
 
+        reqDate = DateTime.Now;
+        string userId = User.Identity.GetUserId();
+        dEmpNum = (int)dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum;
         //dUserId = decimal.Parse(userId);
         //dUserId = (decimal)dbBioStar.UD_TB_AD_USER.FirstOrDefault(x => x.EmployeeNumber == dUserId).EmployeeNumber;
 
-        List<string> SelectedEmps = new List<string> { dEmpNums.FirstOrDefault().ToString()};
+        List<string> SelectedEmps = new List<string>();
+        SelectedEmps.Add(dEmpNum.ToString());
         ViewBag.SelectedEmployees = SelectedEmps;
         //ViewBag.Employees = new SelectList(dbBioStar.UD_TB_AD_USER, "EmployeeNumber", "EmployeeName");
-        //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => (i.Text.Split('@')[0].Split('.')[0]+' ' + i.Text.Split('@')[0].Split('.')[0]));
-  /*      var sortedEmployees = dbLeaveOn.AspNetUsers
-          .AsEnumerable() // Convert to enumerable to perform complex string operations
-          .Select(user => new
-          {
-            user.BioStarEmpNum,
-            DisplayName = CapitalizeName(user.UserName) // Use a helper function to format name
-          })
-          .OrderBy(i => i.DisplayName) // Order by formatted name
-          .ToList();*/
-
-        // Create a SelectList using the sorted list
-       // ViewBag.Employees = new SelectList(sortedEmployees, "BioStarEmpNum", "DisplayName");  // todo 
+        ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
 
       }
 
+      //IQueryable<UD_TB_AccessTime_Data> empData = null;
+      //List<UD_TB_AccessTime_Data> LstEmpData = null;
 
-      if (!string.IsNullOrEmpty(ReqMonthYear) && dEmpNums.Count > 0 )
+      if (!string.IsNullOrEmpty(ReqMonthYear))
       {
         //var identity = (ClaimsIdentity)User.Identity;
         //IEnumerable<Claim> claims = identity.Claims;
@@ -1640,27 +1563,30 @@ namespace LeaveON.Controllers
         //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
 
         //IQueryable<UD_TB_AccessTime_Data> allUsersData = null;
-        //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.BioStarEmpNum == dEmpNum).ToList<AspNetUser>();
-        //string GuidUserId = users[0].Id;
-        //List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.BioStarEmpNum == dEmpNum).ToList<AspNetUser>();
+        string GuidUserId = users[0].Id;
+        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
         //foreach (AspNetUser user in users)
         //{
         string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
-        LstAttendances = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, dEmpNums);
+        List<int> User_Ids = new List<int>();
+        User_Ids.Add(dEmpNum);
+        LstAttendances = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, User_Ids);
 
       }
+      //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
       if (string.IsNullOrEmpty(ReqMonthYear))
       {
         //in case of null param or first time
-       // if (!(LstAttendances is null))
-       // {
+        if (!(LstAttendances is null))
+        {
           return View(LstAttendances.OrderBy(i => i.Date).ToList());
 
-       // }
-      //  else
-       // {
-       //   return View();
-      //  }
+        }
+        else
+        {
+          return View();
+        }
       }
       else
       {
@@ -1668,6 +1594,111 @@ namespace LeaveON.Controllers
       }
 
       //return View();
+    }
+
+    public async Task<ActionResult> UserData(string ReqMonthYear, List<string> UserIds)
+    {
+            try
+            {
+                ViewBag.MonthSelectList = GetMonthSelectList();
+                DateTime reqDate;
+                string userId = User.Identity.GetUserId();
+
+                List<TimeData> LstAttendances = new List<TimeData>();
+
+                // Set default date if ReqMonthYear is empty
+                if (!string.IsNullOrEmpty(ReqMonthYear))
+                {
+                    //dEmpNum = int.Parse(UserIds);
+                    reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
+                                             System.Globalization.CultureInfo.CurrentCulture);
+                }
+                else
+                {
+                    //in case of empty parameters or First Time
+                    reqDate = DateTime.Now;
+                    ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
+
+                }
+
+                // Role-based data population
+                if (User.IsInRole("Admin"))
+                {
+                    var departments = dbLeaveOn.AspNetUsers
+                           .Where(u => !string.IsNullOrEmpty(u.DepartmentName)) 
+                           .Select(u => u.DepartmentName)
+                           .Distinct()
+                           .Select(d => new SelectListItem { Value = d, Text = d })
+                           .ToList();
+                    ViewBag.Departments = departments;
+                    ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName");
+                    ViewBag.SelectedEmployees = UserIds;
+
+                }
+                else if (User.IsInRole("Manager"))
+                {
+                    var managerDepartment = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
+                    ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
+                    ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName"); ViewBag.SelectedEmployees = UserIds;
+                }
+                else if (User.IsInRole("User"))
+                {
+                    var currentUser = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+                    ViewBag.Departments = new SelectList(new List<string> { currentUser.DepartmentName });
+                    ViewBag.Employees = new SelectList(new List<AspNetUser> { currentUser }, "BioStarEmpNum", "UserName");
+                    ViewBag.SelectedEmployees = new List<string> { currentUser.BioStarEmpNum.ToString() }; // Populate selected employee for User
+                }
+
+                if (!string.IsNullOrEmpty(ReqMonthYear))
+                {
+                    string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
+                    var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+                    LstAttendances = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, User_Ids);
+
+                }
+                //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
+                if (string.IsNullOrEmpty(ReqMonthYear))
+                {
+                    //in case of null param or first time
+                    if (!(LstAttendances is null))
+                    {
+                        return View(LstAttendances.OrderBy(i => i.Date).ToList());
+
+                    }
+                    else
+                    {
+                        return View();
+                    }
+                }
+                else
+                {
+                    return PartialView("_UserData", LstAttendances.OrderBy(i => i.Date).ToList());
+                }
+            }
+      catch(Exception ex)
+      {
+                throw (ex);
+      }
+
+    }
+
+    [HttpPost]
+    public ActionResult GetUsersByDepartments(List<string> departmentNames)
+    {
+      if (departmentNames == null || !departmentNames.Any())
+      {
+        return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
+      }
+
+      var users = dbLeaveOn.AspNetUsers
+          .Where(u => departmentNames.Contains(u.DepartmentName))
+          .Select(u => new SelectListItem
+          {
+            Value = u.BioStarEmpNum.ToString(),
+            Text = u.UserName
+          }).ToList();
+      //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
+      return Json(users, JsonRequestBehavior.AllowGet);
     }
     private string CapitalizeName(string userName)
     {
@@ -1986,14 +2017,14 @@ namespace LeaveON.Controllers
         ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
 
         var sortedEmployees = dbLeaveOn.AspNetUsers
-      .Where(x => x.DepartmentName == DepartmentName) 
-      .AsEnumerable() 
+      .Where(x => x.DepartmentName == DepartmentName)
+      .AsEnumerable()
       .Select(user => new
       {
         user.BioStarEmpNum,
-        UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ") 
-        })
-      .OrderBy(i => i.UserName) 
+        UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
+      })
+      .OrderBy(i => i.UserName)
       .ToList();
         ViewBag.Employees = new SelectList(sortedEmployees, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
       }
@@ -2015,7 +2046,7 @@ namespace LeaveON.Controllers
         List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName).ToList<AspNetUser>();
 
 
-        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value ).ToList<int>();
+        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
         //foreach (AspNetUser user in users)
         //{
         string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;

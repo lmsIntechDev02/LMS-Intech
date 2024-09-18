@@ -1,221 +1,154 @@
 @model IEnumerable<LeaveON.UtilityClasses.TimeData>
 
-@{
-  ViewBag.Title = "Index";
-  Layout = "~/Views/Shared/_Layout.cshtml";
-}
+@{ ViewBag.Title = "Index";
+  Layout = "~/Views/Shared/_Layout.cshtml"; }
 
-@*<h2>Index</h2>
-
-  <p>
-    @Html.ActionLink("Create New", "Create")
-  </p>*@
 <div>
-  @{ var employees = ViewBag.Employees as IEnumerable<SelectListItem>;
-    var department = ViewBag.DeptList as IEnumerable<SelectListItem>;
-    var selectedDepartment = ViewBag.SelectedDepartment;
-    var userName = ViewBag.User;
-  }
-
-  @* Employee Section*@
-
-  @if (User.IsInRole("Manager"))
+  @if (User.IsInRole("Admin"))
   {
-    <div id="listEmployees" class="dropdown-check-list">
-      <span class="anchor">Select Employees</span>
-      <ul class="items">
-        @foreach (var employee in employees)
-        {
-          <li>
-            <label for="employee_@employee.Value">@employee.Text</label>
-            <input type="checkbox" value="@employee.Value" id="employee_@employee.Value" />
-          </li>
-        }
-      </ul>
-    </div> }
+    // Department Dropdown for Admin (Multi-select)
+    //@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments),
+    //    htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Admin (Multi-select)
+<div id="listDepartments" class="dropdown-check-list">
+  <span class="anchor">Select Departments</span>
+  <ul class="items">
+    @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
+    {
+<li>
+  <label for="dept_@department.Value">
+    <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
+  </label>
+</li>
+}
+  </ul>
+</div> @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+  htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
 
-  else if (User.IsInRole("User"))
-  {
-    <div id="listEmployees" class="dropdown-check-list">
-      <div class="anchor">
-        @userName
-      </div>
-    </div>}
-  else if (User.IsInRole("Admin"))
-  {
-    <div id="listEmployees" class="dropdown-check-list">
-      <span class="anchor">Select Employees</span>
-      <ul class="items">
-        @foreach (var employee in employees)
-        {
-          <li>
-            <label for="employee_@employee.Value">@employee.Text</label>
-            <input type="checkbox" value="@employee.Value" id="employee_@employee.Value" />
-          </li>
-        }
-      </ul>
-    </div> }
+        <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+          <span class="anchor">Select Employees</span>
+          <ul class="items">
+            @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+            {
+    <li>
+      <label for="emp_@employee.Value">
+        <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" /> @employee.Text
+      </label>
+    </li>
+}
+          </ul>
+        </div> }
+      else if (User.IsInRole("Manager"))
+      {
+        // Department Dropdown for Manager (Single department, disabled)
+@Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+                     htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
+@Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+           htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) }
+else if (User.IsInRole("User"))
+{
+// Department Dropdown for User (Single department, disabled)
+@Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+           htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
+@Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+           htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}
 
-  else
-  {
-    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees), "Select Employee", htmlAttributes: new { @class = "selectpicker", @disabled = "disabled", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
-  }
 
-  @* Department Section*@
-
-  @if (User.IsInRole("Manager"))
-  {
-    <div id="listDepartment" class="dropdown-check-list">
-      <div class="department-name anchor">
-        @selectedDepartment
-      </div>
-    </div>
-  }
-  else if (User.IsInRole("User"))
-  {
-    <div id="listDepartment" class="dropdown-check-list">
-      <div class="department-name anchor">
-        @selectedDepartment
-      </div>
-    </div>
-
-  }
-
-  else
-  {
-    @*@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.DeptList, "Value", "Text"), "Select Department", htmlAttributes: new { @class = "selectpicker", @readonly = "readonly" })*@
-    <div id="listDepartment" class="dropdown-check-list">
-      <span class="anchor">Select Department</span>
-      <ul class="items">
-        @foreach (var dept in department)
-        {
-          <li>
-            <label for="employee_@dept.Value">@dept.Text</label>
-            <input type="checkbox" value="@dept.Value" id="employee_@dept.Value" />
-          </li>
-        }
-      </ul>
-    </div>
-  }
-  @*<select class="selectpicker" id="selectMonth1" data-live-search="false" data-done-button="true">
-      <option value="07-2020">July 2020</option>
-      <option value="08-2020">August 2020</option>
-      <option value="09-2020">September 2020</option>
-      <option value="10-2020">October 2020</option>
-      <option value="11-2020">November 2020</option>
-      <option value="12-2020">December 2020</option>
-      <option value="01-2021">January 2021</option>
-      <option value="02-2021">February 2021</option>
-      <option value="03-2021">March 2021</option>
-      <option value="04-2021">April 2021</option>
-      <option value="05-2021">May 2021</option>
-      <option value="06-2021">June 2021</option>
-    </select>*@
-
-  @*@Html.DropDownList("selectMonth", new MultiSelectList(ViewBag.MonthSelectList, "Value", "Text", ViewBag.SelectedMonth), htmlAttributes: new { @class = "selectpicker", @disabled = "disabled", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
   @Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
-  <button id="load">go</button>
 
-  @{Html.RenderPartial("_UserData", Model); }
+  <button id="load">Go</button>
+
+  @{ Html.RenderPartial("_UserData", Model); }
 </div>
+
 <script type="text/javascript">
-
-
   $(document).ready(function () {
-
-    var checkListEmployees = document.getElementById('listEmployees');
-    var checkListDepartment = document.getElementById('listDepartment');
-
-    function toggleVisibility(checkList) {
-      checkList.getElementsByClassName('anchor')[0].onclick = function (evt) {
-        if (checkList.classList.contains('visible')) {
-          checkList.classList.remove('visible');
-        } else {
-          checkList.classList.add('visible');
-        }
+ @*   $(".dropdown-check-list .anchor").click(function () {
+      var checkList = $(this).parent();
+      if (checkList.hasClass('visible')) {
+        checkList.removeClass('visible');
+      } else {
+        checkList.addClass('visible');
       }
-    }
+    });*@
 
-    if (checkListEmployees) {
-      toggleVisibility(checkListEmployees);
-    }
-    if (checkListDepartment) {
-      toggleVisibility(checkListDepartment);
-    }
 
-    $(document).click(function (e) {
-      if (!$(e.target).closest('#listEmployees').length) {
-        if (checkListEmployees.classList.contains('visible')) {
-          checkListEmployees.classList.remove('visible');
-        }
-      }
-      if (!$(e.target).closest('#listDepartment').length) {
-        if (checkListDepartment.classList.contains('visible')) {
-          checkListDepartment.classList.remove('visible');
-        }
-      }
+
+    $(".dropdown-check-list .anchor").click(function () {
+      var checkList = $(this).parent();
+      checkList.toggleClass('visible');
     });
+    // Load users based on the selected departments for Admin
+    $('#listDepartments input[type="checkbox"]').change(function () {
+      var selectedDepartments = [];
+      $('#listDepartments input[type="checkbox"]:checked').each(function () {
+        selectedDepartments.push($(this).val());
+      });
 
-          $('#load').click(function () {
-            var ReqMonthYear = $('#selectMonth').val();
 
-            var EmployeeIds = [];
-            $('#listEmployees input[type="checkbox"]:checked').each(function () {
-              EmployeeIds.push($(this).val());
-            });
+      if (selectedDepartments.length === 0) {
+        console.log('No departments selected.');
+        return;
+      }
 
-            var DepartmentIds = [];
-            $('#listDepartment input[type="checkbox"]:checked').each(function () {
-              DepartmentIds.push($(this).val());
-            });
+              $.ajax({
+            url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
+            type: 'POST',
+             //   data: { 'departmentNames': selectedDepartments },
+             //   data: { departmentNames: JSON.stringify(selectedDepartments) }, // Serialize array to JSON string
+                contentType: 'application/json',
+                data: JSON.stringify({ departmentNames: selectedDepartments }),
 
-            @*var dataPayload = { 'ReqMonthYear': ReqMonthYear };
-
-            // Manager Role
-            if ('@User.IsInRole("Manager")') {
-              dataPayload['UserId'] = [EmployeeIds.length > 0 ? EmployeeIds : '@userName'];
-              dataPayload['DeptId'] = ['@selectedDepartment']
+            success: function (data) {
+              var employeeList = $("#listEmployees ul.items");
+                employeeList.empty();
+                $.each(data, function (index, item) {
+                  employeeList.append($('<li>').html(
+                    '<label for="emp_' + item.Value + '">' +
+                    '<input type="checkbox" value="' + item.Value + '" id="emp_' + item.Value + '" /> ' +
+                    item.Text +
+                    '</label>'
+                  ));
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+                alert('Failed to load users');
             }
-
-            // User Role
-           else if ('@User.IsInRole("User")') {
-              dataPayload['UserId'] = ['@userName'];
-              dataPayload['DeptId'] = ['@selectedDepartment']
-            }
-
-            // Admin Role
-            else  ('@User.IsInRole("Admin")') {
-              dataPayload['UserId'] = EmployeeId;
-              dataPayload['DeptId'] = DepartmentIds;
-            }*@
-
-
-
-             $.ajax({
-               url: "@Url.Action("UserData","AccessBiostarTA")",
-               data: { 'ReqMonthYear': ReqMonthYear, 'UserId': EmployeeIds, 'DeptId': DepartmentIds },
-               //data: { 'ReqMonthYear': ReqMonthYear, 'UserId': JSON.stringify(EmployeeIds), 'DeptId': JSON.stringify(DepartmentIds) },
-               //data: dataPayload,
-               type: "GET",
-               traditional: true,
-               cache: false,
-               success: function (data) {
-                        //alert(data);
-                        $("#NewData").html(data);
-
-                        //$("#hdnOrigComments").val($('#txtComments').val());
-                        //$('#lblCommentsNotification').text(savingStatus);
-                    },
-                    error: function (xhr, ajaxOptions, thrownError) {
-                        //$('#lblCommentsNotification').text("Error encountered while saving the comments.");
-                        alert('Data provided was not valid');
-                    }
-             });
-          });
         });
+        });
+          $('#load').click(function () {
+            var reqMonthYear = $('#selectMonth').val();
+            var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
+            var requestData;
+            if (userRole === "Admin") {
+              var selectedEmployees = [];
+              $('#listEmployees input[type="checkbox"]:checked').each(function () {
+                selectedEmployees.push($(this).val());
+              });
+              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': selectedEmployees };
+            } else if (userRole === "User") {
+              var employeeId = $('#selectedEmployees').val();
+              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
+            } else {
+              var employeeId = $('#listEmployees').val();
+              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId};
+            }
+        
+           // JSON.stringify(selectedEmployees)
+              $.ajax({
+                url: "@Url.Action("UserData", "AccessBiostarTA")",
+                data: requestData,
+                  type: "POST",
+                  success: function (data) {
+                      $("#NewData").html(data);
+                  },
+                  error: function (xhr, ajaxOptions, thrownError) {
+                      alert('Data provided was not valid');
+                  }
+              });
+          });
+      });
 </script>
-
-
 
 <style>
 
@@ -238,20 +171,23 @@
       border-radius: 2px;
     }
 
-      .dropdown-check-list .anchor:after {
-        position: absolute;
-        content: "";
-        border-left: 1.5px solid black;
-        border-top: 1.5px solid black;
-        padding: 3px;
-        right: 10px;
-        top: 30%;
-        -moz-transform: rotate(-135deg);
-        -ms-transform: rotate(-135deg);
-        -o-transform: rotate(-135deg);
-        -webkit-transform: rotate(-135deg);
-        transform: rotate(-135deg);
-      }
+  .employee-dropdown-width .anchor {
+    padding: 0 177px 0 10px;
+  }
+  .dropdown-check-list .anchor:after {
+    position: absolute;
+    content: "";
+    border-left: 1.5px solid black;
+    border-top: 1.5px solid black;
+    padding: 3px;
+    right: 10px;
+    top: 30%;
+    -moz-transform: rotate(-135deg);
+    -ms-transform: rotate(-135deg);
+    -o-transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+    transform: rotate(-135deg);
+  }
 
       .dropdown-check-list .anchor:active:after {
         right: 8px;
@@ -265,7 +201,7 @@
       display: none;
       margin: 0;
       border: 1px solid #ccc;
-      height: 500px;
+      max-height: 570px;
       overflow-y: auto;
       border-top: none;
       background-color: white;
@@ -283,14 +219,14 @@
         font-weight: normal;
       }
         .dropdown-check-list ul.items li label {
-          font-weight: normal; 
+          font-weight: normal;
         }
         .dropdown-check-list ul.items li:hover {
           background-color: #0094ff;
         }
 
     .dropdown-check-list.visible .anchor {
-      
+
     }
 
     .dropdown-check-list.visible .items {
