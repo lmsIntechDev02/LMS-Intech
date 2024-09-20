@@ -29,9 +29,11 @@
           <ul class="items">
             @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
             {
+              var username = employee.Text.Split('@')[0]; // Get the part before the '@'
+              username = username.Replace(".", " ");
     <li>
       <label for="emp_@employee.Value">
-        <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" /> @employee.Text
+        <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" /> @username
       </label>
     </li>
 }
@@ -172,7 +174,7 @@ else if (User.IsInRole("User"))
     }
 
   .employee-dropdown-width .anchor {
-    padding: 0 177px 0 10px;
+    /*padding: 0 177px 0 10px;*/
   }
   .dropdown-check-list .anchor:after {
     position: absolute;

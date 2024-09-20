@@ -167,7 +167,6 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult Login(string returnUrl, string ADUser)
     {
-#if DEBUG
       //ADUser = "bsserviceaccount@intechww.com";
       //ADUser = "Ahsan.Ahmad@intechww.com";
       //ADUser = "umar.nazir@intechww.com";
@@ -191,7 +190,7 @@ namespace LeaveON.Controllers
       /*Manager*/
       //ADUser = "Muzammil.Riaz@intechww.com";
       /*User*/
-      ADUser = "nouman.sial@intechww.com";
+      // ADUser = "nouman.sial@intechww.com";
 
       //ADUser = "laiba.khan@intechww.com";
       //ADUser = "nouman.sial@intechww.com";s
@@ -201,16 +200,16 @@ namespace LeaveON.Controllers
       //ADUser = "haseeb.aslam@intechww.com";
       //ADUser = "Khawaja.jawad@intechww.com";
       //ADUser = "abdullah.abusalah@intechww.com";
-      //ADUser = "waseem.ahmad@intechww.com";
+      ADUser = "lms.dev02@intechww.com";
       //ali.raza@intechww.com
-#endif
+
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
 
       if (user != null && !UserManager.IsInRole(user.Id, "User"))
       {
-       // UserManager.AddToRole(user.Id, "User");
-       // UserManager.AddToRole(user.Id, "Manager");
+        UserManager.AddToRole(user.Id, "User");
+        UserManager.AddToRole(user.Id, "Manager");
       }
 
       if (user?.UserLeavePolicyId == null)

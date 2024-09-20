@@ -1692,10 +1692,12 @@ namespace LeaveON.Controllers
 
       var users = dbLeaveOn.AspNetUsers
           .Where(u => departmentNames.Contains(u.DepartmentName))
+          .AsEnumerable()
           .Select(u => new SelectListItem
           {
             Value = u.BioStarEmpNum.ToString(),
-            Text = u.UserName
+           /* Text = u.UserName*/
+            Text = u.UserName.Split('@')[0].Replace('.', ' ')
           }).ToList();
       //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
       return Json(users, JsonRequestBehavior.AllowGet);
