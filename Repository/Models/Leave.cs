@@ -38,6 +38,7 @@ namespace Repository.Models
         public string Remarks2 { get; set; }
         public Nullable<System.DateTime> DateCreated { get; set; }
         public Nullable<System.DateTime> DateModified { get; set; }
+        public Nullable<int> UserLeavePolicyID { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }
         public virtual LeaveType LeaveType { get; set; }

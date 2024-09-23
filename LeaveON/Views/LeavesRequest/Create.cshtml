@@ -9,7 +9,14 @@
 <div class="col-md-6">
   <!-- general form elements -->
   <div class="card card-primary">
-    <div class="card-header">
+    <div class="card-
+         
+         
+         
+         
+         
+         
+         ">
       <h3 class="card-title">Apply Leave</h3>
     </div>
     <!-- /.card-header -->
@@ -25,68 +32,45 @@
           @TempData["ErrorMessage"]
         </div>
       }
-        @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "Create", id = "Create" }))
-        {
-          @Html.AntiForgeryToken()
-          @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-          @*<div class="form-group">
-            @Html.LabelFor(model => model.UserId, htmlAttributes: new { @class = "control-label" })
-            <div class="col-md-10">
-              @Html.EditorFor(model => model.UserId, new { htmlAttributes = new { @class = "form-control" } })
-              @Html.ValidationMessageFor(model => model.UserId, "", new { @class = "text-danger" })
-            </div>
-          </div>*@
-
-          <div class="form-group">
-            @Html.Label("User Name")
-
-            @Html.Editor("UserName", new { htmlAttributes = new { @class = "form-control", @Value = ViewBag.UserName, @readonly = "readonly" } })
-            @*@Html.Editor((string)ViewBag.UserName)*@
-          </div>
-          <div class="form-group">
-            @{
-              var leaveTypes = (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd;
-            }
-            @Html.LabelFor(model => model.LeaveTypeId, "Leave Type", htmlAttributes: new { @class = "" })
-
-            @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
-            @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })*@
-            @Html.ValidationMessageFor(model => model.LeaveTypeId, "", new { @class = "text-danger" })
-
-          </div>
-
-          <div class="form-group">
-            @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-
-            <br>
-            @*<textarea name="Reason" class="form-control " rows="3">
-
-            </textarea>*@
-
-            @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
+      @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "Create", id = "Create" }))
+      {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
 
-            @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
+        <div class="form-group">
+          @Html.Label("User Name")
 
-          </div>
+          @Html.Editor("UserName", new { htmlAttributes = new { @class = "form-control", @Value = ViewBag.UserName, @readonly = "readonly" } })
+          @*@Html.Editor((string)ViewBag.UserName)*@
+        </div>
+        <div class="form-group">
+          @{
+            var leaveTypes = (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd;
+          }
+          @Html.LabelFor(model => model.LeaveTypeId, "Leave Type", htmlAttributes: new { @class = "" })
 
-          @*<div class="form-group">
+          @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
+          @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })*@
+          @Html.ValidationMessageFor(model => model.LeaveTypeId, "", new { @class = "text-danger" })
 
-            <label>Start Date:</label>
+        </div>
 
-            <div class="input-group">
-              <div class="input-group-prepend">
-                <span class="input-group-text">
-                  <i class="far fa-calendar-alt"></i>
-                </span>
-              </div>
+        <div class="form-group">
+          @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-              <input type="text" class="form-control float-right" id="reservation">
+          <br>
 
-            </div>
 
-          </div>*@
-                <div id="leaveDate">
+          @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
+
+
+          @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
+
+        </div>
+
+
+        <div id="leaveDate">
 
           <div class="form-group">
             @Html.LabelFor(model => model.StartDate, "Start Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
@@ -104,66 +88,75 @@
 
           </div>
 
-                </div>
-          <div id="timeDiv" class="form-group">
-            <b style="color:black">Start time</b> <b style="color:red">*</b> <input id="startTime" type="text" class="time" /> <br />
-            <b style="color:black">End time</b> <b style="color:red">*&nbsp;&nbsp;</b> <input id="endTime" type="text" class="time" />
-          </div>
-
-
+        </div>
+        <div id="timeDiv" class="form-group">
           <div class="form-group">
-            @*@Html.LabelFor(model => model.TotalDays, "Total Days", htmlAttributes: new { @class = " " })*@
-
-            @Html.HiddenFor(model => model.TotalDays, new { htmlAttributes = new { @class = "form-control", id = "diff", @readonly = "readonly" } })
-            @Html.ValidationMessageFor(model => model.TotalDays, "", new { @class = "text-danger" })
-
-          </div>
-
-          <div class="form-group">
-            @Html.LabelFor(model => model.EmergencyContact, "Emergency Contact", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-
-            @Html.EditorFor(model => model.EmergencyContact, new { htmlAttributes = new { @class = "form-control", required = "required " } })
-            @Html.ValidationMessageFor(model => model.EmergencyContact, "", new { @class = "text-danger" })
-
-          </div>
-          <div class="form-group">
-            @Html.LabelFor(model => model.LineManager1Id, "Line Manager", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-
-
-            @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-            @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control",  required = "required " })
-            @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
-
-            @*@Html.EditorFor(model => model.LineManager1Id, new { htmlAttributes = new { @class = "form-control" } })*@
-
-          </div>
-
-          <div  class="form-group" id="LineManager2IdParent">
-            @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
-
-
-            @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-            @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })
-            @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
-
-            @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
-
-          </div>
-
-
-
-          <div class="form-group">
-            <div class="class=" card-footer">
-              <input type="submit" value="Apply" id="btnApply" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
-
+            <label>Remaining Balance</label>
+            <div class="form-control" readonly>
+              @ViewBag.ShortLeaveMessage
             </div>
           </div>
+          <b style="color:black">Start time</b> <b style="color:red">*</b> <input id="startTime" type="text" class="time" /> <br />
+          <b style="color:black">End time</b> <b style="color:red">*&nbsp;&nbsp;</b> <input id="endTime" type="text" class="time" />
+        </div>
 
-          <div>
-            @Html.ActionLink("Back to List", "Index")
+
+
+
+
+        <div class="form-group">
+          @*@Html.LabelFor(model => model.TotalDays, "Total Days", htmlAttributes: new { @class = " " })*@
+
+          @Html.HiddenFor(model => model.TotalDays, new { htmlAttributes = new { @class = "form-control", id = "diff", @readonly = "readonly" } })
+          @Html.ValidationMessageFor(model => model.TotalDays, "", new { @class = "text-danger" })
+
+        </div>
+
+        <div class="form-group">
+          @Html.LabelFor(model => model.EmergencyContact, "Emergency Contact", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+          @Html.EditorFor(model => model.EmergencyContact, new { htmlAttributes = new { @class = "form-control", required = "required " } })
+          @Html.ValidationMessageFor(model => model.EmergencyContact, "", new { @class = "text-danger" })
+
+        </div>
+        <div class="form-group">
+          @Html.LabelFor(model => model.LineManager1Id, "Line Manager", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+
+          @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
+          @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", required = "required " })
+          @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
+
+          @*@Html.EditorFor(model => model.LineManager1Id, new { htmlAttributes = new { @class = "form-control" } })*@
+
+        </div>
+
+        <div class="form-group" id="LineManager2IdParent">
+          @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
+
+
+          @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
+          @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })
+          @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
+
+          @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
+
+        </div>
+
+
+
+        <div class="form-group">
+          <div class="class=" card-footer">
+            <input type="submit" value="Apply" id="btnApply" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
+
           </div>
+        </div>
+        <div id="loader" style="display:none; text-align:center; font-size:24px; color:#007bff;">Loading...</div>
+        <div>
+          @Html.ActionLink("Back to List", "Index")
+        </div>
 
-        }
+      }
     </div>
 
 
@@ -213,15 +206,12 @@
 
 
       $('#LeaveTypeId').on('change', function () {
-        //alert(this.value);
         if (this.value == '7')//7 causal short leave
         //.....................^.......
         {
           $("#timeDiv").show();
           $('#startTime').prop('required', true);
           $('#endTime').prop('required', true);
-
-          
         }
         else {
           $("#timeDiv").hide();
@@ -245,13 +235,8 @@
           }
         });
       });
-      //$('#startTime').on('change', function () {
-      //  $("#datepickerStart").val($("#startTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
-      //});
-      //$('#endTime').on('change', function () {
-      //  $("#datepickerEnd").val($("#endTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
-      //});
-      
+
+
       $('#startTime').timepicker({
         'scrollDefault': 'now',
         'step': 60
@@ -261,49 +246,68 @@
         'step': 60
       });
 
-      //$('#startTime').dateTimePicker();
-      //$('#endTime').dateTimePicker();
-
-      //keydown
-      //keypress
-
       $('#btnApply').click(function () {
-        if ($("#timeDiv").is(':visible')) {
-            $("#datepickerStart").val($("#startTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
-            $("#datepickerEnd").val($("#endTime").val() + ", " + $.datepicker.formatDate("DD, MM, d, yy", new Date()));
-        }
-        if (IsDatesCorrect() == false) {
-          //alert('false');
-          return false;
-        }
-        else {
-          //alert('true');
-          return true;
+        event.preventDefault(); // Prevent the default form submission initially
+
+        // Check if the form is valid using HTML5 validation
+        var form = document.getElementById('Create');
+        if (form.checkValidity() === false) {
+          form.reportValidity(); // This will display validation errors on the form
+          $(this).prop('disabled', false); // Re-enable the button for correction
+          return; // Exit the function, do not submit
         }
 
+        $(this).prop('disabled', true);
+        $("#loader").css('display', 'block'); // Show the loader
+        if ($("#timeDiv").is(':visible')) {
+          // Retrieve the currently selected dates from the datepickers
+          var selectedStartDate = $("#datepickerStart").datepicker("getDate");
+          var selectedEndDate = $("#datepickerEnd").datepicker("getDate");
+
+          // Format these dates as strings
+          var formattedStartDate = $.datepicker.formatDate("DD, MM, d, yy", selectedStartDate);
+          var formattedEndDate = $.datepicker.formatDate("DD, MM, d, yy", selectedEndDate);
+
+          // Retrieve the times
+          var startTime = $('#startTime').val();
+          var endTime = $('#endTime').val();
+
+          // Combine the date and time
+          $("#datepickerStart").val(startTime + ", " + formattedStartDate);
+          $("#datepickerEnd").val(endTime + ", " + formattedEndDate);
+        }
+        //else {
+        //  $(this).prop('disabled', false);
+        //  $("#loader").css('display', 'none');
+        //}
+        if (IsDatesCorrect()) {
+          form.submit(); // Manually submit the form if everything is correct
+        } else {
+          $(this).prop('disabled', false); // Re-enable the button if there are errors
+          $("#loader").css('display', 'none'); // Hide the loader
+        }
       });
 
       //alert('@ViewBag.FiscalYearStart');
       var momentDate = moment('@ViewBag.FiscalYearStart', 'DD-MM-YYYY HH:mm:ss');
-      //alert(momentDate);
+
       var fiscalYearStart = momentDate.toDate();
-      //alert(fiscalYearStart);
+
       momentDate = moment('@ViewBag.FiscalYearEnd', 'DD-MM-YYYY HH:mm:ss');
       var fiscalYearEnd = momentDate.toDate();
-      //alert(momentDate);
+
 
 
       $("#LineManager1Id").change(function () {
         $('#LineManager2Id').val($('#LineManager1Id').val());
       });
 
-      //01/07/2021 00:00:00
-
-      //alert(new Date());
       var message = "@ViewBag.PolicyAlert";
       if (message != "") {
-         $("#Create :input").prop("disabled", true);
-         alert(message);
+        $("#Create :input").prop("disabled", true);
+        alert(message);
+      }
+      else {
       }
 
       $("#datepickerStart").val($.datepicker.formatDate("DD, MM, d, yy", new Date()));
@@ -316,15 +320,7 @@
         changeYear: true,
         numberOfMonths: 2,
         dateFormat: 'DD, MM, d, yy',
-        //showButtonPanel: true
-
         showOn: "both"
-        //buttonImage: "images/calendar.gif",
-        //buttonImageOnly: true,
-        //buttonText: "Select date",
-
-        //minDate: -20,
-        //maxDate: "+1M +10D"
       });
 
       $("#datepickerEnd").datepicker({
@@ -337,17 +333,10 @@
         showOn: "both",
         onSelect: function () {
           IsDatesCorrect();
-          //SubmitButtonStatus();
+
         }
       });
-      //function SubmitButtonStatus() {
-      //  $(':input[type="submit"]').prop('disabled', true);
-      //}
-      //$('#Apply').keydown(function () {
-      //  if (IsDatesCorrect() == false) {
-      //    return false;
-      //  }
-      //});
+
       function IsDatesCorrect() {
         var start = $("#datepickerStart").datepicker("getDate");
         var end = $("#datepickerEnd").datepicker("getDate");
@@ -370,27 +359,11 @@
           $("#datepickerEnd").val("");
           return false;
         }
-         //alert(days);
         $('#diff').val(days);
         return true;
       }
-
-      //showButtonPanel: true
-
-
-      //showOn: "button",
-      //buttonImage: "images/calendar.gif",
-      //buttonImageOnly: true,
-      //buttonText: "Select date",
-
-      //minDate: -20,
-      //maxDate: "+1M +10D"
     });
 
   });
 </script>
-
-@*@section Scripts {
-      @Scripts.Render("~/bundles/jqueryval")
-  }*@
-
+<script>console.log('ShortLeaveMessage:', '@Html.Raw(ViewBag.ShortLeaveMessage)');</script>

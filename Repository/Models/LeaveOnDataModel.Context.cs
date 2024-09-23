@@ -38,5 +38,9 @@ namespace Repository.Models
         public virtual DbSet<LeaveType> LeaveTypes { get; set; }
         public virtual DbSet<UserLeavePolicy> UserLeavePolicies { get; set; }
         public virtual DbSet<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
+        public virtual DbSet<C__MigrationHistory> C__MigrationHistory { get; set; }
+        public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
+        public virtual DbSet<Manager> Managers { get; set; }
+        public virtual DbSet<AttendanceData> AttendanceDatas { get; set; }
     }
 }
