@@ -32,3 +32,4 @@ lms.dev01@intechww.com
 lms.dev01@intechww.com
 lms.dev01@intechww.com
 lms.dev01@intechww.com
+lms.dev02@intechww.com
