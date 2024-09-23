@@ -79,7 +79,7 @@ namespace LeaveON.Controllers
           usersAndRoles.Add(new UserRoleModel
           {
             UserId = user.Id,
-            UserName = user.UserName,
+            UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " "),
             RoleId = role.Id,
             RoleName = role.Name
           });

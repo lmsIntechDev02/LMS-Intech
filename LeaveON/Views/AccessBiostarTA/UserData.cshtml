@@ -75,10 +75,19 @@ else if (User.IsInRole("User"))
 
 
 
-    $(".dropdown-check-list .anchor").click(function () {
+    $(".dropdown-check-list .anchor").click(function (e) {
       var checkList = $(this).parent();
       checkList.toggleClass('visible');
+      e.stopPropagation();
     });
+
+    // Close dropdown when clicking outside
+    $(document).click(function (e) {
+      if (!$(e.target).closest('.dropdown-check-list').length) {
+        $(".dropdown-check-list").removeClass('visible');
+      }
+    })
+
     // Load users based on the selected departments for Admin
     $('#listDepartments input[type="checkbox"]').change(function () {
       var selectedDepartments = [];
@@ -142,7 +151,9 @@ else if (User.IsInRole("User"))
                 data: requestData,
                   type: "POST",
                   success: function (data) {
-                      $("#NewData").html(data);
+                    $("#NewData").html(data);
+                    $('#listDepartments input[type="checkbox"]').prop('checked', false);
+                    $('#listEmployees input[type="checkbox"]').prop('checked', false);
                   },
                   error: function (xhr, ajaxOptions, thrownError) {
                       alert('Data provided was not valid');
