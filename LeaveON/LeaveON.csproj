@@ -2294,6 +2294,7 @@
     <Content Include="Scripts\bootstrap.esm.js.map" />
     <Content Include="Scripts\bootstrap.bundle.min.js.map" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
+    <None Include="Properties\PublishProfiles\IISProfile.pubxml" />
     <None Include="Scripts\jquery-3.6.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.6.0.js" />
     <Content Include="Scripts\jquery-3.6.0.min.js" />
@@ -2436,6 +2437,10 @@
     <Content Include="Views\AccessBiostarTA\CountriesData.cshtml" />
     <Content Include="Views\AccessBiostarTA\_CountriesData.cshtml" />
     <Content Include="Views\Error\General.cshtml" />
+    <Content Include="Views\AspNetUsers\Create.cshtml" />
+    <Content Include="Views\AspNetUsers\Delete.cshtml" />
+    <Content Include="Views\AttendanceMachine\AttendaceUserData.cshtml" />
+    <Content Include="Uploads\holidays.csv" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
