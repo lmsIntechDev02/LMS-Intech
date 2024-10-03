@@ -32,9 +32,13 @@ namespace LeaveON.Services
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
-      List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-      string managerEmail = string.Empty;
-      string manager2Email = string.Empty;
+      //List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+      List<int> userIds = new List<int> { 2434, 1179 };
+      string departmentID = string.Empty;
+      string deviceName = string.Empty;
+      string deviceID = string.Empty;
+      var userInfo = new { UserID = string.Empty, managerEmail = string.Empty, manager2Email = string.Empty, managerID = string.Empty, manager2ID = string.Empty, departmentName = string.Empty }; 
+
       con.Open();
       foreach (int Id in userIds)
       {
@@ -53,9 +57,22 @@ namespace LeaveON.Services
 
           //processing
           UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
-          managerEmail = dbLeaveOn.AspNetUsers.Where(x => x.Id == aspNetUser.ManagerID).Select(x => x.UserName).FirstOrDefault();
-          manager2Email = dbLeaveOn.AspNetUsers.Where(x => x.Id == aspNetUser.Manager2ID).Select(x => x.UserName).FirstOrDefault();
-          userGuidId = aspNetUser.Id;
+          userInfo = dbLeaveOn.AspNetUsers
+            .Where(x => x.Id == aspNetUser.Id)
+            .Select(x => new
+            {
+              UserID = x.Id,
+              managerEmail = x.ManagerEmail,
+              manager2Email = x.Manager2Email,
+              managerID = x.ManagerID,
+              manager2ID = x.Manager2ID,
+              departmentName = x.DepartmentName
+            })
+            .FirstOrDefault();
+        var depID = dbLeaveOn.DepartmentNames.Where(x => x.Name == userInfo.departmentName).Select(x => x.Id).FirstOrDefault();
+          departmentID = depID.ToString();
+
+        userGuidId = aspNetUser.Id;
           string depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
           string userLeavePolicyDescription = string.Empty;
           if (aspNetUser.CountryName == null)
@@ -102,8 +119,13 @@ namespace LeaveON.Services
 
           while (dr.Read())//This loop iterates over each row returned by the SQL query executed above.
           {
-            // for each row from the database, add the retrieved table name to the list
-            DataRow dtrw = dt.NewRow(); //A new DataRow (dtrw) is created to store data for each attendance log.
+           deviceID = dr["DEVID"].ToString(); 
+           deviceName = dr["devnm"].ToString(); 
+
+          Console.WriteLine($"User: {UserName}, DEVID: {deviceID}, Device Name: {deviceName}");
+
+          // for each row from the database, add the retrieved table name to the list
+          DataRow dtrw = dt.NewRow(); //A new DataRow (dtrw) is created to store data for each attendance log.
             dtrw[0] = dr["USER_ID"];
             dtrw[1] = (DateTime)dr["devdt"];
             dtrw[2] = dr["bsevtdt"];
@@ -464,7 +486,7 @@ namespace LeaveON.Services
 
         AttendanceData attendanceDataToFill = new AttendanceData
         {
-          EmployeeID = item.EmployeeNumber,
+          BioStarEmpNum = item.EmployeeNumber,
           UserName = item.EmployeeName,
           DepartmentName = item.Department,
           UserLeavePolicyID = item.Policy,
@@ -480,8 +502,14 @@ namespace LeaveON.Services
           LeaveTypeID = item.leaveTypeID,
           LeaveType = item.leaveType,
           CountryName = item.TimeZone,
-          ManagerEmail= managerEmail,
-          Manager2Email= manager2Email,
+          ManagerEmail= userInfo.managerEmail,
+          Manager2Email= userInfo.manager2Email,
+          ManagerID= userInfo.managerID,
+          Manager2ID= userInfo.manager2ID,
+          UserID= userInfo.UserID,
+          DepartmentID = departmentID,
+          devnm = deviceName,
+          DEVID = deviceID
         };
         dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
       }

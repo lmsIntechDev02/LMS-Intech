@@ -104,7 +104,7 @@ namespace LeaveON.Services
             DateTime invalidDate = new DateTime(0001, 01, 01);
 
             var attendanceData = context.AttendanceDatas.Distinct()
-            .Where(a => a.EmployeeID == user.userId && a.CreatedDate.Value.Month == month && a.CreatedDate.Value.Year == year &&
+            .Where(a => a.BioStarEmpNum == user.userId && a.CreatedDate.Value.Month == month && a.CreatedDate.Value.Year == year &&
             a.IsLeave != true)
             .ToList();
 

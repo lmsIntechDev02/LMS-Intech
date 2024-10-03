@@ -107,7 +107,7 @@
             <PropertyRef Name="id" />
           </Key>
           <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EmployeeID" Type="int" />
+          <Property Name="BioStarEmpNum" Type="int" />
           <Property Name="UserName" Type="varchar" MaxLength="255" />
           <Property Name="DepartmentName" Type="varchar" MaxLength="255" />
           <Property Name="UserLeavePolicyID" Type="varchar" MaxLength="255" />
@@ -125,6 +125,12 @@
           <Property Name="ManagerEmail" Type="nvarchar(max)" />
           <Property Name="CountryName" Type="nvarchar(max)" />
           <Property Name="Manager2Email" Type="nvarchar(max)" />
+          <Property Name="ManagerID" Type="varchar" MaxLength="255" />
+          <Property Name="Manager2ID" Type="varchar" MaxLength="255" />
+          <Property Name="UserID" Type="nvarchar" MaxLength="128" />
+          <Property Name="DepartmentID" Type="varchar" MaxLength="255" />
+          <Property Name="DEVID" Type="varchar" MaxLength="255" />
+          <Property Name="devnm" Type="varchar" MaxLength="255" />
         </EntityType>
         <EntityType Name="CountryNames">
           <Key>
@@ -249,6 +255,18 @@
             </Principal>
             <Dependent Role="AnnualOffDays">
               <PropertyRef Name="UserLeavePolicyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AttendanceData_UserID">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="AttendanceData" Type="Self.AttendanceData" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AttendanceData">
+              <PropertyRef Name="UserID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -439,6 +457,10 @@
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
             <End Role="AnnualOffDays" EntitySet="AnnualOffDays" />
           </AssociationSet>
+          <AssociationSet Name="FK_AttendanceData_UserID" Association="Self.FK_AttendanceData_UserID">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AttendanceData" EntitySet="AttendanceData" />
+          </AssociationSet>
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUserClaims" EntitySet="AspNetUserClaims" />
@@ -566,6 +588,10 @@
           <EntitySet Name="sysdiagrams" EntityType="LeaveONModels.sysdiagram" />
           <EntitySet Name="Managers" EntityType="LeaveONModels.Manager" />
           <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
+          <AssociationSet Name="FK_AttendanceData_UserID" Association="LeaveONModels.FK_AttendanceData_UserID">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="AttendanceData" EntitySet="AttendanceDatas" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -656,6 +682,7 @@
           <Property Name="Manager2ID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="Manager2Name" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AttendanceDatas" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AspNetUser" ToRole="AttendanceData" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -979,7 +1006,6 @@
             <PropertyRef Name="id" />
           </Key>
           <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EmployeeID" Type="Int32" />
           <Property Name="UserName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="DepartmentName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="UserLeavePolicyID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
@@ -997,7 +1023,27 @@
           <Property Name="ManagerEmail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CountryName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="BioStarEmpNum" Type="Int32" />
+          <Property Name="ManagerID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Manager2ID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="UserID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="DepartmentID" Type="String" MaxLength="255" Unicode="false" FixedLength="false" />
+          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AttendanceData" ToRole="AspNetUser" />
+          <Property Name="DEVID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="devnm" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
         </EntityType>
+        <Association Name="FK_AttendanceData_UserID">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.AttendanceData" Role="AttendanceData" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AttendanceData">
+              <PropertyRef Name="UserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1229,6 +1275,13 @@
           <EntitySetMapping Name="AttendanceDatas">
             <EntityTypeMapping TypeName="LeaveONModels.AttendanceData">
               <MappingFragment StoreEntitySet="AttendanceData">
+                <ScalarProperty Name="devnm" ColumnName="devnm" />
+                <ScalarProperty Name="DEVID" ColumnName="DEVID" />
+                <ScalarProperty Name="DepartmentID" ColumnName="DepartmentID" />
+                <ScalarProperty Name="UserID" ColumnName="UserID" />
+                <ScalarProperty Name="Manager2ID" ColumnName="Manager2ID" />
+                <ScalarProperty Name="ManagerID" ColumnName="ManagerID" />
+                <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
                 <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
                 <ScalarProperty Name="CountryName" ColumnName="CountryName" />
                 <ScalarProperty Name="ManagerEmail" ColumnName="ManagerEmail" />
@@ -1246,7 +1299,6 @@
                 <ScalarProperty Name="UserLeavePolicyID" ColumnName="UserLeavePolicyID" />
                 <ScalarProperty Name="DepartmentName" ColumnName="DepartmentName" />
                 <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
                 <ScalarProperty Name="id" ColumnName="id" />
               </MappingFragment>
             </EntityTypeMapping>

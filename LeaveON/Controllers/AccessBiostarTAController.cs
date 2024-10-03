@@ -1378,6 +1378,161 @@ namespace LeaveON.Controllers
       con.Close();
       return Task.FromResult(LstTimeData);
     }
+
+    private Task<List<TimeData>> ConnectToDBandReturnWorkingHourss(string ReqMonthYear, List<int> UserIds)
+    {
+      // Parse the requested month and year
+      List<string> dateAttr = ReqMonthYear.Split('-').ToList();
+      DateTime reqDate = DateTime.ParseExact(dateAttr[1] + "/" + dateAttr[0] + "/01", "yyyy/MM/dd", CultureInfo.InvariantCulture);
+
+      int ThisMonthTotalDays = DateTime.DaysInMonth(int.Parse(dateAttr[1]), int.Parse(dateAttr[0]));
+      int toMonth = int.Parse(dateAttr[0]) + 1;
+      int toYear = int.Parse(dateAttr[1]);
+
+      if (toMonth == 13)
+      {
+        toMonth = 1;
+        toYear = int.Parse(dateAttr[1]) + 1;
+      }
+
+      List<TimeData> LstTimeData = new List<TimeData>();
+      TimeSpan TotalTime = new TimeSpan();
+      TimeSpan TotalWorkingHours = new TimeSpan();
+      List<string> logg = new List<string>();
+
+      // LINQ query to retrieve data from AttendanceData and AspNetUsers
+      foreach (int UserId in UserIds)
+      {
+        // Get user information using LINQ
+        AspNetUser aspNetUser = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum.Value == UserId);
+        if (aspNetUser == null || aspNetUser.CountryName == null)
+        {
+          logg.Add(aspNetUser?.UserName ?? $"UserId {UserId} not found");
+          continue;
+        }
+
+        string UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
+        string depName = aspNetUser.DepartmentName;
+        string userGuidId = aspNetUser.Id;
+        string userLeavePolicyDescription = aspNetUser.UserLeavePolicy?.Description ?? string.Empty;
+
+        // Determine timeZone and countryName based on relocation
+        string timeZone = aspNetUser.IsRelocated == true
+            ? dbLeaveOn.CountryNames.FirstOrDefault(x => x.Name == aspNetUser.CntryNameTemp)?.TimeZone
+            : aspNetUser.CountryName?.TimeZone;
+        string countryName = aspNetUser.IsRelocated == true ? aspNetUser.CntryNameTemp : aspNetUser.CountryName?.Name;
+
+       
+        // Construct the DateTime objects outside the query
+        DateTime startDate = new DateTime(int.Parse(dateAttr[1]), int.Parse(dateAttr[0]), 1);
+        DateTime endDate = new DateTime(toYear, toMonth, 1);
+
+        // LINQ query to get attendance data for the current user in the requested date range
+        // LINQ query to get attendance data for the current user in the requested date range
+        List<AttendanceData> attendanceRecords = dbLeaveOn.AttendanceDatas
+            .Where(a => a.BioStarEmpNum == UserId
+                        && a.FirstPunchIn >= startDate
+                        && a.FirstPunchIn < endDate)
+            .OrderBy(a => a.FirstPunchIn)
+            .ToList();
+
+
+        // If no attendance data found, skip to the next user
+        if (!attendanceRecords.Any()) continue;
+
+        // Process each attendance record
+        //DateTime firstDateTime = attendanceRecords.First().FirstPunchIn;
+        //DateTime lastDateTime = attendanceRecords.Last().FirstPunchIn;
+        // Check if attendanceRecords contains non-null FirstPunchIn values
+        DateTime firstDateTime = attendanceRecords.FirstOrDefault(a => a.FirstPunchIn != null)?.FirstPunchIn ?? DateTime.MinValue;
+        DateTime lastDateTime = attendanceRecords.LastOrDefault(a => a.FirstPunchIn != null)?.FirstPunchIn ?? DateTime.MinValue;
+
+        int firstDay = firstDateTime.Day;
+        int lastDay = lastDateTime.Day;
+
+        List<int> LstEmptyDays = new List<int>();
+        TimeData attendance;
+        DateTime firsTimeIn = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        DateTime lastTimeOut = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        TimeSpan ThidDayWorkingHours = new TimeSpan();
+
+        // Loop through attendance records to calculate working hours
+        foreach (var record in attendanceRecords)
+        {
+          firstDateTime = ConvertToCountryTimeZoneNew(record.FirstPunchIn ?? DateTime.MinValue, timeZone);
+
+          if (firstDateTime.Day != firstDay)
+          {
+            // Process previous day's data and calculate working hours
+            if (firsTimeIn.Year != 2001 && lastTimeOut.Year != 2001)
+            {
+              TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
+
+              bool countryChanged = countryName != aspNetUser.CountryName?.Name;
+              var leaveName = dbLeaveOn.Leaves
+                    .Where(x => x.UserId == aspNetUser.Id && DbFunctions.TruncateTime(x.StartDate) == DbFunctions.TruncateTime(firsTimeIn))
+                    .Select(l => dbLeaveOn.LeaveTypes
+                          .Where(lt => lt.Id == l.LeaveTypeId)
+                          .Select(lt => lt.Name)
+                          .FirstOrDefault())
+                    .FirstOrDefault() ?? string.Empty;
+
+
+              attendance = new TimeData()
+              {
+                EmployeeName = UserName,
+                EmployeeNumber = UserId,
+                TimeZone = countryChanged ? aspNetUser.CountryName.Name : countryName,
+                Policy = userLeavePolicyDescription,
+                Department = depName,
+                Date = firsTimeIn.Date,
+                Day = firsTimeIn.DayOfWeek.ToString(),
+                TimeIn = firsTimeIn,
+                TimeOut = lastTimeOut,
+                WorkingHours = ThidDayWorkingHours,
+                TotalTime = (lastTimeOut - firsTimeIn),
+                Status = leaveName
+              };
+
+              LstTimeData.Add(attendance);
+            }
+          }
+
+          // Update firstTimeIn and lastTimeOut
+          firsTimeIn = record.FirstPunchIn.Value;
+          //firsTimeIn = record.FirstPunchIn ?? DateTime.MinValue;
+
+          lastTimeOut = record.LastPunchOut ?? firsTimeIn;  // Assuming LastPunchOut can be null
+        }
+
+        // Process the last day's data
+        if (firsTimeIn.Year != 2001 && lastTimeOut.Year != 2001)
+        {
+          TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
+
+          attendance = new TimeData()
+          {
+            EmployeeName = UserName,
+            EmployeeNumber = UserId,
+            TimeZone = countryName,
+            Policy = userLeavePolicyDescription,
+            Department = depName,
+            Date = firsTimeIn.Date,
+            Day = firsTimeIn.DayOfWeek.ToString(),
+            TimeIn = firsTimeIn,
+            TimeOut = lastTimeOut,
+            WorkingHours = ThidDayWorkingHours,
+            TotalTime = (lastTimeOut - firsTimeIn),
+            Status = string.Empty
+          };
+
+          LstTimeData.Add(attendance);
+        }
+      }
+
+      return Task.FromResult(LstTimeData);
+    }
+
     protected List<int> GetWeekEndList(int year, int month, string WeekEndDays)
     {
       List<int> LstWeekEndDays = WeekEndDays.Split(',').Select(int.Parse).ToList();
@@ -1653,7 +1808,7 @@ namespace LeaveON.Controllers
                 {
                     string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
                     var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
-                    LstAttendances = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, User_Ids);
+                    LstAttendances = await ConnectToDBandReturnWorkingHourss(ReqMonthYearFormated, User_Ids);
 
                 }
                 //return View(await db.UD_TB_AccessTime_Data.ToListAsync());

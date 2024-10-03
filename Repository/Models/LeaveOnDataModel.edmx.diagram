@@ -36,6 +36,7 @@
         <EntityTypeShape EntityType="LeaveONModels.sysdiagram" Width="1.5" PointX="5.75" PointY="6.75" />
         <EntityTypeShape EntityType="LeaveONModels.Manager" Width="1.5" PointX="5.375" PointY="0.75" />
         <EntityTypeShape EntityType="LeaveONModels.AttendanceData" Width="1.5" PointX="8.375" PointY="0.75" />
+        <AssociationConnector Association="LeaveONModels.FK_AttendanceData_UserID" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
