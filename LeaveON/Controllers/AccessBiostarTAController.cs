@@ -445,6 +445,51 @@ namespace LeaveON.Controllers
       LstTimeData.RemoveAll(x => x.Status == null);
       return Task.FromResult(LstTimeData);
     }
+
+    private Task<List<TimeData>> GetAbsenteesData(string startDate, string endDate, List<int> UserIds)
+    {
+
+      List<TimeData> LstTimeData = new List<TimeData>();
+
+      DateTime start = DateTime.Parse(startDate);
+      DateTime end = DateTime.Parse(endDate);
+
+      // Fetch attendance data for each user
+      foreach (int UserId in UserIds)
+      {
+        // Fetch attendance records for this user within the provided date range
+        List<AttendanceData> absenteesRecords = dbLeaveOn.AttendanceDatas
+            .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= start && a.FirstPunchIn < end)
+            .OrderBy(a => a.FirstPunchIn)
+            .ToList();
+
+        if (!absenteesRecords.Any()) continue; // If no records found, skip to the next user
+
+        // Process each attendance record
+        foreach (var record in absenteesRecords)
+          if(record.IsAbsent == true) { 
+        {
+          DateTime timeIn = record.FirstPunchIn ?? DateTime.MinValue;
+          string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
+
+          LstTimeData.Add(new TimeData()
+          {
+            EmployeeName = record.UserName,
+            EmployeeNumber = record.BioStarEmpNum ?? 0,
+            Department = record.DepartmentName,
+            TimeZone = record.CountryName,
+            Policy = record.UserLeavePolicyID,
+            Date = timeIn.Date,
+            Day = day,
+            Status = record.IsAbsent == true ? "Absent" : "",
+          });
+        }
+          }
+      }
+
+      return Task.FromResult(LstTimeData);
+    }
+
     private Task<List<TimeData>> ConnectToDBandReturnCountriesData(string startDate, string endDate, List<int> UserIds)
     {
 
@@ -1991,7 +2036,7 @@ namespace LeaveON.Controllers
       List<TimeData> depData = null;
       if (!(string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate)))
       {
-       //var identity = (ClaimsIdentity)User.Identity;
+        //var identity = (ClaimsIdentity)User.Identity;
         //IEnumerable<Claim> claims = identity.Claims;
         //Claim claim = claims.Where(x => x.Value == departmentName).FirstOrDefault();
 
@@ -2008,7 +2053,10 @@ namespace LeaveON.Controllers
 
         //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
         //string ReqMonthYearFormated = startDate + "," + endDate; 
-        depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
+        
+       // depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
+
+        depData = await GetAbsenteesData(startDate, endDate, userIds);
 
       }
       //return View(await db.Attendance.ToListAsync());
@@ -2036,8 +2084,18 @@ namespace LeaveON.Controllers
     public JsonResult GetThisDepEmpsData(string DepartmentName)
     {
       List<SelectListItem> selDepEmps = new SelectList(dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName), "BioStarEmpNum", "UserName").OrderBy(i => i.Text).ToList();
+      List<SelectListItem> selDep = dbLeaveOn.AspNetUsers
+            .Where(x => x.DepartmentName == DepartmentName)
+            .AsEnumerable()
+            .Select(x => new SelectListItem
+           {
+             Value = x.BioStarEmpNum.ToString(),
+             Text = x.UserName.Split('@')[0].Replace(".", " ") 
+            })
+            .OrderBy(i => i.Text)
+            .ToList();
 
-      return Json(new SelectList(selDepEmps, "Value", "Text"));
+      return Json(new SelectList(selDep, "Value", "Text"));
 
     }
     [Authorize(Roles = "Admin,Manager")]

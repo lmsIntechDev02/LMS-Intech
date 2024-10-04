@@ -32,8 +32,8 @@ namespace LeaveON.Services
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
-      List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-     // List<int> userIds = new List<int> {  2434, 1179 };
+ //     List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+      List<int> userIds = new List<int> {  2434 };
       string departmentID = string.Empty;
       string deviceName = string.Empty;
       string deviceID = string.Empty;
