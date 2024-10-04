@@ -32,12 +32,12 @@ namespace LeaveON.Services
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
-      //List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-      List<int> userIds = new List<int> { 2434, 1179 };
+      List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+     // List<int> userIds = new List<int> {  2434, 1179 };
       string departmentID = string.Empty;
       string deviceName = string.Empty;
       string deviceID = string.Empty;
-      var userInfo = new { UserID = string.Empty, managerEmail = string.Empty, manager2Email = string.Empty, managerID = string.Empty, manager2ID = string.Empty, departmentName = string.Empty }; 
+      var userInfo = new { UserID = string.Empty, managerEmail = string.Empty, manager2Email = string.Empty, managerID = string.Empty, manager2ID = string.Empty }; 
 
       con.Open();
       foreach (int Id in userIds)
@@ -57,24 +57,10 @@ namespace LeaveON.Services
 
           //processing
           UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
-          userInfo = dbLeaveOn.AspNetUsers
-            .Where(x => x.Id == aspNetUser.Id)
-            .Select(x => new
-            {
-              UserID = x.Id,
-              managerEmail = x.ManagerEmail,
-              manager2Email = x.Manager2Email,
-              managerID = x.ManagerID,
-              manager2ID = x.Manager2ID,
-              departmentName = x.DepartmentName
-            })
-            .FirstOrDefault();
-        var depID = dbLeaveOn.DepartmentNames.Where(x => x.Name == userInfo.departmentName).Select(x => x.Id).FirstOrDefault();
-          departmentID = depID.ToString();
-
-        userGuidId = aspNetUser.Id;
+          userGuidId = aspNetUser.Id;
           string depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
-          string userLeavePolicyDescription = string.Empty;
+ 
+        string userLeavePolicyDescription = string.Empty;
           if (aspNetUser.CountryName == null)
           {
             logg.Add(aspNetUser.UserName); dr.Close(); continue;
@@ -478,9 +464,22 @@ namespace LeaveON.Services
       {
         // Check if the user arrives after 9:30 AM
         bool lateArrival = item.TimeIn.TimeOfDay > new TimeSpan(9, 30, 0);
-        item.isLateArrival = lateArrival;  // Directly assign the boolean value
+        item.isLateArrival = lateArrival;  // Directly assign the boolean valu
 
-        // Check if the user leaves before 4:45 PM
+         userInfo = dbLeaveOn.AspNetUsers
+            .Where(x => x.BioStarEmpNum == item.EmployeeNumber)
+            .Select(x => new
+            {
+              UserID = x.Id,
+              managerEmail = x.ManagerEmail,
+              manager2Email = x.Manager2Email,
+              managerID = x.ManagerID,
+              manager2ID = x.Manager2ID,
+            })
+            .FirstOrDefault();
+        var depID = dbLeaveOn.DepartmentNames.Where(x => x.Name == item.Department).Select(x => x.Id).FirstOrDefault();
+        departmentID = depID.ToString();
+
         bool earlyDeparture = item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
         item.isEarlyDeparture = earlyDeparture;  // Directly assign the boolean value
 

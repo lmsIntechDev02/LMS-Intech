@@ -186,7 +186,7 @@ namespace LeaveON.Controllers
       //ADUser = "salman.saleem@intechww.com";
 
       /*Admin*/
-    //   ADUser = "asrar.ahmed@intechww.com";
+       ADUser = "asrar.ahmed@intechww.com";
       /*Manager*/
     //  ADUser = "Muzammil.Riaz@intechww.com";
       /*User*/
@@ -200,7 +200,7 @@ namespace LeaveON.Controllers
       //ADUser = "haseeb.aslam@intechww.com";
       //ADUser = "Khawaja.jawad@intechww.com";
       //ADUser = "abdullah.abusalah@intechww.com";
-      ADUser = "lms.dev02@intechww.com";
+   //   ADUser = "lms.dev02@intechww.com";
       //ali.raza@intechww.com
 
 
