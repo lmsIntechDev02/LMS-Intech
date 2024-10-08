@@ -26,7 +26,7 @@ namespace LeaveOnTaskRunner
                DateTime endDate = new DateTime(DateTime.Today.Year - 1, 6, 30);  */
 
             DateTime startDate = new DateTime(DateTime.Today.Year, 1, 1);
-            DateTime endDate = new DateTime(DateTime.Today.Year, 1, 2);
+            DateTime endDate = new DateTime(DateTime.Today.Year, 1, 3);
 
 
 

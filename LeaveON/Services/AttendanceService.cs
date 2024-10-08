@@ -33,7 +33,8 @@ namespace LeaveON.Services
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
  //     List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-      List<int> userIds = new List<int> {  2434 };
+      List<int> userIds = new List<int> {  1179, 2434 };
+      List<BreakHour> LstBreakHours = new List<BreakHour>();
       string departmentID = string.Empty;
       string deviceName = string.Empty;
       string deviceID = string.Empty;
@@ -45,6 +46,9 @@ namespace LeaveON.Services
         //" and devdt BETWEEN '" + "2024-01-01" + "' AND '" + "2024-04-04" + "' order by devdt"
         int UserId = Id;//Assigns the current UserId for processing.//startDate.ToString("yyyy-MM-dd")
           cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
+          cmd.Parameters.AddWithValue("@UserId", UserId);
+          cmd.Parameters.AddWithValue("@StartDate", startDate);
+          cmd.Parameters.AddWithValue("@EndDate", endDate);
           dr = cmd.ExecuteReader();
 
           DataTable dt = new DataTable();//A new DataTable dt is created for storing data related to the current user.
@@ -161,8 +165,9 @@ namespace LeaveON.Services
           int firstDay = firstDateTime.Day;
           int lastDay = lastDateTime.Day;
           List<int> LstEmptyDays = new List<int>();
-          //---
-          TimeData attendance;
+
+        //---
+        TimeData attendance;
           DateTime timeIn;
           DateTime timeOut;
           DateTime firsTimeIn = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//firstDateTime;//DateTime.Today;
@@ -173,7 +178,50 @@ namespace LeaveON.Services
           bool IsCardOut = false;
           bool lastsemiIn = false;
           TimeSpan ThidDayWorkingHours = new TimeSpan();
-          int k = 0;//-1;
+          List<OffTimeDetial> LstOffTimeDetial = new List<OffTimeDetial>();
+        // Process each punch log to calculate breaks
+        for (int j = 0; j < rowsCount - 1; j++)
+        {
+          int currentDevid = Convert.ToInt32(dt.Rows[j]["DEVID"]);
+          int nextDevid = Convert.ToInt32(dt.Rows[j + 1]["DEVID"]);
+
+          // Check if the current device is "OUT" and the next device is "IN"
+          if (!LstCardReadersIn.Contains(currentDevid) && LstCardReadersIn.Contains(nextDevid))
+          {
+            DateTime timeOutt = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j]["devdt"], timeZone);
+            DateTime timeInn = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j + 1]["devdt"], timeZone);
+
+            // Ensure valid time difference for break hours
+            if (timeInn > timeOutt)
+            {
+              TimeSpan breakDuration = timeInn - timeOutt;
+              var user = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.BioStarEmpNum == UserId);
+
+              // Add to break hours list
+              BreakHour breakEntry = new BreakHour
+              {
+                UserId = user.Id,
+                BioStarEmpNum = UserId,
+                Date = timeOutt.Date,
+                PunchIn = timeOutt,
+                PunchOut = timeInn
+              };
+              LstBreakHours.Add(breakEntry);
+            }
+          }
+        }
+
+        // Save BreakHours after processing all users
+        if (LstBreakHours.Any())
+        {
+          dbLeaveOn.BreakHours.AddRange(LstBreakHours);
+          dbLeaveOn.SaveChanges();
+        }
+
+
+
+
+        int k = 0;//-1;
 
           for (int j = 0; j <= rowsCount - 1; j++)//this loop iterates over each row of the sorted DataTable to process attendance data
           {
@@ -512,6 +560,21 @@ namespace LeaveON.Services
         };
         dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
       }
+
+      // Populate BreakHours
+      //foreach (var breakEntry in LstBreakHours)
+      //{
+      //  bool exists = dbLeaveOn.BreakHours.Any(b =>
+      //      b.BioStarEmpNum == breakEntry.BioStarEmpNum &&
+      //      DbFunctions.TruncateTime(b.Date) == DbFunctions.TruncateTime(breakEntry.Date) &&
+      //      b.PunchIn == breakEntry.PunchIn &&
+      //      b.PunchOut == breakEntry.PunchOut);
+
+      //  if (!exists)
+      //  {
+      //    dbLeaveOn.BreakHours.Add(breakEntry);
+      //  }
+      //}
 
       try
       {
