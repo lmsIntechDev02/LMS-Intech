@@ -1555,10 +1555,6 @@ namespace LeaveON.Controllers
       return ConvertedDateTime;
       //}
     }
-
-
-
-
     public async Task<ActionResult> GetOffHours(string reqDate, string UserId)
     {
       // Parse the date from request
@@ -1621,8 +1617,6 @@ namespace LeaveON.Controllers
       // Return the view with the calculated off-time details
       return View("OffTimeDetail", LstOffTimeDetial);
     }
-
-
 
 
     public async Task<ActionResult> ConnectToDBandReturnOffHours(string reqDate, string UserId)
@@ -2165,6 +2159,86 @@ namespace LeaveON.Controllers
       }
 
     }
+
+
+    public async Task<ActionResult> UserReportingData_UserWise(string startDate, string endDate, string departmentName, string bioStarEmpStr)
+    {
+      int bioStarEmpNum = int.Parse(bioStarEmpStr);
+      //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
+      //                                 System.Globalization.CultureInfo.InvariantCulture);
+      ViewBag.MonthSelectList = GetMonthSelectList();
+      DateTime reqDate;
+      //int intDepartmentId;
+      if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
+      {
+
+        //reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
+        //                         System.Globalization.CultureInfo.CurrentCulture);
+
+      }
+      else
+      {
+        //in case of empty parameters or First Time
+
+        reqDate = DateTime.Now;
+        string userId = User.Identity.GetUserId();
+        departmentName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).DepartmentName;
+        List<string> SelectedDeps = new List<string>();
+        SelectedDeps.Add(departmentName);
+        ViewBag.SelectedDepartments = SelectedDeps;
+        //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
+        ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
+      }
+      List<TimeData> depData = null;
+      if (!(string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate)))
+      {
+        //var identity = (ClaimsIdentity)User.Identity;
+        //IEnumerable<Claim> claims = identity.Claims;
+        //Claim claim = claims.Where(x => x.Value == departmentName).FirstOrDefault();
+
+        //if (claim is null) return null;
+
+        //string userId = User.Identity.GetUserId();
+
+        //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
+
+        //IQueryable<Attendance> allUsersData = null;
+        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == departmentName && x.BioStarEmpNum == bioStarEmpNum).ToList<AspNetUser>();
+
+        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+
+        //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
+        //string ReqMonthYearFormated = startDate + "," + endDate; 
+
+        // depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
+
+        depData = await GetAbsenteesData(startDate, endDate, userIds);
+
+      }
+      //return View(await db.Attendance.ToListAsync());
+      if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
+      {
+        //in case of null param or first time
+        if (!(depData is null))
+        {
+          //return View(await depData.OrderBy(i => i.Date).ToList());
+
+          return View(await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+        }
+        else
+        {
+          return View();
+        }
+
+      }
+      else
+      {
+        return PartialView("_AbsenteesData_UserWise", await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+      }
+
+    }
+
+
     public JsonResult GetThisDepEmpsData(string DepartmentName)
     {
       List<SelectListItem> selDepEmps = new SelectList(dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName), "BioStarEmpNum", "UserName").OrderBy(i => i.Text).ToList();
@@ -2281,6 +2355,109 @@ namespace LeaveON.Controllers
       }
 
     }
+
+
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<ActionResult> UserReportingData(string ReqMonthYear, string DepartmentName, string UserId)
+    {
+
+      //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
+      //                                 System.Globalization.CultureInfo.InvariantCulture);
+      ViewBag.MonthSelectList = GetMonthSelectList();
+      DateTime reqDate;
+      int dEmpNum;
+
+      //int intDepartmentId;
+      if (!string.IsNullOrEmpty(ReqMonthYear))
+      {
+
+        //intDepartmentId = int.Parse(DepartmentId);
+        //user.DepartmentId;//User.Identity.GetUserId();//
+        reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
+              System.Globalization.CultureInfo.CurrentCulture);
+        //reqDate = reqDate.AddYears(-2);
+        dEmpNum = int.Parse(UserId);
+      }
+      else
+      {
+        //in case of empty parameters or First Time
+
+        reqDate = DateTime.Now;
+        string userId = User.Identity.GetUserId();
+        DepartmentName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).DepartmentName;
+        List<string> SelectedDeps = new List<string>();
+        SelectedDeps.Add(DepartmentName);
+        ViewBag.SelectedDepartments = SelectedDeps;
+
+        List<string> SelectedEmps = new List<string>();
+
+        dEmpNum = (int)dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum;
+        SelectedEmps.Add(dEmpNum.ToString());
+        ViewBag.SelectedEmployees = SelectedEmps;
+        //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
+        ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
+
+        var sortedEmployees = dbLeaveOn.AspNetUsers
+      .Where(x => x.DepartmentName == DepartmentName)
+      .AsEnumerable()
+      .Select(user => new
+      {
+        user.BioStarEmpNum,
+        UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
+      })
+      .OrderBy(i => i.UserName)
+      .ToList();
+        ViewBag.Employees = new SelectList(sortedEmployees, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
+      }
+      List<TimeData> depData = null;
+      if (!string.IsNullOrEmpty(ReqMonthYear))
+      {
+        var identity = (ClaimsIdentity)User.Identity;
+        IEnumerable<Claim> claims = identity.Claims;
+        Claim claim = claims.Where(x => x.Value == DepartmentName).FirstOrDefault();
+
+        if (claim is null) return null;
+
+        //string userId = User.Identity.GetUserId();
+
+        //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
+
+        //IQueryable<Attendance> allUsersData = null;
+        // List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName).ToList<AspNetUser>();
+        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName).ToList<AspNetUser>();
+
+
+        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+        //foreach (AspNetUser user in users)
+        //{
+        string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
+        depData = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, userIds);
+        //}
+      }
+      //return View(await db.Attendance.ToListAsync());
+      if (string.IsNullOrEmpty(ReqMonthYear))
+      {
+        //in case of null param or first time
+        if (!(depData is null))
+        {
+          //return View(await depData.OrderBy(i => i.Date).ToList());
+
+          return View(await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+        }
+        else
+        {
+          return View();
+        }
+
+      }
+      else
+      {
+        return PartialView("_UserData", await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+      }
+
+    }
+
+
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> MonthsWiseData(string ReqFromMonth, string ReqToMonth)
     {

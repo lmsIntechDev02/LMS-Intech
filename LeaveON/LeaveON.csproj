@@ -2441,6 +2441,8 @@
     <Content Include="Views\AspNetUsers\Delete.cshtml" />
     <Content Include="Views\AttendanceMachine\AttendaceUserData.cshtml" />
     <Content Include="Uploads\holidays.csv" />
+    <Content Include="Views\AccessBiostarTA\UserReportingData.cshtml" />
+    <Content Include="Views\AccessBiostarTA\_UserReportingData_UserWise.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
