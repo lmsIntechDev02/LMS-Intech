@@ -1,0 +1,130 @@
+@model IEnumerable<LeaveON.UtilityClasses.TimeData>
+
+@{
+  ViewBag.Title = "Index";
+  Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+  <!-- Display the logged-in user's department -->
+  <div id="listDepartments" class="dropdown-check-list">
+    <span class="anchor">@ViewBag.DepartmentName</span>
+  </div>
+
+  <!-- Display the logged-in user's name -->
+  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+    <span class="anchor"> @ViewBag.UserName</span>
+  </div>
+
+  @Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+
+  <button id="load">Go</button>
+
+  @{ Html.RenderPartial("_UserData", Model); }
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Handle Go button click
+        $('#load').click(function () {
+            var reqMonthYear = $('#selectMonth').val();
+          var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
+          var requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': userId };
+
+            $.ajax({
+                url: "@Url.Action("UserData", "AccessBiostarTA")",
+                data: requestData,
+                type: "POST",
+                success: function (data) {
+                    $("#NewData").html(data);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert('Data provided was not valid');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+  .dropdown-check-list {
+    display: inline-block;
+    position: relative;
+    background-color: #ffffff;
+    width: 250px;
+    height: 45px;
+    margin: 10px 5px;
+  }
+
+    .dropdown-check-list .anchor {
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      color: #333;
+      font-weight: normal;
+      font-size: 14.8px;
+      opacity: 0.6;
+      width: 250px;
+      height: 45px;
+      text-overflow: ellipsis;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; 
+    }
+
+
+    .dropdown-check-list ul.items {
+      display: flex;
+      padding: 2px;
+      display: none;
+      margin: 0;
+      border: 1px solid #ccc;
+      background-color: white;
+      position: absolute;
+      z-index: 1;
+    }
+
+      .dropdown-check-list ul.items li {
+        list-style: none;
+        padding: 5px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: baseline;
+        font-weight: normal;
+      }
+
+    .dropdown-check-list.visible .items {
+      display: block;
+    }
+
+    .dropdown-check-list input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+  #load {
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .selectpicker {
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+</style>
