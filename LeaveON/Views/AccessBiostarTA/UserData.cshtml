@@ -12,74 +12,87 @@
     // Department Dropdown for Admin (Multi-select)
     //@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments),
     //    htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Admin (Multi-select)
-    <div id="listDepartments" class="dropdown-check-list">
-      <span class="anchor">Select Departments</span>
-      <ul class="items">
-        @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
+  <div id="listDepartments" class="dropdown-check-list">
+    <span class="anchor">Select Departments</span>
+    <ul class="items">
+      @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
         {
-          <li>
-            <label for="dept_@department.Value">
-              <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
-            </label>
-          </li>
+      <li>
+        <label for="dept_@department.Value">
+          <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
+        </label>
+      </li>
         }
-      </ul>
-    </div> @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-      htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+    </ul>
+  </div>  @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+    htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
 
-    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-      <span class="anchor">Select Employees</span>
-      <ul class="items">
-        @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+    <span class="anchor">Select Employees</span>
+    <ul class="items">
+      @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
         {
           var username = employee.Text.Split('@')[0]; // Get the part before the '@'
           username = username.Replace(".", " ");
-          <li>
-            <label for="emp_@employee.Value">
-              <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" /> @username
-            </label>
-          </li>
+      <li>
+        <label for="emp_@employee.Value">
+          <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" /> @username
+        </label>
+      </li>
         }
-      </ul>
-    </div> }
+    </ul>
+  </div> }
   else if (User.IsInRole("Manager"))
   {
     // Department Dropdown for Manager (Single department, disabled)
-    @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-                         htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
+  @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+                       htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
     // Employee List with Checkboxes for Manager (multi-select)
-    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-      <span class="anchor">Select Employees</span>
-      <ul class="items">
-        <li>
-          <label for="selectAllEmployees">
-            <input type="checkbox" id="selectAllEmployees" /> Select All Employees
-          </label>
-        </li>
-        @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+    <span class="anchor">Select Employees</span>
+    <ul class="items">
+      <li>
+        <label for="selectAllEmployees">
+          <input type="checkbox" id="selectAllEmployees" /> Select All Employees
+        </label>
+      </li>
+      @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
         {
           var username = employee.Text.Split('@')[0];
           username = username.Replace(".", " ");
-          <li>
-            <label for="emp_@employee.Value">
-              <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" /> @username
-            </label>
-          </li>
+      <li>
+        <label for="emp_@employee.Value">
+          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" /> @username
+        </label>
+      </li>
         }
-      </ul>
-    </div> }
+    </ul>
+  </div> }
   else if (User.IsInRole("User"))
   {
     // Department Dropdown for User (Single department, disabled)
-    @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-               htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
-    @Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-               htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}
+  @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+             htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
+  @Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+             htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}
 
 
   @Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
 
   @*<button id="load">Go</button>*@
+
+
+  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+
+
+
+  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+
+
+  @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+
+  @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+
 
   <button id="load" style="position: relative;">
     <span class="button-text">Go</span>
@@ -89,12 +102,26 @@
   @{ Html.RenderPartial("_UserData", Model); }
 </div>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+
 <script type="text/javascript">
   $(document).ready(function () {
     $(".dropdown-check-list .anchor").click(function (e) {
       var checkList = $(this).parent();
       checkList.toggleClass('visible');
       e.stopPropagation();
+    });
+
+    $('.datepicker').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 2,
+      maxDate: new Date()
     });
 
     // Close dropdown when clicking outside
@@ -177,6 +204,8 @@
       $('.button-text').hide();
 
             var reqMonthYear = $('#selectMonth').val();
+            var startDate = $('#datepickerStart').val();
+            var endDate = $('#datepickerEnd').val();
             var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
             var requestData;
             if (userRole === "Admin" || userRole === "Manager") {
@@ -204,7 +233,7 @@
                 $('.button-text').show();
                   return;
               }
-             
+
               }
 
               requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': selectedEmployees };
@@ -216,7 +245,7 @@
               var employeeId = $('#listEmployees').val();
               requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId};
             }*@
-        
+
            // JSON.stringify(selectedEmployees)
               $.ajax({
                 url: "@Url.Action("UserData", "AccessBiostarTA")",
@@ -360,6 +389,18 @@
     text-overflow: ellipsis;
     margin: 10px 5px;
   }
+
+  .datepicker {
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  
 
 </style>
 

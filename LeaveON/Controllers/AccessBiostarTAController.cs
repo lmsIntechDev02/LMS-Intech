@@ -1679,11 +1679,17 @@ namespace LeaveON.Controllers
                     ViewBag.SelectedEmployees = UserIds;
 
                 }
+                //else if (User.IsInRole("Manager") || User.IsInRole("User"))
                 else if (User.IsInRole("Manager"))
-                {
+            {
+
                     var managerDepartment = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
                     ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
-                    ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName"); ViewBag.SelectedEmployees = UserIds;
+
+                    var employeesUnderManager = dbLeaveOn.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
+                    ViewBag.Employees = new SelectList(employeesUnderManager, "BioStarEmpNum", "UserName");
+                    //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
+                    ViewBag.SelectedEmployees = UserIds;
                 }
                 else if (User.IsInRole("User"))
                 {
