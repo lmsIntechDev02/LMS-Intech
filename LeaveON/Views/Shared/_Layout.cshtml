@@ -430,22 +430,20 @@
       </a>
     </li>*@
 
-
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager")) {
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/UserData" class="nav-link">
                         &nbsp; &nbsp;  <i class="far fa fa-history"></i>
                         <p>User Data</p>
                       </a>
                     </li>
-
-                    @if (User.IsInRole("Admin") || User.IsInRole("Manager")) {
+                    }
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/UserReportData" class="nav-link">
                         &nbsp; &nbsp; <i class="far fa fa-history"></i>
-                        <p>View My Report</p>
+                        <p>My Report</p>
                       </a>
                     </li>
-                    }
 
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/Absenteesdata" class="nav-link">
