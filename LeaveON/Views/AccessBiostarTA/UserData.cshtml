@@ -77,7 +77,7 @@
              htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}
 
 
-  @Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
 
   @*<button id="load">Go</button>*@
 
@@ -236,7 +236,7 @@
 
               }
 
-              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': selectedEmployees };
+              requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
             } else if (userRole === "User") {
               var employeeId = $('#selectedEmployees').val();
               requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
