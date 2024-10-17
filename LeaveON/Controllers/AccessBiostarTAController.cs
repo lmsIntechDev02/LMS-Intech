@@ -1699,11 +1699,11 @@ namespace LeaveON.Controllers
         List<int> LstThisMonthsWeekEnds = new List<int>();
         if (aspNetUser.UserLeavePolicy == null || string.IsNullOrEmpty(aspNetUser.UserLeavePolicy.WeeklyOffDays))
         {
-          LstThisMonthsWeekEnds = GetWeekEndList(startDate.Year, startDate.Month, "6,0");
+          LstThisMonthsWeekEnds = GetWeekEndLists(startDate, endDate, "6,0");
         }
         else
         {
-          LstThisMonthsWeekEnds = GetWeekEndList(startDate.Year, startDate.Month, aspNetUser.UserLeavePolicy.WeeklyOffDays);
+          LstThisMonthsWeekEnds = GetWeekEndLists(startDate, endDate, aspNetUser.UserLeavePolicy.WeeklyOffDays);
         }
 
         int iEmpNum = aspNetUser.BioStarEmpNum.Value;
@@ -1794,6 +1794,28 @@ namespace LeaveON.Controllers
       con.Close();
       return Task.FromResult(LstTimeData);
     }
+
+    protected List<int> GetWeekEndLists(DateTime startDate, DateTime endDate, string WeekEndDays)
+    {
+      List<int> LstWeekEndDays = WeekEndDays.Split(',').Select(int.Parse).ToList();
+      List<int> LstThisMonthsWeekEnds = new List<int>();
+
+      CultureInfo ci = new CultureInfo("en-US");
+
+      // Loop through each day in the given date range
+      for (DateTime date = startDate; date <= endDate; date = date.AddDays(1))
+      {
+        // Check if the current day's DayOfWeek matches any of the provided weekend days
+        if (LstWeekEndDays.Contains((int)date.DayOfWeek))
+        {
+          LstThisMonthsWeekEnds.Add(date.Day);
+        }
+      }
+
+      LstThisMonthsWeekEnds.Sort();
+      return LstThisMonthsWeekEnds;
+    }
+
     protected List<int> GetWeekEndList(int year, int month, string WeekEndDays)
     {
       List<int> LstWeekEndDays = WeekEndDays.Split(',').Select(int.Parse).ToList();
