@@ -1570,15 +1570,17 @@ namespace LeaveON.Controllers
 
       // Fetch BreakHours data for the specific UserId and Date range
       var breakHoursData = await dbLeaveOn.BreakHours
-          .Where(bh => bh.BioStarEmpNum == intUserId && bh.Date >= from_Date && bh.Date < to_Date)
-          .OrderBy(bh => bh.PunchIn)
-          .ToListAsync();
+            .Where(bh => bh.BioStarEmpNum == intUserId
+                && bh.PunchIn.Year == from_Date.Year && bh.PunchIn.Month == from_Date.Month && bh.PunchIn.Day == from_Date.Day
+                && bh.PunchOut.Year == from_Date.Year && bh.PunchOut.Month == from_Date.Month && bh.PunchOut.Day == from_Date.Day)
+            .OrderBy(bh => bh.PunchIn)
+            .ToListAsync();
 
-    //  var breakHoursData = await dbLeaveOn.BreakHours
-    //.Where(bh => bh.BioStarEmpNum == intUserId
-    //             && DbFunctions.TruncateTime(bh.Date) == from_Date.Date) // Compare only the date part
-    //.OrderBy(bh => bh.PunchIn)
-    //.ToListAsync();
+      //  var breakHoursData = await dbLeaveOn.BreakHours
+      //.Where(bh => bh.BioStarEmpNum == intUserId
+      //             && DbFunctions.TruncateTime(bh.Date) == from_Date.Date) // Compare only the date part
+      //.OrderBy(bh => bh.PunchIn)
+      //.ToListAsync();
 
       if (!breakHoursData.Any())
       {
@@ -1599,9 +1601,9 @@ namespace LeaveON.Controllers
       foreach (var entry in distinctBreakHoursData)
       {
         // Create offTimeDetail /for each break
-        DateTime punchIn = entry.PunchIn;
-        DateTime punchOut = entry.PunchOut;
-        TimeSpan offHours = punchOut - punchIn;
+        DateTime punchIn = entry.PunchOut;
+        DateTime punchOut = entry.PunchIn;
+        TimeSpan offHours =  punchIn - punchOut;
 
         OffTimeDetial offTimeDetail = new OffTimeDetial
         {
