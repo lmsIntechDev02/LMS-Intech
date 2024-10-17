@@ -1733,7 +1733,7 @@ namespace LeaveON.Controllers
         }
         LstTimeData.AddRange(offDays);
 
-        for (int day = 1; day <= totalDays; day++)
+        for (int day = 1; day < totalDays; day++)
         {
           DateTime currentDay = startDate.AddDays(day - 1);
           var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Day == day);
@@ -1803,7 +1803,7 @@ namespace LeaveON.Controllers
       CultureInfo ci = new CultureInfo("en-US");
 
       // Loop through each day in the given date range
-      for (DateTime date = startDate; date <= endDate; date = date.AddDays(1))
+      for (DateTime date = startDate; date < endDate; date = date.AddDays(1))
       {
         // Check if the current day's DayOfWeek matches any of the provided weekend days
         if (LstWeekEndDays.Contains((int)date.DayOfWeek))
