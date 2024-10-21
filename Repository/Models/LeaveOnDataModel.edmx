@@ -132,6 +132,17 @@
           <Property Name="DEVID" Type="varchar" MaxLength="255" />
           <Property Name="devnm" Type="varchar" MaxLength="255" />
         </EntityType>
+        <EntityType Name="BreakHours">
+          <Key>
+            <PropertyRef Name="BreakHoursID" />
+          </Key>
+          <Property Name="BreakHoursID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" />
+          <Property Name="BioStarEmpNum" Type="int" Nullable="false" />
+          <Property Name="Date" Type="date" Nullable="false" />
+          <Property Name="PunchIn" Type="datetime" Nullable="false" />
+          <Property Name="PunchOut" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="CountryNames">
           <Key>
             <PropertyRef Name="Name" />
@@ -267,6 +278,18 @@
             </Principal>
             <Dependent Role="AttendanceData">
               <PropertyRef Name="UserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_BreakHours_UserId">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="BreakHours" Type="Self.BreakHours" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="BreakHours">
+              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -444,6 +467,7 @@
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AttendanceData" EntityType="Self.AttendanceData" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="BreakHours" EntityType="Self.BreakHours" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CountryNames" EntityType="Self.CountryNames" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DepartmentNames" EntityType="Self.DepartmentNames" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Leave" EntityType="Self.Leave" Schema="dbo" store:Type="Tables" />
@@ -460,6 +484,10 @@
           <AssociationSet Name="FK_AttendanceData_UserID" Association="Self.FK_AttendanceData_UserID">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AttendanceData" EntitySet="AttendanceData" />
+          </AssociationSet>
+          <AssociationSet Name="FK_BreakHours_UserId" Association="Self.FK_BreakHours_UserId">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="BreakHours" EntitySet="BreakHours" />
           </AssociationSet>
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -592,6 +620,11 @@
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AttendanceData" EntitySet="AttendanceDatas" />
           </AssociationSet>
+          <EntitySet Name="BreakHours" EntityType="LeaveONModels.BreakHour" />
+          <AssociationSet Name="FK_BreakHours_UserId" Association="LeaveONModels.FK_BreakHours_UserId">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="BreakHour" EntitySet="BreakHours" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -683,6 +716,7 @@
           <Property Name="Manager2Name" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AttendanceDatas" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AspNetUser" ToRole="AttendanceData" />
+          <NavigationProperty Name="BreakHours" Relationship="LeaveONModels.FK_BreakHours_UserId" FromRole="AspNetUser" ToRole="BreakHour" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -1044,6 +1078,30 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="BreakHour">
+          <Key>
+            <PropertyRef Name="BreakHoursID" />
+          </Key>
+          <Property Name="BreakHoursID" Type="Int32" Nullable="false" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="BioStarEmpNum" Type="Int32" Nullable="false" />
+          <Property Name="Date" Type="DateTime" Precision="0" Nullable="false" />
+          <Property Name="PunchIn" Type="DateTime" Precision="3" Nullable="false" />
+          <Property Name="PunchOut" Type="DateTime" Precision="3" Nullable="false" />
+          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_BreakHours_UserId" FromRole="BreakHour" ToRole="AspNetUser" />
+        </EntityType>
+        <Association Name="FK_BreakHours_UserId">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.BreakHour" Role="BreakHour" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="BreakHour">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1300,6 +1358,18 @@
                 <ScalarProperty Name="DepartmentName" ColumnName="DepartmentName" />
                 <ScalarProperty Name="UserName" ColumnName="UserName" />
                 <ScalarProperty Name="id" ColumnName="id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="BreakHours">
+            <EntityTypeMapping TypeName="LeaveONModels.BreakHour">
+              <MappingFragment StoreEntitySet="BreakHours">
+                <ScalarProperty Name="PunchOut" ColumnName="PunchOut" />
+                <ScalarProperty Name="PunchIn" ColumnName="PunchIn" />
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="BreakHoursID" ColumnName="BreakHoursID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

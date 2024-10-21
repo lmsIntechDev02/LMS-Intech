@@ -445,6 +445,51 @@ namespace LeaveON.Controllers
       LstTimeData.RemoveAll(x => x.Status == null);
       return Task.FromResult(LstTimeData);
     }
+
+    private Task<List<TimeData>> GetAbsenteesData(string startDate, string endDate, List<int> UserIds)
+    {
+
+      List<TimeData> LstTimeData = new List<TimeData>();
+
+      DateTime start = DateTime.Parse(startDate);
+      DateTime end = DateTime.Parse(endDate);
+
+      // Fetch attendance data for each user
+      foreach (int UserId in UserIds)
+      {
+        // Fetch attendance records for this user within the provided date range
+        List<AttendanceData> absenteesRecords = dbLeaveOn.AttendanceDatas
+            .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= start && a.FirstPunchIn < end)
+            .OrderBy(a => a.FirstPunchIn)
+            .ToList();
+
+        if (!absenteesRecords.Any()) continue; // If no records found, skip to the next user
+
+        // Process each attendance record
+        foreach (var record in absenteesRecords)
+          if(record.IsAbsent == true) { 
+        {
+          DateTime timeIn = record.FirstPunchIn ?? DateTime.MinValue;
+          string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
+
+          LstTimeData.Add(new TimeData()
+          {
+            EmployeeName = record.UserName,
+            EmployeeNumber = record.BioStarEmpNum ?? 0,
+            Department = record.DepartmentName,
+            TimeZone = record.CountryName,
+            Policy = record.UserLeavePolicyID,
+            Date = timeIn.Date,
+            Day = day,
+            Status = record.IsAbsent == true ? "Absent" : "",
+          });
+        }
+          }
+      }
+
+      return Task.FromResult(LstTimeData);
+    }
+
     private Task<List<TimeData>> ConnectToDBandReturnCountriesData(string startDate, string endDate, List<int> UserIds)
     {
 
@@ -1394,16 +1439,30 @@ namespace LeaveON.Controllers
       foreach (int UserId in UserIds)
       {
         // Fetch attendance records for this user within the provided date range
+        //List<AttendanceData> attendanceRecords = dbLeaveOn.AttendanceDatas
+        //    .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= startDate && a.FirstPunchIn < endDate)
+        //    .OrderBy(a => a.FirstPunchIn)
+        //    .ToList();
         List<AttendanceData> attendanceRecords = dbLeaveOn.AttendanceDatas
-            .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= startDate && a.FirstPunchIn < endDate)
-            .OrderBy(a => a.FirstPunchIn)
-            .ToList();
+           .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate < endDate)
+           .OrderBy(a => a.CreatedDate)
+           .ToList();
+
 
         if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
+
+
+        // Keep track of the processed dates to avoid duplicates
+        HashSet<DateTime> processedDates = new HashSet<DateTime>();
 
         // Process each attendance record
         foreach (var record in attendanceRecords)
         {
+          DateTime createdDate = record.CreatedDate?.Date ?? DateTime.MinValue;
+
+          if (processedDates.Contains(createdDate)) continue; 
+          processedDates.Add(createdDate);
+
           DateTime timeIn = record.FirstPunchIn ?? DateTime.MinValue;
           DateTime timeOut = record.LastPunchOut ?? timeIn; // Default to TimeIn if LastPunchOut is null
           TimeSpan totalTime = timeOut - timeIn;
@@ -1428,7 +1487,7 @@ namespace LeaveON.Controllers
             TimeOut = timeOut,
             TotalTime = totalTime,
             WorkingHours = totalWorkingHours,
-            Status = record.IsAbsent == true ? "Absent" : breakHours.ToString(),
+            Status = record.IsAbsent == true ? "Absent" : "",
    
           });
         }
@@ -1496,6 +1555,78 @@ namespace LeaveON.Controllers
       return ConvertedDateTime;
       //}
     }
+
+
+
+
+    public async Task<ActionResult> GetOffHours(string reqDate, string UserId)
+    {
+      // Parse the date from request
+      DateTime from_Date = DateTime.ParseExact(reqDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+      DateTime to_Date = from_Date.AddDays(1).Date;
+
+      // Retrieve user data from BreakHours table using Entity Framework
+      int intUserId = int.Parse(UserId);
+
+      // Fetch BreakHours data for the specific UserId and Date range
+      var breakHoursData = await dbLeaveOn.BreakHours
+            .Where(bh => bh.BioStarEmpNum == intUserId
+                && bh.PunchIn.Year == from_Date.Year && bh.PunchIn.Month == from_Date.Month && bh.PunchIn.Day == from_Date.Day
+                && bh.PunchOut.Year == from_Date.Year && bh.PunchOut.Month == from_Date.Month && bh.PunchOut.Day == from_Date.Day)
+            .OrderBy(bh => bh.PunchIn)
+            .ToListAsync();
+
+      //  var breakHoursData = await dbLeaveOn.BreakHours
+      //.Where(bh => bh.BioStarEmpNum == intUserId
+      //             && DbFunctions.TruncateTime(bh.Date) == from_Date.Date) // Compare only the date part
+      //.OrderBy(bh => bh.PunchIn)
+      //.ToListAsync();
+
+      if (!breakHoursData.Any())
+      {
+        ViewBag.Message = "No break hours data found for the given date.";
+        return View("OffTimeDetail", new List<OffTimeDetial>());
+      }
+
+      // Variables to calculate total off hours and manage the list of off-time details
+      List<OffTimeDetial> LstOffTimeDetial = new List<OffTimeDetial>();
+      TimeSpan ThidDayTotalOffTime = new TimeSpan();
+
+      // Eliminate duplicates based on PunchIn and PunchOut values
+      var distinctBreakHoursData = breakHoursData
+          .GroupBy(bh => new { bh.PunchIn, bh.PunchOut }) // Group by PunchIn and PunchOut to avoid duplicates
+          .Select(g => g.First()) // Take only the first entry in each group
+          .ToList();
+
+      foreach (var entry in distinctBreakHoursData)
+      {
+        // Create offTimeDetail /for each break
+        DateTime punchIn = entry.PunchOut;
+        DateTime punchOut = entry.PunchIn;
+        TimeSpan offHours =  punchIn - punchOut;
+
+        OffTimeDetial offTimeDetail = new OffTimeDetial
+        {
+          TimeIn = punchIn,
+          TimeOut = punchOut,
+          OffHours = offHours
+        };
+
+        // Add to total off hours for the day
+        ThidDayTotalOffTime = ThidDayTotalOffTime.Add(offHours);
+        LstOffTimeDetial.Add(offTimeDetail);
+      }
+
+      // Store the total off time in the ViewBag
+      ViewBag.ThidDayTotalOffTime = ThidDayTotalOffTime;
+
+      // Return the view with the calculated off-time details
+      return View("OffTimeDetail", LstOffTimeDetial);
+    }
+
+
+
+
     public async Task<ActionResult> ConnectToDBandReturnOffHours(string reqDate, string UserId)
     {
 
@@ -1991,7 +2122,7 @@ namespace LeaveON.Controllers
       List<TimeData> depData = null;
       if (!(string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate)))
       {
-       //var identity = (ClaimsIdentity)User.Identity;
+        //var identity = (ClaimsIdentity)User.Identity;
         //IEnumerable<Claim> claims = identity.Claims;
         //Claim claim = claims.Where(x => x.Value == departmentName).FirstOrDefault();
 
@@ -2008,7 +2139,10 @@ namespace LeaveON.Controllers
 
         //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
         //string ReqMonthYearFormated = startDate + "," + endDate; 
-        depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
+        
+       // depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
+
+        depData = await GetAbsenteesData(startDate, endDate, userIds);
 
       }
       //return View(await db.Attendance.ToListAsync());
@@ -2036,8 +2170,18 @@ namespace LeaveON.Controllers
     public JsonResult GetThisDepEmpsData(string DepartmentName)
     {
       List<SelectListItem> selDepEmps = new SelectList(dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName), "BioStarEmpNum", "UserName").OrderBy(i => i.Text).ToList();
+      List<SelectListItem> selDep = dbLeaveOn.AspNetUsers
+            .Where(x => x.DepartmentName == DepartmentName)
+            .AsEnumerable()
+            .Select(x => new SelectListItem
+           {
+             Value = x.BioStarEmpNum.ToString(),
+             Text = x.UserName.Split('@')[0].Replace(".", " ") 
+            })
+            .OrderBy(i => i.Text)
+            .ToList();
 
-      return Json(new SelectList(selDepEmps, "Value", "Text"));
+      return Json(new SelectList(selDep, "Value", "Text"));
 
     }
     [Authorize(Roles = "Admin,Manager")]

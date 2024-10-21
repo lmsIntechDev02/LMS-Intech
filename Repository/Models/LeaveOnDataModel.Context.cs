@@ -42,5 +42,6 @@ namespace Repository.Models
         public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
         public virtual DbSet<Manager> Managers { get; set; }
         public virtual DbSet<AttendanceData> AttendanceDatas { get; set; }
+        public virtual DbSet<BreakHour> BreakHours { get; set; }
     }
 }
