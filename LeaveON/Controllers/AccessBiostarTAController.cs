@@ -1824,12 +1824,15 @@ namespace LeaveON.Controllers
     }
 
 
-    private Task<List<TimeData>> GetAttendanceSummary(string ReqMonthYear, List<int> UserIds)
+    private Task<List<TimeData>> GetAttendanceSummary(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
       // Parse the requested month and year
-      List<string> dateAttr = ReqMonthYear.Split('-').ToList();
-      DateTime startDate = new DateTime(int.Parse(dateAttr[1]), int.Parse(dateAttr[0]), 1);
-      DateTime endDate = startDate.AddMonths(1); // First day of next month
+      //List<string> dateAttr = ReqMonthYear.Split('-').ToList();
+     // DateTime startDate = new DateTime(int.Parse(dateAttr[1]), int.Parse(dateAttr[0]), 1);
+     // DateTime endDate = startDate.AddMonths(1); // First day of next month
+      DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
 
       List<TimeData> LstTimeData = new List<TimeData>();
       TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero; 
@@ -2206,7 +2209,8 @@ namespace LeaveON.Controllers
           string formattedStartDate = startDate.ToString("dd-MM-yyyy");
           string formattedEndDate = endDate.ToString("dd-MM-yyyy");
           var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
-          LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
+       //   LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
+          LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
 
         }
         //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
