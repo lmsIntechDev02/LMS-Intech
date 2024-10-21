@@ -1556,9 +1556,6 @@ namespace LeaveON.Controllers
       //}
     }
 
-
-
-
     public async Task<ActionResult> GetOffHours(string reqDate, string UserId)
     {
       // Parse the date from request
