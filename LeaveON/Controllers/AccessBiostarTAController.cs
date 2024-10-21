@@ -1842,10 +1842,12 @@ namespace LeaveON.Controllers
       foreach (int UserId in UserIds)
       {
         // Fetch attendance records for this user within the provided date range
-        List<AttendanceData> attendanceRecords = dbLeaveOn.AttendanceDatas
-            .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= startDate && a.FirstPunchIn < endDate)
-            .OrderBy(a => a.FirstPunchIn)
-            .ToList();
+        var attendanceRecords = dbLeaveOn.AttendanceDatas
+        .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= startDate && a.FirstPunchIn < endDate)
+        .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.FirstPunchIn) })
+        .Select(g => g.FirstOrDefault()) // Take only the first record for each day per user
+        .OrderBy(a => a.FirstPunchIn)
+        .ToList();
 
         if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
 
@@ -1876,7 +1878,7 @@ namespace LeaveON.Controllers
             TimeOut = timeOut,
             TotalTime = totalTime,
             WorkingHours = totalWorkingHours,
-            Status = record.IsAbsent == true ? "Absent" : breakHours.ToString(),
+            Status = record.IsAbsent == true ? "Absent" : null,
    
           });
         }
@@ -2020,6 +2022,73 @@ namespace LeaveON.Controllers
       return View("OffTimeDetail", await Task.FromResult(LstOffTimeDetial));
     }
     // GET: AccessBiostarAC
+
+    public async Task<ActionResult> GetOffHours(string reqDate, string UserId)
+    {
+      // Parse the date from request
+      DateTime from_Date = DateTime.ParseExact(reqDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+      DateTime to_Date = from_Date.AddDays(1).Date;
+
+      // Retrieve user data from BreakHours table using Entity Framework
+      int intUserId = int.Parse(UserId);
+
+      // Fetch BreakHours data for the specific UserId and Date range
+      var breakHoursData = await dbLeaveOn.BreakHours
+            .Where(bh => bh.BioStarEmpNum == intUserId
+                && bh.PunchIn.Year == from_Date.Year && bh.PunchIn.Month == from_Date.Month && bh.PunchIn.Day == from_Date.Day
+                && bh.PunchOut.Year == from_Date.Year && bh.PunchOut.Month == from_Date.Month && bh.PunchOut.Day == from_Date.Day)
+            .OrderBy(bh => bh.PunchIn)
+            .ToListAsync();
+
+      //  var breakHoursData = await dbLeaveOn.BreakHours
+      //.Where(bh => bh.BioStarEmpNum == intUserId
+      //             && DbFunctions.TruncateTime(bh.Date) == from_Date.Date) // Compare only the date part
+      //.OrderBy(bh => bh.PunchIn)
+      //.ToListAsync();
+
+      if (!breakHoursData.Any())
+      {
+        ViewBag.Message = "No break hours data found for the given date.";
+        return View("OffTimeDetail", new List<OffTimeDetial>());
+      }
+
+      // Variables to calculate total off hours and manage the list of off-time details
+      List<OffTimeDetial> LstOffTimeDetial = new List<OffTimeDetial>();
+      TimeSpan ThidDayTotalOffTime = new TimeSpan();
+
+      // Eliminate duplicates based on PunchIn and PunchOut values
+      var distinctBreakHoursData = breakHoursData
+          .GroupBy(bh => new { bh.PunchIn, bh.PunchOut }) // Group by PunchIn and PunchOut to avoid duplicates
+          .Select(g => g.First()) // Take only the first entry in each group
+          .ToList();
+
+      foreach (var entry in distinctBreakHoursData)
+      {
+        // Create offTimeDetail /for each break
+        DateTime punchIn = entry.PunchOut;
+        DateTime punchOut = entry.PunchIn;
+        TimeSpan offHours = punchIn - punchOut;
+
+        OffTimeDetial offTimeDetail = new OffTimeDetial
+        {
+          TimeIn = punchIn,
+          TimeOut = punchOut,
+          OffHours = offHours
+        };
+
+        // Add to total off hours for the day
+        ThidDayTotalOffTime = ThidDayTotalOffTime.Add(offHours);
+        LstOffTimeDetial.Add(offTimeDetail);
+      }
+
+      // Store the total off time in the ViewBag
+      ViewBag.ThidDayTotalOffTime = ThidDayTotalOffTime;
+
+      // Return the view with the calculated off-time details
+      return View("OffTimeDetail", LstOffTimeDetial);
+    }
+
+
     public async Task<ActionResult> UserDataX(string ReqMonthYear, string UserId)
     {
       try
