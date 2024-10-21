@@ -76,9 +76,6 @@
     <Compile Include="Models\AttendanceData.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="Models\BreakHour.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\CountryName.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>

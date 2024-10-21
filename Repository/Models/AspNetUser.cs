@@ -23,7 +23,6 @@ namespace Repository.Models
             this.LeaveBalances = new HashSet<LeaveBalance>();
             this.AspNetRoles = new HashSet<AspNetRole>();
             this.AttendanceDatas = new HashSet<AttendanceData>();
-            this.BreakHours = new HashSet<BreakHour>();
         }
     
         public string Id { get; set; }
@@ -72,7 +71,5 @@ namespace Repository.Models
         public virtual ICollection<AspNetRole> AspNetRoles { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AttendanceData> AttendanceDatas { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<BreakHour> BreakHours { get; set; }
     }
 }
