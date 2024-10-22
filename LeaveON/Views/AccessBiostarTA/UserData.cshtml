@@ -250,8 +250,13 @@
                 $('.loader').hide();
                 $('.button-text').show();
                   return;
-              }
-
+                  }
+                }
+              if (!startDate || !endDate) {
+                alert('Please select Date.');
+                $('.loader').hide();
+                $('.button-text').show();
+                return;
               }
 
               requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
