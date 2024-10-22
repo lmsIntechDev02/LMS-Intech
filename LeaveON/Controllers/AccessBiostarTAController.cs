@@ -1843,10 +1843,10 @@ namespace LeaveON.Controllers
       {
         // Fetch attendance records for this user within the provided date range
         var attendanceRecords = dbLeaveOn.AttendanceDatas
-        .Where(a => a.BioStarEmpNum == UserId && a.FirstPunchIn >= startDate && a.FirstPunchIn < endDate)
-        .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.FirstPunchIn) })
+        .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate < endDate)
+        .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.CreatedDate) })
         .Select(g => g.FirstOrDefault()) // Take only the first record for each day per user
-        .OrderBy(a => a.FirstPunchIn)
+        .OrderBy(a => a.CreatedDate)
         .ToList();
 
         if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
@@ -1854,11 +1854,14 @@ namespace LeaveON.Controllers
         // Process each attendance record
         foreach (var record in attendanceRecords)
         {
-          DateTime timeIn = record.FirstPunchIn ?? DateTime.MinValue;
-          DateTime timeOut = record.LastPunchOut ?? timeIn; // Default to TimeIn if LastPunchOut is null
-          TimeSpan totalTime = timeOut - timeIn;
-          TimeSpan totalWorkingHours = TimeSpan.FromSeconds((double)record.TotalWorkHours);
-          TimeSpan breakHours = TimeSpan.FromSeconds((double)record.BreakHours);
+          DateTime? timeInNullable = record.FirstPunchIn;
+          DateTime? timeOutNullable = record.LastPunchOut;
+          DateTime timeIn = timeInNullable ?? DateTime.MinValue;
+          DateTime timeOut = timeOutNullable ?? (timeInNullable ?? DateTime.MinValue);
+          TimeSpan totalTime = timeIn != DateTime.MinValue && timeOut != DateTime.MinValue ? timeOut - timeIn : TimeSpan.Zero;
+          TimeSpan totalWorkingHours = record.TotalWorkHours.HasValue && record.TotalWorkHours > 0
+             ? TimeSpan.FromSeconds((double)record.TotalWorkHours)
+             : TimeSpan.Zero;
           string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
 
           totalWorkingHoursAllUsers += totalWorkingHours;
@@ -1872,7 +1875,7 @@ namespace LeaveON.Controllers
             Department = record.DepartmentName,
             TimeZone = record.CountryName,
             Policy = record.UserLeavePolicyID, 
-            Date = timeIn.Date,
+            Date = record.CreatedDate ?? DateTime.MinValue,
             Day = day,
             TimeIn = timeIn,
             TimeOut = timeOut,
