@@ -121,9 +121,21 @@
       changeMonth: true,
       changeYear: true,
       numberOfMonths: 2,
-      maxDate: new Date()
+      maxDate: new Date(),
+      onSelect: function (selectedDate) {
+        // Enable the end date picker after the start date is selected
+        $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
+        $('#datepickerEnd').prop('disabled', false);
+      }
     });
 
+    // Initialize the end date picker (disabled initially)
+    $('#datepickerEnd').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 2
+    }).prop('disabled', true);
     // Close dropdown when clicking outside
     $(document).click(function (e) {
       if (!$(e.target).closest('.dropdown-check-list').length) {

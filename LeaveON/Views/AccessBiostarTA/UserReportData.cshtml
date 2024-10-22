@@ -42,13 +42,38 @@
       changeMonth: true,
       changeYear: true,
       numberOfMonths: 2,
-      maxDate: new Date()
+      maxDate: new Date(),
+      onSelect: function (selectedDate) {
+        // Enable the end date picker after the start date is selected
+        $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
+        $('#datepickerEnd').prop('disabled', false);
+      }
     });
+
+    // Initialize the end date picker (disabled initially)
+    $('#datepickerEnd').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 2
+    }).prop('disabled', true);
+
+
         // Handle Go button click
         $('#load').click(function () {
-          var reqMonthYear = $('#selectMonth').val();
           var startDate = $('#datepickerStart').val();
           var endDate = $('#datepickerEnd').val();
+
+          // Check if both dates are selected
+          if (!startDate) {
+            alert('Please select a start date.');
+            return;
+          }
+          if (!endDate) {
+            alert('Please select an end date.');
+            return;
+          }
+
           var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
           var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
 
