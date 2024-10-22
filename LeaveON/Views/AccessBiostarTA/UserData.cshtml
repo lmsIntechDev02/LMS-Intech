@@ -171,6 +171,12 @@
         return;
       }
 
+      function capitalizeFirstLetterOfEachWord(str) {
+        return str.split(' ').map(function (word) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+      }
+
               $.ajax({
             url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
             type: 'POST',
@@ -185,11 +191,13 @@
               var selectAllHtml = '<li><label for="selectAllEmployees"><input type="checkbox" id="selectAllEmployees" /> Select All Employees</label></li>';
               employeeList.append(selectAllHtml);
 
-                $.each(data, function (index, item) {
+              $.each(data, function (index, item) {
+                var userName = capitalizeFirstLetterOfEachWord(item.Text);
+
                   employeeList.append($('<li>').html(
                     '<label for="emp_' + item.Value + '">' +
                     '<input type="checkbox" value="' + item.Value + '" id="emp_' + item.Value + '" /> ' +
-                    item.Text +
+                    userName +
                     '</label>'
                   ));
                 });
@@ -233,13 +241,11 @@
 
                 if (selectedEmployees.length === 0) {
               if (userRole === "Admin") {
-                // Validate if any department or employee is selected
                 alert('Please select at least one department and one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
                   return;
               } else {
-                // Validate if any department or employee is selected
                 alert('Please select at least one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
@@ -265,8 +271,8 @@
                   type: "POST",
                   success: function (data) {
                     $("#NewData").html(data);
-                    $('#listDepartments input[type="checkbox"]').prop('checked', false);
-                    $('#listEmployees input[type="checkbox"]').prop('checked', false);
+                    //$('#listDepartments input[type="checkbox"]').prop('checked', false);
+                    //$('#listEmployees input[type="checkbox"]').prop('checked', false);
                   },
                   error: function (xhr, ajaxOptions, thrownError) {
                       alert('Data provided was not valid');
