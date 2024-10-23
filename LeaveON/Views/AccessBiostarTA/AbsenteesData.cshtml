@@ -1,4 +1,6 @@
 @model IEnumerable<TimeManagement.Models.UD_TB_AccessTime_Data>
+@using System.Globalization
+
 
 @{
   ViewBag.Title = "Index";
@@ -13,31 +15,24 @@
 <div>
   @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
   @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees), htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true", style = "display:none" })
-  @*<select class="selectpicker" id="selectMonth" data-live-search="false" data-done-button="true">
-      <option value="07-2020">July 2020</option>
-      <option value="08-2020">August 2020</option>
-      <option value="09-2020">September 2020</option>
-      <option value="10-2020">October 2020</option>
-      <option value="11-2020">November 2020</option>
-      <option value="12-2020">December 2020</option>
-      <option value="01-2021">January 2021</option>
-      <option value="02-2021">February 2021</option>
-      <option value="03-2021">March 2021</option>
-      <option value="04-2021">April 2021</option>
-      <option value="05-2021">May 2021</option>
-      <option value="06-2021">June 2021</option>
-    </select>*@
+
 
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
     <span class="anchor">Select Employees</span>
     <ul class="items">
+      <li>
+        <label for="selectAllEmployees">
+          <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
+        </label>
+      </li>
       @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
       {
-        var username = employee.Text.Split('@')[0]; // Get the part before the '@'
-        username = username.Replace(".", " ");
+        var username = employee.Text.Split('@')[0].Replace(".", " ");
+        var empName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(username.ToLower());
+
         <li>
           <label for="emp_@employee.Value">
-            <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" class="employeeCheckbox" /> @username
+            <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" class="employeeCheckbox" checked /> @empName
           </label>
         </li>
       }
@@ -46,21 +41,21 @@
 
 
 
-  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+    @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
 
 
-  @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+    @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
 
-  @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+    @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
 
 
-  @*<button id="load">go</button>*@
-  <button id="load" style="position: relative;">
-    <span class="button-text">Go</span>
-    <span class="loader" style="display: none;">Loading...</span>
-  </button>
+    @*<button id="load">go</button>*@
+    <button id="load" style="position: relative;">
+      <span class="button-text">Go</span>
+      <span class="loader" style="display: none;">Loading...</span>
+    </button>
 
-  @{Html.RenderPartial("_AbsenteesData_UserWise", Model); }
+    @{Html.RenderPartial("_AbsenteesData_UserWise", Model); }
 </div>
 
 
@@ -151,6 +146,9 @@
                     '</label>'
                   ));
                 });
+                // Automatically select all employees if any department is selected
+                $('#selectAllEmployees').prop('checked', true);
+                $('#listEmployees input.employeeCheckbox').prop('checked', true);
                 // Re-attach change event for "Select All Employees"
                 attachSelectAllEvent();
             },
@@ -195,20 +193,20 @@
               alert('Please select at least one employee.');
               $('.loader').hide();
               $('.button-text').show();
-              return; 
+              return;
             }
             if (!startDate) {
               alert('Please select a start date.');
               $('.loader').hide();
               $('.button-text').show();
-              return; 
+              return;
             }
 
             if (!endDate) {
               alert('Please select an end date.');
               $('.loader').hide();
               $('.button-text').show();
-              return; 
+              return;
             }
 
             //alert(bioStarEmpStr)
@@ -220,7 +218,6 @@
                     success: function (data) {
                         //alert(data);
                         $("#NewData").html(data);
-
                         //$("#hdnOrigComments").val($('#txtComments').val());
                         //$('#lblCommentsNotification').text(savingStatus);
                     },
@@ -372,7 +369,7 @@
     margin: 10px 5px;
   }
 
-  
+
 
 </style>
 
