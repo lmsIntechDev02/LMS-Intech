@@ -1411,7 +1411,7 @@ namespace LeaveON.Controllers
       {
         int UserId = Id;//Assigns the current UserId for processing.
 
-        cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @startDate AND @endDate ORDER BY devdt", con);
+        cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
         //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt >= @StartDate AND devdt <= @EndDate ORDER BY devdt", con);
         //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND CAST(devdt AS DATE) BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
         cmd.Parameters.AddWithValue("@UserId", UserId);
