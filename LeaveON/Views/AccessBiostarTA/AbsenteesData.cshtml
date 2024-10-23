@@ -31,13 +31,18 @@
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
     <span class="anchor">Select Employees</span>
     <ul class="items">
+      <li>
+        <label for="selectAllEmployees">
+          <input type="checkbox" id="selectAllEmployees" checked/> Select All Employees
+        </label>
+      </li>
       @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
       {
-        var username = employee.Text.Split('@')[0]; // Get the part before the '@'
+        var username = employee.Text.Split('@')[0];
         username = username.Replace(".", " ");
         <li>
           <label for="emp_@employee.Value">
-            <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" class="employeeCheckbox" /> @username
+            <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" class="employeeCheckbox" checked/> @username
           </label>
         </li>
       }
@@ -151,6 +156,9 @@
                     '</label>'
                   ));
                 });
+                // Automatically select all employees if any department is selected
+                $('#selectAllEmployees').prop('checked', true);
+                $('#listEmployees input.employeeCheckbox').prop('checked', true);
                 // Re-attach change event for "Select All Employees"
                 attachSelectAllEvent();
             },

@@ -30,18 +30,23 @@
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
     <span class="anchor">Select Employees</span>
     <ul class="items">
-      @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
-        {
-          var username = employee.Text.Split('@')[0]; // Get the part before the '@'
-          username = username.Replace(".", " ");
+       @*<li>
+      <label for="selectAllEmployees">
+        <input type="checkbox" id="selectAllEmployees" /> Select All Employees
+      </label>
+    </li>
+    @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+    {
+      var username = employee.Text.Split('@')[0]; 
+      username = username.Replace(".", " ");
       <li>
         <label for="emp_@employee.Value">
-          <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" /> @username
+          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" id="emp_@employee.Value"  /> @username
         </label>
       </li>
-        }
+    }*@
     </ul>
-  </div> }
+</div> }
   else if (User.IsInRole("Manager"))
   {
     // Department Dropdown for Manager (Single department, disabled)
@@ -53,7 +58,7 @@
     <ul class="items">
       <li>
         <label for="selectAllEmployees">
-          <input type="checkbox" id="selectAllEmployees" /> Select All Employees
+          <input type="checkbox" id="selectAllEmployees" checked  /> Select All Employees
         </label>
       </li>
       @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
@@ -62,7 +67,7 @@
           username = username.Replace(".", " ");
       <li>
         <label for="emp_@employee.Value">
-          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" /> @username
+          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked  /> @username
         </label>
       </li>
         }
@@ -143,11 +148,9 @@
       }
     })
 
-
     // Handle Select All functionality
     $('#selectAllEmployees').change(function () {
       var isChecked = $(this).is(':checked');
-      // Toggle all employee checkboxes based on the state of "Select All"
       $('#listEmployees .employeeCheckbox').prop('checked', isChecked);
     });
 
@@ -170,6 +173,8 @@
         console.log('No departments selected.');
         return;
       }
+
+
 
       function capitalizeFirstLetterOfEachWord(str) {
         return str.split(' ').map(function (word) {
@@ -196,11 +201,16 @@
 
                   employeeList.append($('<li>').html(
                     '<label for="emp_' + item.Value + '">' +
-                    '<input type="checkbox" value="' + item.Value + '" id="emp_' + item.Value + '" /> ' +
+                    '<input type="checkbox"  class="employeeCheckbox" value="' + item.Value + '" id="emp_' + item.Value + '" /> ' +
                     userName +
                     '</label>'
                   ));
-                });
+              });
+
+              // Automatically select all employees if any department is selected
+              $('#selectAllEmployees').prop('checked', true);
+              $('#listEmployees input.employeeCheckbox').prop('checked', true);
+
               // Re-attach change event for "Select All Employees"
               attachSelectAllEvent();
             },
