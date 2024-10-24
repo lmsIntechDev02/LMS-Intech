@@ -418,6 +418,15 @@ namespace LeaveON.Controllers
         {
           if (LstTimeData.FirstOrDefault(x => x.Date == day.Date && x.EmployeeNumber == UserId) == null && day.DayOfWeek != DayOfWeek.Saturday && day.DayOfWeek != DayOfWeek.Sunday)
           {
+           var lastExistingDate = LstTimeData
+                       .OrderByDescending(x => x.Date)
+                       .Select(x => x.Date.Date)
+                       .FirstOrDefault();
+
+            if (day > lastExistingDate)
+            {
+              break;
+            }
             mm = firstDateTime.Month.ToString("00");
             yy = firstDateTime.Year.ToString();
             blankDateTime = day;
@@ -1412,8 +1421,6 @@ namespace LeaveON.Controllers
         int UserId = Id;//Assigns the current UserId for processing.
 
         cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
-        //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt >= @StartDate AND devdt <= @EndDate ORDER BY devdt", con);
-        //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND CAST(devdt AS DATE) BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
         cmd.Parameters.AddWithValue("@UserId", UserId);
         cmd.Parameters.AddWithValue("@StartDate", startDate);
         cmd.Parameters.AddWithValue("@EndDate", endDate);
@@ -1503,6 +1510,8 @@ namespace LeaveON.Controllers
         //After Reading All Data
         dr.Close();
         DataView view = dt.DefaultView;
+        Console.WriteLine($"UserId: {dt.Rows}");
+        Console.WriteLine($"dt.Rows.Count: {dt.Rows.Count}");
         view.Sort = "devdt ASC";
         //The DataTable dt's default view is sorted by 'devdt' in ascending order: view.Sort = "devdt ASC";.
 
@@ -1511,6 +1520,7 @@ namespace LeaveON.Controllers
         dt = view.ToTable();
 
         int rowsCount = dt.Rows.Count;
+        
         if (rowsCount <= 0) continue;
 
         /*
@@ -1705,51 +1715,91 @@ namespace LeaveON.Controllers
 
         ////Leaves Processing
         List<TimeData> offDays = new List<TimeData>();
-        List<int> LstThisMonthsWeekEnds = new List<int>();
+        List<string> LstThisMonthsWeekEnds;
         if (aspNetUser.UserLeavePolicy == null || string.IsNullOrEmpty(aspNetUser.UserLeavePolicy.WeeklyOffDays))
         {
-          LstThisMonthsWeekEnds = GetWeekEndLists(startDate, endDate, "6,0");
+          LstThisMonthsWeekEnds = GetUserDataWeekEndLists(startDate, endDate, "6,0");
         }
         else
         {
-          LstThisMonthsWeekEnds = GetWeekEndLists(startDate, endDate, aspNetUser.UserLeavePolicy.WeeklyOffDays);
+          LstThisMonthsWeekEnds = GetUserDataWeekEndLists(startDate, endDate, aspNetUser.UserLeavePolicy.WeeklyOffDays);
         }
 
         int iEmpNum = aspNetUser.BioStarEmpNum.Value;
-        foreach (int weekEndDay in LstThisMonthsWeekEnds)
+
+        DateTime latestTimeData = LstTimeData
+                .Where(x => x.Date.DayOfWeek != DayOfWeek.Saturday && x.Date.DayOfWeek != DayOfWeek.Sunday) // Exclude weekends
+                .OrderByDescending(x => x.Date)
+                .Select(x => x.Date.Date)
+                .FirstOrDefault();
+        foreach (string weekEndDay in LstThisMonthsWeekEnds)
         {
-          TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Day == weekEndDay);
-          if (thisWeekEnd != null)
+          // Create a DateTime object for the weekend day
+      
+          DateTime weekEndDate = DateTime.ParseExact(weekEndDay, "MM-dd-yyyy", CultureInfo.InvariantCulture);
+          if (weekEndDate <= latestTimeData)
           {
-            thisWeekEnd.Status = "Weekend";
-          }
-          else
-          {
-            DateTime weekEndDate = new DateTime(startDate.Year, startDate.Month, weekEndDay);
-            TimeData weekEndOffDate = new TimeData
+            TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date);
+
+            if (thisWeekEnd != null)
             {
-              EmployeeName = UserName,
-              EmployeeNumber = iEmpNum,
-              TimeZone = countryName,
-              Department = depName,
-              Policy = userLeavePolicyDescription,
-              Date = weekEndDate,
-              Day = weekEndDate.ToString("dddd"),
-              Status = "Weekend"
-            };
-            offDays.Add(weekEndOffDate);
+              thisWeekEnd.Status = "Weekend";
+            }
+            else
+            {
+              TimeData weekEndOffDate = new TimeData
+              {
+                EmployeeName = UserName,
+                EmployeeNumber = iEmpNum,
+                TimeZone = countryName,
+                Department = depName,
+                Policy = userLeavePolicyDescription,
+                Date = weekEndDate,
+                Day = weekEndDate.ToString("dddd"),
+                Status = "Weekend"
+              };
+              offDays.Add(weekEndOffDate);
+            }
           }
         }
         LstTimeData.AddRange(offDays);
 
-        for (int day = 1; day < totalDays; day++)
+         // Find the latest date for which timing data exists in the database (max date in LstTimeData)
+         var lastExistingDate = LstTimeData
+                .Where(x => x.Date.DayOfWeek != DayOfWeek.Saturday && x.Date.DayOfWeek != DayOfWeek.Sunday) // Exclude weekends
+                .OrderByDescending(x => x.Date)
+                .Select(x => x.Date.Date)
+                .FirstOrDefault();
+
+        // If no valid data is present, default to startDate
+        if (lastExistingDate == default(DateTime))
         {
-          DateTime currentDay = startDate.AddDays(day - 1);
-          var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Day == day);
-          var annualOffDay = dbLeaveOn.AnnualOffDays.FirstOrDefault(x => x.OffDay.HasValue && x.OffDay == currentDay && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
+          lastExistingDate = startDate;
+        }
+
+
+        for (int day = 0; day < totalDays; day++)
+        {
+          DateTime currentDay = startDate.AddDays(day);
+
+          if (currentDay > lastExistingDate)
+          {
+            // Stop processing dates after the last available data
+            break;
+          }
+          var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Date == currentDay.Date);
+          var annualOffDay = dbLeaveOn.AnnualOffDays
+              .FirstOrDefault(x => DbFunctions.TruncateTime(x.OffDay) == currentDay.Date
+                             && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
           // Check for any leave that spans the current day
-          var leave = dbLeaveOn.Leaves.FirstOrDefault(x => x.StartDate <= currentDay && x.EndDate >= currentDay && x.IsAccepted1 != null && x.IsAccepted2 != null && x.UserId == userGuidId);
-          if (timeDataForDay == null) // Employee was absent
+          var leave = dbLeaveOn.Leaves
+                .FirstOrDefault(x => DbFunctions.TruncateTime(x.StartDate) <= currentDay.Date 
+                             && DbFunctions.TruncateTime(x.EndDate) >= currentDay.Date
+                             && x.IsAccepted1 != null && x.IsAccepted2 != null 
+                             && x.UserId == userGuidId);
+          //if (timeDataForDay == null) // Employee was absent
+               // Handle cases where no time data exists for the day
+          if (timeDataForDay == null) 
           {
             string status = "Absent"; // Default to "Absent"
                                       // Check for holiday and leave
@@ -1768,7 +1818,7 @@ namespace LeaveON.Controllers
             }
             //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
             depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
-
+              // Add attendance data for the day
             attendance = new TimeData()
             {
               EmployeeName = UserName,
@@ -1789,6 +1839,8 @@ namespace LeaveON.Controllers
         }
 
       }
+
+
       //to avaid showing current month all data which is not happend yet
       foreach (var itm in LstTimeData.ToList())
       {
@@ -1802,6 +1854,27 @@ namespace LeaveON.Controllers
       ViewBag.TotalWorkingHours = TotalWorkingHours.TotalHours.ToString("N2");
       con.Close();
       return Task.FromResult(LstTimeData);
+    }
+
+    protected List<string> GetUserDataWeekEndLists(DateTime startDate, DateTime endDate, string WeekEndDays)
+    {
+      List<int> LstWeekEndDays = WeekEndDays.Split(',').Select(int.Parse).ToList();
+      List<string> LstThisMonthsWeekEnds = new List<string>();
+
+      CultureInfo ci = new CultureInfo("en-US");
+
+      // Loop through each day in the given date range
+      for (DateTime date = startDate; date < endDate; date = date.AddDays(1))
+      {
+        // Check if the current day's DayOfWeek matches any of the provided weekend days
+        if (LstWeekEndDays.Contains((int)date.DayOfWeek))
+        {
+          LstThisMonthsWeekEnds.Add(date.ToString("MM-dd-yyyy"));
+        }
+      }
+
+      LstThisMonthsWeekEnds.Sort();
+      return LstThisMonthsWeekEnds;
     }
 
     protected List<int> GetWeekEndLists(DateTime startDate, DateTime endDate, string WeekEndDays)
@@ -2191,7 +2264,7 @@ namespace LeaveON.Controllers
             Value = u.BioStarEmpNum.ToString(),
             /* Text = u.UserName*/
             Text = u.UserName.Split('@')[0].Replace('.', ' ')
-          }).ToList();
+          }).OrderBy(i => i.Text).ToList();
       //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
       return Json(users, JsonRequestBehavior.AllowGet);
     }
