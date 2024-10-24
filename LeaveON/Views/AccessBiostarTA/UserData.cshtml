@@ -262,8 +262,15 @@
                   return;
                   }
                 }
-              if (!startDate || !endDate) {
-                alert('Please select Date.');
+              if (!startDate) {
+                alert('Please select start date.');
+                $('.loader').hide();
+                $('.button-text').show();
+                return;
+              }
+
+              if (!endDate) {
+                alert('Please select end date.');
                 $('.loader').hide();
                 $('.button-text').show();
                 return;
@@ -425,7 +432,7 @@
   }
 
   .datepicker {
-    width: 200px;
+    width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -433,7 +440,9 @@
     text-overflow: ellipsis;
     margin: 10px 5px;
   }
-
+  .ui-datepicker {
+    width: 250px;
+  }
   
 
 </style>

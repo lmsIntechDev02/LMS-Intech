@@ -7,13 +7,14 @@
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
 @*<h2>Index</h2>
 
   <p>
     @Html.ActionLink("Create New", "Create")
   </p>*@
 <div>
-  @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+  @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker department-drodown", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true", data_width = "100px" })
   @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees), htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true", style = "display:none" })
 
 
@@ -196,14 +197,14 @@
               return;
             }
             if (!startDate) {
-              alert('Please select a start date.');
+              alert('Please select start date.');
               $('.loader').hide();
               $('.button-text').show();
               return;
             }
 
             if (!endDate) {
-              alert('Please select an end date.');
+              alert('Please select end date.');
               $('.loader').hide();
               $('.button-text').show();
               return;
@@ -350,7 +351,7 @@
   }
 
   .selectpicker {
-    width: 200px;
+    width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -360,7 +361,7 @@
   }
 
   .datepicker {
-    width: 200px;
+    width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -368,8 +369,14 @@
     text-overflow: ellipsis;
     margin: 10px 5px;
   }
-
-
+  .ui-datepicker {
+    width: 250px;
+  }
+  .department-drodown {
+    text-align: left;
+    padding-left: 15px;
+    width: 250px;
+  }
 
 </style>
 
