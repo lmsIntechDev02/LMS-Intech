@@ -24,7 +24,10 @@
 
 
 
-  <button id="load">Go</button>
+  <button id="load" style="position: relative;">
+    <span class="button-text">Go</span>
+    <span class="loader" style="display: none;">Loading...</span>
+  </button>
 
   @{ Html.RenderPartial("_UserData", Model); }
 </div>
@@ -60,17 +63,24 @@
 
 
         // Handle Go button click
-        $('#load').click(function () {
+    $('#load').click(function () {
+      // Show the loader and hide the button text
+      $('.loader').show();
+      $('.button-text').hide();
           var startDate = $('#datepickerStart').val();
           var endDate = $('#datepickerEnd').val();
 
           // Check if both dates are selected
           if (!startDate) {
             alert('Please select a start date.');
+            $('.loader').hide();
+            $('.button-text').show();
             return;
           }
           if (!endDate) {
             alert('Please select an end date.');
+            $('.loader').hide();
+            $('.button-text').show();
             return;
           }
 
@@ -86,7 +96,12 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     alert('Data provided was not valid');
-                }
+              },
+              complete: function () {
+                // Hide the loader when the request is complete (success or error)
+                $('.loader').hide();
+                $('.button-text').show();
+              }
             });
         });
     });
