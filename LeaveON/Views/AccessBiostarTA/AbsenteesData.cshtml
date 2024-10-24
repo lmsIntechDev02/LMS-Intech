@@ -204,12 +204,14 @@
               alert('Please select at least one employee.');
               $('.loader').hide();
               $('.button-text').show();
+              disableInputs(false);
               return;
             }
             if (!startDate) {
               alert('Please select start date.');
               $('.loader').hide();
               $('.button-text').show();
+              disableInputs(false);
               return;
             }
 
@@ -217,6 +219,7 @@
               alert('Please select end date.');
               $('.loader').hide();
               $('.button-text').show();
+              disableInputs(false);
               return;
             }
 

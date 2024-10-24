@@ -86,12 +86,14 @@
             alert('Please select a start date.');
             $('.loader').hide();
             $('.button-text').show();
+            disableInputs(false);
             return;
           }
           if (!endDate) {
             alert('Please select an end date.');
             $('.loader').hide();
             $('.button-text').show();
+            disableInputs(false);
             return;
           }
 
