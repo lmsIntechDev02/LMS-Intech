@@ -2110,6 +2110,7 @@ namespace LeaveON.Controllers
         {
           dEmpNum = int.Parse(UserId);
           reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy", System.Globalization.CultureInfo.CurrentCulture);
+    
         }
         else
         {
@@ -2122,6 +2123,9 @@ namespace LeaveON.Controllers
           {
             dEmpNum = (int)user.BioStarEmpNum;
             ViewBag.SelectedEmployees = new List<string> { dEmpNum.ToString() };
+            // Set ViewBag for start and end dates based on the requested month and year
+            ViewBag.StartDate = new DateTime(reqDate.Year, reqDate.Month, 1).ToString("dd-MMM-yyyy");
+            ViewBag.EndDate = reqDate.ToString("dd-MMM-yyyy");
 
             string username = user.UserName.Split('@')[0].Replace(".", " ");
             // Capitalize the first letter of each word
@@ -2172,12 +2176,16 @@ namespace LeaveON.Controllers
         else
         {
           // In case of empty parameters or first time
-          startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); // First day of the current month
-          endDate = DateTime.Now; // Current date
+          startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); 
+          endDate = DateTime.Now; 
 
           ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
 
         }
+
+        //StartDate and EndDate for display
+        ViewBag.StartDate = startDate.ToString("dd-MMM-yyyy");
+        ViewBag.EndDate = endDate.ToString("dd-MMM-yyyy");
 
         // Role-based data population
         if (User.IsInRole("Admin"))
@@ -2191,7 +2199,6 @@ namespace LeaveON.Controllers
           ViewBag.Departments = departments;
           ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName");
           ViewBag.SelectedEmployees = UserIds;
-
         }
         //else if (User.IsInRole("Manager") || User.IsInRole("User"))
         else if (User.IsInRole("Manager"))
@@ -2560,18 +2567,17 @@ namespace LeaveON.Controllers
           //in case of empty parameters or First Time
 
           reqDate = DateTime.Now;
+          ViewBag.StartDate = new DateTime(reqDate.Year, reqDate.Month, 1).ToString("dd-MMM-yyyy");
+          ViewBag.EndDate = reqDate.ToString("dd-MMM-yyyy");
           string userId = User.Identity.GetUserId();
           DepartmentName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).DepartmentName;
           List<string> SelectedDeps = new List<string>();
           SelectedDeps.Add(DepartmentName);
           ViewBag.SelectedDepartments = SelectedDeps;
-
           List<string> SelectedEmps = new List<string>();
-
           dEmpNum = (int)dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum;
           SelectedEmps.Add(dEmpNum.ToString());
           ViewBag.SelectedEmployees = SelectedEmps;
-          //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
           ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
 
           var sortedEmployees = dbLeaveOn.AspNetUsers
