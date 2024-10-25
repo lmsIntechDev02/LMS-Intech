@@ -14,8 +14,23 @@
     @Html.ActionLink("Create New", "Create")
   </p>*@
 <div>
-  @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker department-drodown", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true", data_width = "100px" })
+  @*@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker department-drodown", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true", data_width = "100px" })*@
   @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees), htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true", style = "display:none" })
+
+
+  <div id="listDepartments" class="dropdown-check-list">
+    <span class="anchor">Select Departments</span>
+    <ul class="items">
+      @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
+      {
+        <li>
+          <label for="dept_@department.Value">
+            <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
+          </label>
+        </li>
+      }
+    </ul>
+  </div>
 
 
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
@@ -112,22 +127,36 @@
             $('#listEmployees .employeeCheckbox').prop('checked', isChecked);
           });
 
+          // Load users based on the selected departments for Admin
+          $('#listDepartments input[type="checkbox"]').change(function () {
+            var selectedDepartments = [];
+            console.log("change", selectedDepartments)
+            $('#listDepartments input[type="checkbox"]:checked').each(function () {
+              selectedDepartments.push($(this).val());
+            });
+
+
+            if (selectedDepartments.length === 0) {
+              console.log('No departments selected.');
+              return;
+            }
+
           function capitalizeFirstLetterOfEachWord(str) {
             return str.split(' ').map(function (word) {
               return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
             }).join(' ');
           }
 
-          $("#listDepartments").change(function () {
-            //DepartmentName = $('#yourslectbox').find(":selected").text();
-            //alert('abc');
-            var DepartmentName = $('#listDepartments').val();
-            $("#listEmployees").empty();
+          //$("#listDepartments").change(function () {
+          //  //DepartmentName = $('#yourslectbox').find(":selected").text();
+          //  //alert('abc');
+          //  var DepartmentName = $('#listDepartments').val();
+          //  $("#listEmployees").empty();
             $.ajax({
               type: 'POST',
-              url: "@Url.Action("GetThisDepEmpsData", "AccessBiostarTA")",
+              url: "@Url.Action("GetUsersByDepartments", "AccessBiostarTA")",
               dataType: 'json',
-              data: { 'DepartmentName': DepartmentName },
+              data: { 'DepartmentNames': selectedDepartments },
               success: function (data) {
                 var employeeList = $("#listEmployees ul.items");
                 employeeList.empty();
@@ -157,8 +186,8 @@
               alert('Failed To Retive Products' + ex);
             }
             });
-              return false;
-          })
+         
+          });
 
           // Handle individual checkbox changes to update "Select All" state
           $('#listEmployees').on('change', '.employeeCheckbox', function () {
@@ -188,12 +217,18 @@
             $('.loader').show();
             $('.button-text').hide();
             disableInputs(true);
-            var DepartmentName = $('#listDepartments').val();
+            //var DepartmentName = $('#listDepartments').val();
             var startDate = $('#datepickerStart').val();
             var endDate = $('#datepickerEnd').val();
             var e = document.getElementById("listEmployees");
             var bioStarEmpStr = e.value;
 
+
+            var selectedDepartments = [];
+            $('#listDepartments input[type="checkbox"]:checked').each(function () {
+              selectedDepartments.push($(this).val());
+            });
+         
             // Collect selected employees
             var selectedEmployees = [];
             $('#listEmployees  .employeeCheckbox:checked').each(function () {
@@ -226,7 +261,7 @@
             //alert(bioStarEmpStr)
              $.ajax({
                     url: "@Url.Action("AbsenteesData_UserWise", "AccessBiostarTA")",
-               data: { 'startDate': startDate, 'endDate': endDate, 'DepartmentName': DepartmentName, 'bioStarEmpStr': selectedEmployees },
+               data: { 'startDate': startDate, 'endDate': endDate, 'DepartmentName': selectedDepartments, 'bioStarEmpStr': selectedEmployees },
                     type: "POST",
                     cache: false,
                     success: function (data) {

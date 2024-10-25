@@ -2471,7 +2471,7 @@ namespace LeaveON.Controllers
 
     }
     //[Authorize(Roles = "Admin,Manager")]
-    public async Task<ActionResult> AbsenteesData_UserWise(string startDate, string endDate, string departmentName, List<string> bioStarEmpStr)
+    public async Task<ActionResult> AbsenteesData_UserWise(string startDate, string endDate, List<string> departmentName, List<string> bioStarEmpStr)
     {
       try { 
       ViewBag.MonthSelectList = GetMonthSelectList();
@@ -2497,11 +2497,15 @@ namespace LeaveON.Controllers
       if (!(string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate)))
       {
         var identity = (ClaimsIdentity)User.Identity;
-        List<AspNetUser> users = dbLeaveOn.AspNetUsers
-            .Where(x => x.DepartmentName == departmentName && bioStarEmpStr.Contains(x.BioStarEmpNum.Value.ToString()))
-           .ToList();
+          //List<AspNetUser> users = dbLeaveOn.AspNetUsers
+          //    .Where(x => x.DepartmentName == departmentName && bioStarEmpStr.Contains(x.BioStarEmpNum.Value.ToString()))
+          //   .ToList();
+          List<AspNetUser> users = dbLeaveOn.AspNetUsers
+         .Where(x => departmentName.Contains(x.DepartmentName) && bioStarEmpStr.Contains(x.BioStarEmpNum.Value.ToString()))
+         .ToList();
 
-        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+
+          List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
         depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
 
       }
@@ -2570,15 +2574,22 @@ namespace LeaveON.Controllers
           ViewBag.StartDate = new DateTime(reqDate.Year, reqDate.Month, 1).ToString("dd-MMM-yyyy");
           ViewBag.EndDate = reqDate.ToString("dd-MMM-yyyy");
           string userId = User.Identity.GetUserId();
-          DepartmentName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).DepartmentName;
-          List<string> SelectedDeps = new List<string>();
-          SelectedDeps.Add(DepartmentName);
-          ViewBag.SelectedDepartments = SelectedDeps;
+          //DepartmentName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).DepartmentName;
+          //List<string> SelectedDeps = new List<string>();
+          //SelectedDeps.Add(DepartmentName);
+          //ViewBag.SelectedDepartments = SelectedDeps;
           List<string> SelectedEmps = new List<string>();
           dEmpNum = (int)dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum;
           SelectedEmps.Add(dEmpNum.ToString());
           ViewBag.SelectedEmployees = SelectedEmps;
-          ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
+          //ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
+          var departments = dbLeaveOn.AspNetUsers
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Select(u => u.DepartmentName)
+                 .Distinct()
+                 .Select(d => new SelectListItem { Value = d, Text = d })
+                 .ToList();
+          ViewBag.Departments = departments;
 
           var sortedEmployees = dbLeaveOn.AspNetUsers
         .Where(x => x.DepartmentName == DepartmentName)
