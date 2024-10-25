@@ -24,7 +24,10 @@
 
 
 
-  <button id="load">Go</button>
+  <button id="load" style="position: relative;">
+    <span class="button-text">Go</span>
+    <span class="loader" style="display: none;">Loading...</span>
+  </button>
 
   @{ Html.RenderPartial("_UserData", Model); }
 </div>
@@ -37,18 +40,66 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
+    $('#datepickerStart').val('@ViewBag.StartDate');
+    $('#datepickerEnd').val('@ViewBag.EndDate');
+
     $('.datepicker').datepicker({
       dateFormat: 'dd-M-yy',
       changeMonth: true,
       changeYear: true,
-      numberOfMonths: 2,
-      maxDate: new Date()
+      numberOfMonths: 1,
+      maxDate: new Date(),
+      onSelect: function (selectedDate) {
+        // Enable the end date picker after the start date is selected
+        $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
+        $('#datepickerEnd').prop('disabled', false);
+      }
     });
+
+    // Initialize the end date picker (disabled initially)
+    $('#datepickerEnd').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1
+    }).prop('disabled', true);
+
+    // Function to disable or enable inputs
+    function disableInputs(isDisabled) {
+      $('#load').prop('disabled', isDisabled);
+      $('#listDepartments input[type="checkbox"]').prop('disabled', isDisabled);
+      $('#listEmployees input[type="checkbox"]').prop('disabled', isDisabled);
+      $('#datepickerStart').prop('disabled', isDisabled);
+      $('#datepickerEnd').prop('disabled', isDisabled);
+    }
+
+
         // Handle Go button click
-        $('#load').click(function () {
-          var reqMonthYear = $('#selectMonth').val();
+    $('#load').click(function () {
+      // Show the loader and hide the button text
+      $('.loader').show();
+      $('.button-text').hide();
+      disableInputs(true);
+
           var startDate = $('#datepickerStart').val();
           var endDate = $('#datepickerEnd').val();
+
+          // Check if both dates are selected
+          if (!startDate) {
+            alert('Please select a start date.');
+            $('.loader').hide();
+            $('.button-text').show();
+            disableInputs(false);
+            return;
+          }
+          if (!endDate) {
+            alert('Please select an end date.');
+            $('.loader').hide();
+            $('.button-text').show();
+            disableInputs(false);
+            return;
+          }
+
           var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
           var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
 
@@ -68,7 +119,13 @@
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     alert('Data provided was not valid');
-                }
+              },
+              complete: function () {
+                // Hide the loader when the request is complete (success or error)
+                $('.loader').hide();
+                $('.button-text').show();
+                disableInputs(false);
+              }
             });
         });
     });
@@ -156,12 +213,16 @@
   }
 
   .datepicker {
-    width: 200px;
+    width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 10px 5px;
+  }
+
+  .ui-datepicker {
+    width: 250px;
   }
 </style>

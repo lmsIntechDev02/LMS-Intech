@@ -1,9 +1,12 @@
 @model IEnumerable<TimeManagement.Models.UD_TB_AccessTime_Data>
+@using System.Globalization
+
 
 @{
   ViewBag.Title = "Index";
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 
 @*<h2>Index</h2>
 
@@ -11,33 +14,36 @@
     @Html.ActionLink("Create New", "Create")
   </p>*@
 <div>
-  @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+  @*@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker department-drodown", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true", data_width = "100px" })*@
   @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees), htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true", style = "display:none" })
-  @*<select class="selectpicker" id="selectMonth" data-live-search="false" data-done-button="true">
-      <option value="07-2020">July 2020</option>
-      <option value="08-2020">August 2020</option>
-      <option value="09-2020">September 2020</option>
-      <option value="10-2020">October 2020</option>
-      <option value="11-2020">November 2020</option>
-      <option value="12-2020">December 2020</option>
-      <option value="01-2021">January 2021</option>
-      <option value="02-2021">February 2021</option>
-      <option value="03-2021">March 2021</option>
-      <option value="04-2021">April 2021</option>
-      <option value="05-2021">May 2021</option>
-      <option value="06-2021">June 2021</option>
-    </select>*@
+
+
+  <div id="listDepartments" class="dropdown-check-list">
+    <span class="anchor">Select Departments</span>
+    <ul class="items">
+      @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
+      {
+        <li>
+          <label for="dept_@department.Value">
+            <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
+          </label>
+        </li>
+      }
+    </ul>
+  </div>
+
 
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
     <span class="anchor">Select Employees</span>
     <ul class="items">
       @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
       {
-        var username = employee.Text.Split('@')[0]; // Get the part before the '@'
-        username = username.Replace(".", " ");
+        var username = employee.Text.Split('@')[0].Replace(".", " ");
+        var empName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(username.ToLower());
+
         <li>
           <label for="emp_@employee.Value">
-            <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" class="employeeCheckbox" /> @username
+            <input type="checkbox" value="@employee.Value" id="emp_@employee.Value" class="employeeCheckbox" checked /> @empName
           </label>
         </li>
       }
@@ -54,7 +60,11 @@
     @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
 
 
-    <button id="load">go</button>
+    @*<button id="load">go</button>*@
+    <button id="load" style="position: relative;">
+      <span class="button-text">Go</span>
+      <span class="loader" style="display: none;">Loading...</span>
+    </button>
 
     @{Html.RenderPartial("_AbsenteesData_UserWise", Model); }
 </div>
@@ -80,9 +90,22 @@
             dateFormat: 'dd-M-yy',
             changeMonth: true,
             changeYear: true,
-            numberOfMonths: 2,
-            maxDate: new Date()
+            numberOfMonths: 1,
+            maxDate: new Date(),
+            onSelect: function (selectedDate) {
+              // Enable the end date picker after the start date is selected
+              $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
+              $('#datepickerEnd').prop('disabled', false);
+            }
           });
+
+          // Initialize the end date picker (disabled initially)
+          $('#datepickerEnd').datepicker({
+            dateFormat: 'dd-M-yy',
+            changeMonth: true,
+            changeYear: true,
+            numberOfMonths: 1
+          }).prop('disabled', true);
 
           // Close dropdown when clicking outside
           $(document).click(function (e) {
@@ -99,22 +122,36 @@
             $('#listEmployees .employeeCheckbox').prop('checked', isChecked);
           });
 
+          // Load users based on the selected departments for Admin
+          $('#listDepartments input[type="checkbox"]').change(function () {
+            var selectedDepartments = [];
+            console.log("change", selectedDepartments)
+            $('#listDepartments input[type="checkbox"]:checked').each(function () {
+              selectedDepartments.push($(this).val());
+            });
+
+
+            if (selectedDepartments.length === 0) {
+              console.log('No departments selected.');
+              return;
+            }
+
           function capitalizeFirstLetterOfEachWord(str) {
             return str.split(' ').map(function (word) {
               return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
             }).join(' ');
           }
 
-          $("#listDepartments").change(function () {
-            //DepartmentName = $('#yourslectbox').find(":selected").text();
-            //alert('abc');
-            var DepartmentName = $('#listDepartments').val();
-            $("#listEmployees").empty();
+          //$("#listDepartments").change(function () {
+          //  //DepartmentName = $('#yourslectbox').find(":selected").text();
+          //  //alert('abc');
+          //  var DepartmentName = $('#listDepartments').val();
+          //  $("#listEmployees").empty();
             $.ajax({
               type: 'POST',
-              url: "@Url.Action("GetThisDepEmpsData", "AccessBiostarTA")",
+              url: "@Url.Action("GetUsersByDepartments", "AccessBiostarTA")",
               dataType: 'json',
-              data: { 'DepartmentName': DepartmentName },
+              data: { 'DepartmentNames': selectedDepartments },
               success: function (data) {
                 var employeeList = $("#listEmployees ul.items");
                 employeeList.empty();
@@ -124,7 +161,8 @@
                 employeeList.append(selectAllHtml);
 
                 $.each(data, function (index, item) {
-                  var userName = capitalizeFirstLetterOfEachWord(item.Text);
+                  var empName = item.Text.split('@@')[0].replace(/\./g, ' ');
+                  var userName = capitalizeFirstLetterOfEachWord(empName);
 
                   employeeList.append($('<li>').html(
                     '<label for="emp_' + item.Value + '">' +
@@ -133,6 +171,9 @@
                     '</label>'
                   ));
                 });
+                // Automatically select all employees if any department is selected
+                $('#selectAllEmployees').prop('checked', true);
+                $('#listEmployees input.employeeCheckbox').prop('checked', true);
                 // Re-attach change event for "Select All Employees"
                 attachSelectAllEvent();
             },
@@ -140,8 +181,8 @@
               alert('Failed To Retive Products' + ex);
             }
             });
-              return false;
-          })
+         
+          });
 
           // Handle individual checkbox changes to update "Select All" state
           $('#listEmployees').on('change', '.employeeCheckbox', function () {
@@ -157,36 +198,84 @@
             });
           }
 
+          // Function to disable or enable inputs
+          function disableInputs(isDisabled) {
+            $('#load').prop('disabled', isDisabled);
+            $('#listDepartments input[type="checkbox"]').prop('disabled', isDisabled);
+            $('#listEmployees input[type="checkbox"]').prop('disabled', isDisabled);
+            $('#datepickerStart').prop('disabled', isDisabled);
+            $('#datepickerEnd').prop('disabled', isDisabled);
+          }
+
           $('#load').click(function () {
-            var DepartmentName = $('#listDepartments').val();
+            // Show the loader and hide the button text
+            $('.loader').show();
+            $('.button-text').hide();
+            disableInputs(true);
+            //var DepartmentName = $('#listDepartments').val();
             var startDate = $('#datepickerStart').val();
             var endDate = $('#datepickerEnd').val();
             var e = document.getElementById("listEmployees");
             var bioStarEmpStr = e.value;
 
+
+            var selectedDepartments = [];
+            $('#listDepartments input[type="checkbox"]:checked').each(function () {
+              selectedDepartments.push($(this).val());
+            });
+         
             // Collect selected employees
             var selectedEmployees = [];
             $('#listEmployees  .employeeCheckbox:checked').each(function () {
               selectedEmployees.push($(this).val());
             });
-            console.log("selectedEmployees => ", selectedEmployees)
+
+            if (selectedEmployees.length === 0) {
+              alert('Please select at least one department and one employee.');
+
+              $('.loader').hide();
+              $('.button-text').show();
+              disableInputs(false);
+              return;
+            }
+            if (!startDate) {
+              alert('Please select start date.');
+              $('.loader').hide();
+              $('.button-text').show();
+              disableInputs(false);
+              return;
+            }
+
+            if (!endDate) {
+              alert('Please select end date.');
+              $('.loader').hide();
+              $('.button-text').show();
+              disableInputs(false);
+              return;
+            }
+
             //alert(bioStarEmpStr)
              $.ajax({
                     url: "@Url.Action("AbsenteesData_UserWise", "AccessBiostarTA")",
-               data: { 'startDate': startDate, 'endDate': endDate, 'DepartmentName': DepartmentName, 'bioStarEmpStr': selectedEmployees },
+               data: { 'startDate': startDate, 'endDate': endDate, 'DepartmentName': selectedDepartments, 'bioStarEmpStr': selectedEmployees },
                     type: "POST",
                     cache: false,
                     success: function (data) {
                         //alert(data);
                         $("#NewData").html(data);
-
                         //$("#hdnOrigComments").val($('#txtComments').val());
                         //$('#lblCommentsNotification').text(savingStatus);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         //$('#lblCommentsNotification').text("Error encountered while saving the comments.");
                         alert('Data provided was not valid');
-                    }
+               },
+               complete: function () {
+                 // Hide the loader when the request is complete (success or error)
+                 $('.loader').hide();
+                 $('.button-text').show();
+                 disableInputs(false);
+               }
              });
           });
         });
@@ -307,7 +396,7 @@
   }
 
   .selectpicker {
-    width: 200px;
+    width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -317,7 +406,7 @@
   }
 
   .datepicker {
-    width: 200px;
+    width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -325,8 +414,14 @@
     text-overflow: ellipsis;
     margin: 10px 5px;
   }
-
-  
+  .ui-datepicker {
+    width: 250px;
+  }
+  .department-drodown {
+    text-align: left;
+    padding-left: 15px;
+    width: 250px;
+  }
 
 </style>
 
