@@ -36,11 +36,6 @@
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
     <span class="anchor">Select Employees</span>
     <ul class="items">
-      <li>
-        <label for="selectAllEmployees">
-          <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
-        </label>
-      </li>
       @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
       {
         var username = employee.Text.Split('@')[0].Replace(".", " ");
@@ -236,7 +231,8 @@
             });
 
             if (selectedEmployees.length === 0) {
-              alert('Please select at least one employee.');
+              alert('Please select at least one department and one employee.');
+
               $('.loader').hide();
               $('.button-text').show();
               disableInputs(false);
