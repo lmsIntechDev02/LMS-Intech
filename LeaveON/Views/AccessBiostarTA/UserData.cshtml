@@ -115,6 +115,8 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
+    $('#datepickerStart').val('@ViewBag.StartDate');
+    $('#datepickerEnd').val('@ViewBag.EndDate');
     $(".dropdown-check-list .anchor").click(function (e) {
       var checkList = $(this).parent();
       checkList.toggleClass('visible');
