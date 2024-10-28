@@ -486,7 +486,13 @@ namespace LeaveON.Controllers
         // Process each attendance record
         foreach (var record in attendanceRecords)
         {
-          if(record.IsAbsent == true)
+          // Skip weekends
+          if (record.CreatedDate.HasValue &&
+              (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
+          {
+            continue;
+          }
+          if (record.IsAbsent == true)
           { 
           DateTime? timeInNullable = record.FirstPunchIn;
           DateTime? timeOutNullable = record.LastPunchOut;
