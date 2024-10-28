@@ -2442,6 +2442,8 @@
     <Content Include="Views\AttendanceMachine\AttendaceUserData.cshtml" />
     <Content Include="Uploads\holidays.csv" />
     <Content Include="Views\AccessBiostarTA\UserReportData.cshtml" />
+    <Content Include="Views\LeavesRequest\LeaveReport.cshtml" />
+    <Content Include="Views\LeavesRequest\_LeaveReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

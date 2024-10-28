@@ -27,7 +27,7 @@ namespace LeaveON.Controllers
 
     // GET: Leaves
     //public async Task<ActionResult> Index(string country)
-   
+
     public async Task<ActionResult> Index()
     {
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
@@ -43,6 +43,106 @@ namespace LeaveON.Controllers
       return View(await leaves.ToListAsync());
     }
 
+    public async Task<ActionResult> LeaveReport(string StartDate, string EndDate, List<string> UserIds)
+    {
+      try
+      {
+        //ViewBag.MonthSelectList = GetMonthSelectList();
+        DateTime startDate, endDate;
+
+        string userId = User.Identity.GetUserId();  
+
+        List<TimeData> LstAttendances = new List<TimeData>();
+
+        // Set default date if ReqMonthYear is empty
+        if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        {
+
+          startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+          endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+          // In case of empty parameters or first time
+          startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+          endDate = DateTime.Now;
+
+          ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
+
+        }
+
+        //StartDate and EndDate for display
+        ViewBag.StartDate = startDate.ToString("dd-MMM-yyyy");
+        ViewBag.EndDate = endDate.ToString("dd-MMM-yyyy");
+
+        // Role-based data population
+        if (User.IsInRole("Admin"))
+        {
+          var departments = db.AspNetUsers
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Select(u => u.DepartmentName)
+                 .Distinct()
+                 .Select(d => new SelectListItem { Value = d, Text = d })
+                 .ToList();
+          ViewBag.Departments = departments;
+          ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = UserIds;
+        }
+        //else if (User.IsInRole("Manager") || User.IsInRole("User"))
+        else if (User.IsInRole("Manager"))
+        {
+
+          var managerDepartment = db.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
+          ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
+
+          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
+          ViewBag.Employees = new SelectList(employeesUnderManager, "BioStarEmpNum", "UserName");
+          //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = UserIds;
+        }
+        else if (User.IsInRole("User"))
+        {
+          var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+          ViewBag.Departments = new SelectList(new List<string> { currentUser.DepartmentName });
+          ViewBag.Employees = new SelectList(new List<AspNetUser> { currentUser }, "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = new List<string> { currentUser.BioStarEmpNum.ToString() }; // Populate selected employee for User
+        }
+
+        if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        {
+          // Format the date range for querying
+          string formattedStartDate = startDate.ToString("dd-MM-yyyy");
+          string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+          var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+          //   LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
+        //  LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
+
+        }
+        //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
+        if (string.IsNullOrEmpty(StartDate) && string.IsNullOrEmpty(EndDate))
+        {
+          //in case of null param or first time
+          if (!(LstAttendances is null))
+          {
+            return View(LstAttendances.OrderBy(i => i.Date).ToList());
+
+          }
+          else
+          {
+            return View();
+          }
+        }
+        else
+        {
+          return PartialView("_LeaveReport", LstAttendances.OrderBy(i => i.Date).ToList());
+        }
+      }
+      catch (Exception ex)
+      {
+        throw (ex);
+      }
+
+    }
 
 
     // GET: Leaves/Create
