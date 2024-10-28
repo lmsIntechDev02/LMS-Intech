@@ -460,7 +460,72 @@ namespace LeaveON.Controllers
       return Task.FromResult(LstTimeData);
     }
 
-  
+
+    private Task<List<TimeData>> GetAbsenteesData(string formattedStartDate, string formattedEndDate, List<int> UserIds)
+    {
+      DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+      List<TimeData> LstTimeData = new List<TimeData>();
+      TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
+      TimeSpan totalTimeAllUsers = TimeSpan.Zero;
+
+      // Fetch attendance data for each user
+      foreach (int UserId in UserIds)
+      {
+        // Fetch attendance records for this user within the provided date range
+        var attendanceRecords = dbLeaveOn.AttendanceDatas
+            .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate <= endDate)
+            .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.CreatedDate) })
+            .Select(g => g.FirstOrDefault()) // Take only the first record for each day per user
+            .OrderBy(a => a.CreatedDate)
+            .ToList();
+
+        if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
+
+        // Process each attendance record
+        foreach (var record in attendanceRecords)
+        {
+          if(record.IsAbsent == true)
+          { 
+          DateTime? timeInNullable = record.FirstPunchIn;
+          DateTime? timeOutNullable = record.LastPunchOut;
+          DateTime timeIn = timeInNullable ?? DateTime.MinValue;
+          DateTime timeOut = timeOutNullable ?? (timeInNullable ?? DateTime.MinValue);
+          TimeSpan totalTime = timeIn != DateTime.MinValue && timeOut != DateTime.MinValue ? timeOut - timeIn : TimeSpan.Zero;
+          TimeSpan totalWorkingHours = record.TotalWorkHours.HasValue && record.TotalWorkHours > 0
+              ? TimeSpan.FromSeconds((double)record.TotalWorkHours)
+              : TimeSpan.Zero;
+          string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
+
+          totalWorkingHoursAllUsers += totalWorkingHours;
+          totalTimeAllUsers += totalTime;
+
+          // Map the data directly from AttendanceData and determine Status based on IsAbsent
+          LstTimeData.Add(new TimeData()
+          {
+            EmployeeName = record.UserName,
+            EmployeeNumber = record.BioStarEmpNum ?? 0,
+            Department = record.DepartmentName,
+            TimeZone = record.CountryName,
+            Policy = record.UserLeavePolicyID,
+            Date = record.CreatedDate ?? DateTime.MinValue,
+            Day = day,
+            TimeIn = timeIn,
+            TimeOut = timeOut,
+            TotalTime = totalTime,
+            WorkingHours = totalWorkingHours,
+            Status = "Absent",
+          });
+        }
+       }
+      }
+
+      ViewBag.TotalWorkingHours = totalWorkingHoursAllUsers.TotalHours.ToString("N2");
+      ViewBag.TotalHours = totalTimeAllUsers.TotalHours.ToString("N2");
+
+      return Task.FromResult(LstTimeData);
+    }
 
     private Task<List<TimeData>> ConnectToDBandReturnCountriesData(string startDate, string endDate, List<int> UserIds)
     {
@@ -1918,7 +1983,7 @@ namespace LeaveON.Controllers
       {
         // Fetch attendance records for this user within the provided date range
         var attendanceRecords = dbLeaveOn.AttendanceDatas
-        .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate < endDate)
+        .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate <= endDate)
         .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.CreatedDate) })
         .Select(g => g.FirstOrDefault()) // Take only the first record for each day per user
         .OrderBy(a => a.CreatedDate)
@@ -1942,6 +2007,17 @@ namespace LeaveON.Controllers
           totalWorkingHoursAllUsers += totalWorkingHours;
           totalTimeAllUsers += totalTime;
 
+          //Chek weekend
+          string status;
+          if(record.CreatedDate.HasValue && (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
+          {
+            status = "Weekend";
+          } 
+          else
+          {
+            status = record.IsAbsent == true ? "Absent" : null;
+          }
+
           // Map the data directly from AttendanceData
           LstTimeData.Add(new TimeData()
           {
@@ -1956,7 +2032,7 @@ namespace LeaveON.Controllers
             TimeOut = timeOut,
             TotalTime = totalTime,
             WorkingHours = totalWorkingHours,
-            Status = record.IsAbsent == true ? "Absent" : null,
+            Status = status,
    
           });
         }
@@ -2644,8 +2720,8 @@ namespace LeaveON.Controllers
 
 
           List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-        depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
-
+       // depData = await ConnectToDBandReturnAbsentees(startDate, endDate, userIds);
+        depData = await GetAbsenteesData(startDate, endDate, userIds);
       }
       //return View(await db.Attendance.ToListAsync());
       if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
