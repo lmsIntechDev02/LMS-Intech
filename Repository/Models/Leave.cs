@@ -42,5 +42,7 @@ namespace Repository.Models
     
         public virtual AspNetUser AspNetUser { get; set; }
         public virtual LeaveType LeaveType { get; set; }
+        public string LeaveTypeName { get; set; }
+
     }
 }

@@ -74,22 +74,6 @@
         }
       </ul>
     </div> }
-  else if (User.IsInRole("User"))
-  {
-    // Department Dropdown for User (Single department, disabled)
-    @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-               htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
-    @Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-               htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}
-
-
-  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
-
-  @*<button id="load">Go</button>*@
-
-
-  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
-
 
 
   @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
@@ -105,7 +89,7 @@
     <span class="loader" style="display: none;">Loading...</span>
   </button>
 
-  @{ Html.RenderPartial("_LeaveReport", Model); }
+  @{Html.RenderPartial("_LeaveReport", Model); }
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -186,7 +170,7 @@
       }
 
               $.ajax({
-            url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
+            url: '@Url.Action("GetUsersByDepartments", "LeavesResponse")',
             type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ departmentNames: selectedDepartments }),
@@ -297,6 +281,8 @@
                 return;
               }
 
+              console.log("selectedEmployees", selectedEmployees)
+
               requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
             } else if (userRole === "User") {
               var employeeId = $('#selectedEmployees').val();
@@ -309,7 +295,7 @@
 
            // JSON.stringify(selectedEmployees)
               $.ajax({
-                url: "@Url.Action("UserData", "AccessBiostarTA")",
+                url: "@Url.Action("LeaveReport", "LeavesResponse")",
                 data: requestData,
                   type: "POST",
                   success: function (data) {
