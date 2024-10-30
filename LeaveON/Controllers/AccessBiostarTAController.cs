@@ -2544,58 +2544,45 @@ namespace LeaveON.Controllers
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> DepartmentData(string ReqMonthYear, string DepartmentName)
     {
-
-
-
-      //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
-      //                                 System.Globalization.CultureInfo.InvariantCulture);
       ViewBag.MonthSelectList = GetMonthSelectList();
       DateTime reqDate;
-      //int intDepartmentId;
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
-
-        //intDepartmentId = int.Parse(DepartmentId);
-        //user.DepartmentId;//User.Identity.GetUserId();//
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
               System.Globalization.CultureInfo.CurrentCulture);
-        //reqDate = reqDate.AddYears(-2);
       }
       else
       {
-        //in case of empty parameters or First Time
-
         reqDate = DateTime.Now;
         string userId = User.Identity.GetUserId();
-        DepartmentName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).DepartmentName;
-        List<string> SelectedDeps = new List<string>();
-        SelectedDeps.Add(DepartmentName);
-        ViewBag.SelectedDepartments = SelectedDeps;
-        //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
-        ViewBag.Departments = new SelectList(dbLeaveOn.DepartmentNames, "Name", "Name");
+        var departmentClaims = dbLeaveOn.AspNetUserClaims
+            .Where(u => u.UserId == userId)
+           .Select(u => new { Value = u.ClaimValue, Text = u.ClaimValue })
+            .Distinct() 
+            .ToList();
+
+        // Check if departments are available; if not, add a placeholder
+            if (!departmentClaims.Any())
+         {
+          departmentClaims.Add(new { Value = "", Text = "No department exists" });
+         }
+   
+        // Set the departments in the ViewBag for use in the dropdown
+       ViewBag.Departments = new SelectList(departmentClaims, "Value", "Text");
+       ViewBag.SelectedDepartments = departmentClaims;
       }
       List<TimeData> depData = null;
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
-        var identity = (ClaimsIdentity)User.Identity;
-        IEnumerable<Claim> claims = identity.Claims;
-        Claim claim = claims.Where(x => x.Value == DepartmentName).FirstOrDefault();
-
-        if (claim is null) return null;
-
         //string userId = User.Identity.GetUserId();
-
         //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
 
         //IQueryable<Attendance> allUsersData = null;
         List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName).ToList<AspNetUser>();
 
         List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-        //foreach (AspNetUser user in users)
-        //{
         string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
         depData = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, userIds);
-        //}
       }
       //return View(await db.Attendance.ToListAsync());
       if (string.IsNullOrEmpty(ReqMonthYear))
@@ -2603,15 +2590,12 @@ namespace LeaveON.Controllers
         //in case of null param or first time
         if (!(depData is null))
         {
-          //return View(await depData.OrderBy(i => i.Date).ToList());
-
           return View(await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
         }
         else
         {
           return View();
         }
-
       }
       else
       {
