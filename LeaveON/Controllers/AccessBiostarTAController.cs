@@ -2546,14 +2546,21 @@ namespace LeaveON.Controllers
     {
       ViewBag.MonthSelectList = GetMonthSelectList();
       DateTime reqDate;
+      DateTime endDate;
+
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
+        ReqMonthYear = "06-2023"; // hard coded value for testing
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
               System.Globalization.CultureInfo.CurrentCulture);
+        // Get the last day of the month
+       endDate = reqDate.AddMonths(1).AddDays(-1);
       }
       else
       {
         reqDate = DateTime.Now;
+        endDate = new DateTime(reqDate.Year, reqDate.Month, DateTime.DaysInMonth(reqDate.Year, reqDate.Month)); // Set endDate as the last day of the current month
+
         string userId = User.Identity.GetUserId();
         var departmentClaims = dbLeaveOn.AspNetUserClaims
             .Where(u => u.UserId == userId)
@@ -2581,8 +2588,13 @@ namespace LeaveON.Controllers
         List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.DepartmentName == DepartmentName).ToList<AspNetUser>();
 
         List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-        string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
-        depData = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, userIds);
+        string formattedStartDate = reqDate.ToString("dd-MM-yyyy");
+        string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+
+        //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
+        //depData = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, userIds);
+        depData = await GetAttendanceSummary(formattedStartDate, formattedEndDate, userIds);
+
       }
       //return View(await db.Attendance.ToListAsync());
       if (string.IsNullOrEmpty(ReqMonthYear))

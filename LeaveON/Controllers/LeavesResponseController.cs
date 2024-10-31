@@ -578,9 +578,10 @@ namespace LeaveON.Controllers
       {
         // Fetch leaves records for this user within the provided date range
         var leaveRecords = db.Leaves
-        .Where(a => a.UserId == UserId && a.StartDate >= startDate && a.EndDate <= endDate)
+        .Where(a => a.UserId == UserId && a.DateCreated >= startDate && a.DateCreated <= endDate)
         .OrderBy(a => a.DateCreated)
         .ToList();
+
 
         if (!leaveRecords.Any()) continue; // If no records found, skip to the next user
 
@@ -608,7 +609,6 @@ namespace LeaveON.Controllers
             IsShortLeave = record.IsShortLeave,
             LineManager1Id = record.LineManager1Id != null ? db.AspNetUsers.Find(record.LineManager1Id).UserName : "N/A",
             LineManager2Id = record.LineManager2Id != null ? db.AspNetUsers.Find(record.LineManager2Id).UserName : "N/A",
-
           });
         }
       }
