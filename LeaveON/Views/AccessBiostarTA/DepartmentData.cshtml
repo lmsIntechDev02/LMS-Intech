@@ -8,15 +8,15 @@
 <div>
   @*Department Dropdown*@
   @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
- 
+
   @*Month Dropdown*@
   @Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
- 
+
   <button id="load" style="position: relative;">
     <span class="button-text">Go</span>
     <span class="loader" style="display: none;">Loading...</span>
   </button>
-
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
   @{Html.RenderPartial("_UserData", Model); }
 </div>
 <script type="text/javascript">
@@ -36,12 +36,14 @@
         
             $('.loader').show();
             $('.button-text').hide();
+            $("#wait").css("display", "block");
             disableInputs(true);
 
             if (DepartmentName === "") {
               alert("Department does not exist");
               $('.loader').hide();
               $('.button-text').show();
+              $("#wait").css("display", "none");
               disableInputs(false);
               return;
             }
@@ -60,8 +62,9 @@
                complete: function () {
                      // When request complete 
                      $('.loader').hide();
-                     $('.button-text').show();
-                     disableInputs(false);
+                 $('.button-text').show();
+                 $("#wait").css("display", "none");
+                 disableInputs(false);
                }
              });
           });

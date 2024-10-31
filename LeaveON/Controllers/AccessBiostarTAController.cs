@@ -1972,10 +1972,6 @@ namespace LeaveON.Controllers
 
     private Task<List<TimeData>> GetAttendanceSummary(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
-      // Parse the requested month and year
-      //List<string> dateAttr = ReqMonthYear.Split('-').ToList();
-     // DateTime startDate = new DateTime(int.Parse(dateAttr[1]), int.Parse(dateAttr[0]), 1);
-     // DateTime endDate = startDate.AddMonths(1); // First day of next month
       DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
       DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
 
@@ -2624,6 +2620,7 @@ namespace LeaveON.Controllers
       //                                 System.Globalization.CultureInfo.InvariantCulture);
       ViewBag.MonthSelectList = GetMonthSelectList();
       DateTime reqDate;
+      DateTime StartDate, EndDate;
       List<TimeData> depData = null;
       //int intDepartmentId;
       if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
@@ -2632,6 +2629,9 @@ namespace LeaveON.Controllers
         //in case of empty parameters or First Time
 
         reqDate = DateTime.Now;
+        // In case of empty parameters or first time
+        StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        EndDate = DateTime.Now;
         string userId = User.Identity.GetUserId();
         string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).CountryName.Id.ToString();
 
@@ -2640,6 +2640,8 @@ namespace LeaveON.Controllers
         ViewBag.SelectedDepartments = SelectedDeps;
         //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
         ViewBag.Departments = new SelectList(dbLeaveOn.CountryNames, "Id", "Name");
+        ViewBag.startDate = StartDate.ToString("dd-MMM-yyyy");
+        ViewBag.endDate = EndDate.ToString("dd-MMM-yyyy");
 
       }
       else

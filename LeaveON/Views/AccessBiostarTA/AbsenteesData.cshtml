@@ -29,56 +29,56 @@
           </li>
         }
       </ul>
-    </div> 
-    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-      <span class="anchor">Select Employees</span>
-      <ul class="items">
-      </ul>
-    </div> }
-  else if (User.IsInRole("Manager"))
-  {
-    // Department Dropdown for Manager (Single department, disabled)
-    @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-                         htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
-    // Employee List with Checkboxes for Manager (multi-select)
-    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-      <span class="anchor">Select Employees</span>
-      <ul class="items">
-        <li>
-          <label for="selectAllEmployees">
-            <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
-          </label>
-        </li>
-        @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
-        {
-          var username = employee.Text.Split('@')[0];
-          username = username.Replace(".", " ");
-          <li>
-            <label for="emp_@employee.Value">
-              <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked /> @username
-            </label>
-          </li>
-        }
-      </ul>
-    </div> }
+    </div>
+            <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+              <span class="anchor">Select Employees</span>
+              <ul class="items">
+              </ul>
+            </div> }
+          else if (User.IsInRole("Manager"))
+          {
+            // Department Dropdown for Manager (Single department, disabled)
+            @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+                                 htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
+            // Employee List with Checkboxes for Manager (multi-select)
+            <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+              <span class="anchor">Select Employees</span>
+              <ul class="items">
+                <li>
+                  <label for="selectAllEmployees">
+                    <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
+                  </label>
+                </li>
+                @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+                {
+                  var username = employee.Text.Split('@')[0];
+                  username = username.Replace(".", " ");
+                  <li>
+                    <label for="emp_@employee.Value">
+                      <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked /> @username
+                    </label>
+                  </li>
+                }
+              </ul>
+            </div>}
 
 
 
-    @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
 
 
-    @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+  @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
 
-    @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+  @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
 
 
-    @*<button id="load">go</button>*@
-    <button id="load" style="position: relative;">
-      <span class="button-text">Go</span>
-      <span class="loader" style="display: none;">Loading...</span>
-    </button>
-
-    @{Html.RenderPartial("_AbsenteesData_UserWise", Model); }
+  @*<button id="load">go</button>*@
+  <button id="load" style="position: relative;">
+    <span class="button-text">Go</span>
+    <span class="loader" style="display: none;">Loading...</span>
+  </button>
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
+  @{Html.RenderPartial("_AbsenteesData_UserWise", Model); }
 </div>
 
 
@@ -218,6 +218,7 @@
             // Show the loader and hide the button text
             $('.loader').show();
             $('.button-text').hide();
+            $("#wait").css("display", "block");
             disableInputs(true);
             //var DepartmentName = $('#listDepartments').val();
             var startDate = $('#datepickerStart').val();
@@ -245,9 +246,9 @@
 
             if (selectedEmployees.length === 0) {
               alert('Please select at least one department and one employee.');
-
               $('.loader').hide();
               $('.button-text').show();
+              $("#wait").css("display", "none");
               disableInputs(false);
               return;
             }
@@ -255,6 +256,7 @@
               alert('Please select start date.');
               $('.loader').hide();
               $('.button-text').show();
+              $("#wait").css("display", "none");
               disableInputs(false);
               return;
             }
@@ -263,6 +265,7 @@
               alert('Please select end date.');
               $('.loader').hide();
               $('.button-text').show();
+              $("#wait").css("display", "none");
               disableInputs(false);
               return;
             }
@@ -286,6 +289,7 @@
                  // Hide the loader when the request is complete (success or error)
                  $('.loader').hide();
                  $('.button-text').show();
+                 $("#wait").css("display", "none");
                  disableInputs(false);
                }
              });

@@ -28,7 +28,7 @@
     <span class="button-text">Go</span>
     <span class="loader" style="display: none;">Loading...</span>
   </button>
-
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
   @{ Html.RenderPartial("_UserData", Model); }
 </div>
 
@@ -79,8 +79,10 @@
       // Show the loader and hide the button text
       $('.loader').show();
       $('.button-text').hide();
+      $("#wait").css("display", "block");
       disableInputs(true);
 
+          var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
           var startDate = $('#datepickerStart').val();
           var endDate = $('#datepickerEnd').val();
 
@@ -89,6 +91,7 @@
             alert('Please select a start date.');
             $('.loader').hide();
             $('.button-text').show();
+            $("#wait").css("display", "none");
             disableInputs(false);
             return;
           }
@@ -96,19 +99,14 @@
             alert('Please select an end date.');
             $('.loader').hide();
             $('.button-text').show();
+            $("#wait").css("display", "none");
             disableInputs(false);
             return;
           }
 
-          var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
-          var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
 
-          if (!startDate || !endDate) {
-            alert('Please select Date.');
-            $('.loader').hide();
-            $('.button-text').show();
-            return;
-          }
+      var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
+
 
             $.ajax({
                 url: "@Url.Action("UserData", "AccessBiostarTA")",
@@ -124,6 +122,7 @@
                 // Hide the loader when the request is complete (success or error)
                 $('.loader').hide();
                 $('.button-text').show();
+                  $("#wait").css("display", "none");
                 disableInputs(false);
               }
             });

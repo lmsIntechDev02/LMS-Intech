@@ -73,7 +73,7 @@
           </li>
         }
       </ul>
-    </div> }
+    </div>}
 
 
   @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
@@ -88,7 +88,7 @@
     <span class="button-text">Go</span>
     <span class="loader" style="display: none;">Loading...</span>
   </button>
-
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
   @{Html.RenderPartial("_LeaveReport", Model); }
 </div>
 
@@ -229,6 +229,7 @@
       // Show the loader and hide the button text
       $('.loader').show();
       $('.button-text').hide();
+      $("#wait").css("display", "block");
       disableInputs(true);
 
             var reqMonthYear = $('#selectMonth').val();
@@ -255,12 +256,14 @@
                 alert('Please select at least one department and one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
+                $("#wait").css("display", "none");
                 disableInputs(false);
                   return;
               } else {
                 alert('Please select at least one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
+                $("#wait").css("display", "none");
                 disableInputs(false);
                   return;
                   }
@@ -269,6 +272,7 @@
                 alert('Please select start date.');
                 $('.loader').hide();
                 $('.button-text').show();
+                $("#wait").css("display", "none");
                 disableInputs(false);
                 return;
               }
@@ -277,6 +281,7 @@
                 alert('Please select end date.');
                 $('.loader').hide();
                 $('.button-text').show();
+                $("#wait").css("display", "none");
                 disableInputs(false);
                 return;
               }
@@ -310,6 +315,7 @@
                   // Hide the loader when the request is complete (success or error)
                   $('.loader').hide();
                   $('.button-text').show();
+                  $("#wait").css("display", "none");
                   disableInputs(false);
                 }
               });
