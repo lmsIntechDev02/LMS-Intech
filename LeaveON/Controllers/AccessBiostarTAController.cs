@@ -2615,78 +2615,87 @@ namespace LeaveON.Controllers
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> CountriesData(string startDate, string endDate, string CountryName)
     {
-
-      //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
-      //                                 System.Globalization.CultureInfo.InvariantCulture);
-      ViewBag.MonthSelectList = GetMonthSelectList();
-      DateTime reqDate;
-      DateTime StartDate, EndDate;
-      List<TimeData> depData = null;
-      //int intDepartmentId;
-      if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
+      try
       {
 
-        //in case of empty parameters or First Time
-
-        reqDate = DateTime.Now;
-        // In case of empty parameters or first time
-        StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-        EndDate = DateTime.Now;
-        string userId = User.Identity.GetUserId();
-        string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).CountryName.Id.ToString();
-
-        List<string> SelectedDeps = new List<string>();
-        SelectedDeps.Add(CountryId);//CountryName);
-        ViewBag.SelectedDepartments = SelectedDeps;
-        //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
-        ViewBag.Departments = new SelectList(dbLeaveOn.CountryNames, "Id", "Name");
-        ViewBag.startDate = StartDate.ToString("dd-MMM-yyyy");
-        ViewBag.endDate = EndDate.ToString("dd-MMM-yyyy");
-
-      }
-      else
-      {
-        //var identity = (ClaimsIdentity)User.Identity;
-        //IEnumerable<Claim> claims = identity.Claims;
-        //Claim claim = claims.Where(x => x.Value == CountryName).FirstOrDefault();
-        //if (claim is null) return null;
-
-        //string userId = User.Identity.GetUserId();
-
-        //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
-
-        //IQueryable<Attendance> allUsersData = null;
-        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.CntryName == CountryName).ToList<AspNetUser>();
-
-        List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-
-        //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
-        //string ReqMonthYearFormated = startDate + "," + endDate; 
-        depData = await ConnectToDBandReturnCountriesData(startDate, endDate, userIds);
-      }
-
-
-      //return View(await db.Attendance.ToListAsync());
-      if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
-      {
-        //in case of null param or first time
-        if (!(depData is null))
+        //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
+        //                                 System.Globalization.CultureInfo.InvariantCulture);
+        ViewBag.MonthSelectList = GetMonthSelectList();
+        DateTime reqDate;
+        DateTime StartDate, EndDate;
+        List<TimeData> depData = null;
+        //int intDepartmentId;
+        if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
         {
-          //return View(await depData.OrderBy(i => i.Date).ToList());
 
-          return View(await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+          //in case of empty parameters or First Time
+
+          reqDate = DateTime.Now;
+          // In case of empty parameters or first time
+          StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+          EndDate = DateTime.Now;
+          string userId = User.Identity.GetUserId();
+          string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).CountryName.Id.ToString();
+
+          List<string> SelectedDeps = new List<string>();
+          SelectedDeps.Add(CountryId);//CountryName);
+          ViewBag.SelectedDepartments = SelectedDeps;
+          //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
+          ViewBag.Departments = new SelectList(dbLeaveOn.CountryNames, "Id", "Name");
+          ViewBag.startDate = StartDate.ToString("dd-MMM-yyyy");
+          ViewBag.endDate = EndDate.ToString("dd-MMM-yyyy");
+
         }
         else
         {
-          return View();
+          //var identity = (ClaimsIdentity)User.Identity;
+          //IEnumerable<Claim> claims = identity.Claims;
+          //Claim claim = claims.Where(x => x.Value == CountryName).FirstOrDefault();
+          //if (claim is null) return null;
+
+          //string userId = User.Identity.GetUserId();
+
+          //int bioStarEmpNum = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).BioStarEmpNum.Value;
+
+          //IQueryable<Attendance> allUsersData = null;
+          List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.CntryName == CountryName).ToList<AspNetUser>();
+
+          List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+
+          //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
+          //string ReqMonthYearFormated = startDate + "," + endDate; 
+         // depData = await ConnectToDBandReturnCountriesData(startDate, endDate, userIds);
+          string formattedStartDate = DateTime.ParseExact(startDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture).ToString("dd-MM-yyyy");
+          string formattedEndDate = DateTime.ParseExact(endDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture).ToString("dd-MM-yyyy");
+          depData = await GetCountriesData(formattedStartDate, formattedEndDate, userIds);
         }
 
-      }
-      else
-      {
-        return PartialView("_CountriesData", await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
-      }
 
+        //return View(await db.Attendance.ToListAsync());
+        if (string.IsNullOrEmpty(startDate) && string.IsNullOrEmpty(endDate))
+        {
+          //in case of null param or first time
+          if (!(depData is null))
+          {
+            //return View(await depData.OrderBy(i => i.Date).ToList());
+
+            return View(await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+          }
+          else
+          {
+            return View();
+          }
+
+        }
+        else
+        {
+          return PartialView("_CountriesData", await Task.FromResult(depData.OrderBy(i => i.Date).ToList()));
+        }
+      }
+      catch (Exception ex)
+      {
+        throw ex;
+      }
     }
     //[Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> AbsenteesData_UserWise(string startDate, string endDate, List<string> departmentName, List<string> bioStarEmpStr)
@@ -2750,6 +2759,13 @@ namespace LeaveON.Controllers
       }
       catch (Exception ex)
       {
+        Console.WriteLine("Error: " + ex.ToString());
+        // Check for inner exception
+        if (ex.InnerException != null)
+        {
+          Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+        }
+
         throw (ex);
       }
 
@@ -3059,5 +3075,95 @@ namespace LeaveON.Controllers
 
       return View("_UserDataToday", await Task.FromResult(LstAttendances));
     }
+
+
+    private Task<List<TimeData>> GetCountriesData(string formattedStartDate, string formattedEndDate, List<int> UserIds)
+    {
+      DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+
+      List<TimeData> LstTimeData = new List<TimeData>();
+      TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
+      TimeSpan totalTimeAllUsers = TimeSpan.Zero;
+
+      // Fetch attendance data for each user
+      foreach (int UserId in UserIds)
+      {
+        // Fetch attendance records for this user within the provided date range
+        var attendanceRecords = dbLeaveOn.AttendanceDatas
+        .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate <= endDate)
+        .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.CreatedDate) })
+        .Select(g => g.FirstOrDefault()) // Take only the first record for each day per user
+        .OrderBy(a => a.CreatedDate)
+        .ToList();
+
+        if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
+
+        // Process each attendance record
+        foreach (var record in attendanceRecords)
+        {
+          DateTime? timeInNullable = record.FirstPunchIn;
+          DateTime? timeOutNullable = record.LastPunchOut;
+          DateTime timeIn = timeInNullable ?? DateTime.MinValue;
+          DateTime timeOut = timeOutNullable ?? (timeInNullable ?? DateTime.MinValue);
+          TimeSpan totalTime = timeIn != DateTime.MinValue && timeOut != DateTime.MinValue ? timeOut - timeIn : TimeSpan.Zero;
+          TimeSpan totalWorkingHours = record.TotalWorkHours.HasValue && record.TotalWorkHours > 0
+             ? TimeSpan.FromSeconds((double)record.TotalWorkHours)
+             : TimeSpan.Zero;
+          string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
+
+          totalWorkingHoursAllUsers += totalWorkingHours;
+          totalTimeAllUsers += totalTime;
+
+           //Chek weekend
+          string status;
+          if (record.CreatedDate.HasValue && (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
+          {
+            status = "Weekend";
+          }
+          else if (record.IsAbsent == true)
+          {
+            status = "Absent";
+          } 
+          //else  if (record.LeaveTypeID.HasValue && record.BreakHours == 0)
+          //{
+          //  var leaveName = dbLeaveOn.LeaveTypes
+          //      .Where(a => a.Id == record.LeaveTypeID.Value)
+          //      .Select(a => a.Name)
+          //      .FirstOrDefault();
+          //  status = leaveName;
+          //}
+          else
+          {
+            status = null;
+          }
+
+          // Map the data directly from AttendanceData
+          LstTimeData.Add(new TimeData()
+          {
+            EmployeeName = record.UserName,
+            EmployeeNumber = record.BioStarEmpNum ?? 0,
+            Department = record.DepartmentName,
+            TimeZone = record.CountryName,
+            Policy = record.UserLeavePolicyID,
+            Date = record.CreatedDate ?? DateTime.MinValue,
+            Day = day,
+            TimeIn = timeIn,
+            TimeOut = timeOut,
+            TotalTime = totalTime,
+            WorkingHours = totalWorkingHours,
+            Status = status,
+
+          });
+        }
+      }
+
+      ViewBag.TotalWorkingHours = totalWorkingHoursAllUsers.TotalHours.ToString("N2");
+      ViewBag.TotalHours = totalTimeAllUsers.TotalHours.ToString("N2");
+
+      return Task.FromResult(LstTimeData);
+    }
+
   }
 }

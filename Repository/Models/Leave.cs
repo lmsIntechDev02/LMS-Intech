@@ -17,6 +17,7 @@ namespace Repository.Models
         public decimal Id { get; set; }
         public string UserId { get; set; }
         public int LeaveTypeId { get; set; }
+        public string LeaveTypeName { get; set; }
         public string Reason { get; set; }
         public System.DateTime StartDate { get; set; }
         public System.DateTime EndDate { get; set; }
@@ -42,7 +43,5 @@ namespace Repository.Models
     
         public virtual AspNetUser AspNetUser { get; set; }
         public virtual LeaveType LeaveType { get; set; }
-        public string LeaveTypeName { get; set; }
-
     }
 }
