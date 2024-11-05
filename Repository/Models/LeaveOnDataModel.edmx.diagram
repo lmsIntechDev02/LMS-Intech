@@ -34,7 +34,6 @@
         <AssociationConnector Association="LeaveONModels.AspNetUserRoles" />
         <EntityTypeShape EntityType="LeaveONModels.C__MigrationHistory" Width="1.5" PointX="5.75" PointY="3.75" />
         <EntityTypeShape EntityType="LeaveONModels.sysdiagram" Width="1.5" PointX="5.75" PointY="6.75" />
-        <EntityTypeShape EntityType="LeaveONModels.Manager" Width="1.5" PointX="5.375" PointY="0.75" />
         <EntityTypeShape EntityType="LeaveONModels.AttendanceData" Width="1.5" PointX="8.375" PointY="0.75" IsExpanded="true" />
         <AssociationConnector Association="LeaveONModels.FK_AttendanceData_UserID" />
         <EntityTypeShape EntityType="LeaveONModels.BreakHour" Width="1.5" PointX="7.5" PointY="28.375" IsExpanded="true" />

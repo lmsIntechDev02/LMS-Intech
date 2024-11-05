@@ -16,7 +16,7 @@ namespace Repository.Models
     {
         public int BreakHoursID { get; set; }
         public string UserId { get; set; }
-        public int BioStarEmpNum { get; set; }
+        public Nullable<int> BioStarEmpNum { get; set; }
         public System.DateTime Date { get; set; }
         public System.DateTime PunchIn { get; set; }
         public System.DateTime PunchOut { get; set; }

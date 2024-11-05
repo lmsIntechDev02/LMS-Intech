@@ -125,12 +125,13 @@
           <Property Name="ManagerEmail" Type="nvarchar(max)" />
           <Property Name="CountryName" Type="nvarchar(max)" />
           <Property Name="Manager2Email" Type="nvarchar(max)" />
-          <Property Name="ManagerID" Type="varchar" MaxLength="255" />
-          <Property Name="Manager2ID" Type="varchar" MaxLength="255" />
+          <Property Name="ManagerId" Type="varchar" MaxLength="255" />
+          <Property Name="Manager2Id" Type="varchar" MaxLength="255" />
           <Property Name="UserID" Type="nvarchar" MaxLength="128" />
           <Property Name="DepartmentID" Type="varchar" MaxLength="255" />
           <Property Name="DEVID" Type="varchar" MaxLength="255" />
-          <Property Name="devnm" Type="varchar" MaxLength="255" />
+          <Property Name="Devnm" Type="varchar" MaxLength="255" />
+          <Property Name="TimeZone" Type="nvarchar(max)" />
         </EntityType>
         <EntityType Name="BreakHours">
           <Key>
@@ -138,7 +139,7 @@
           </Key>
           <Property Name="BreakHoursID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="UserId" Type="nvarchar" MaxLength="128" />
-          <Property Name="BioStarEmpNum" Type="int" Nullable="false" />
+          <Property Name="BioStarEmpNum" Type="int" />
           <Property Name="Date" Type="date" Nullable="false" />
           <Property Name="PunchIn" Type="datetime" Nullable="false" />
           <Property Name="PunchOut" Type="datetime" Nullable="false" />
@@ -208,15 +209,6 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="256" />
         </EntityType>
-        <EntityType Name="Managers">
-          <Key>
-            <PropertyRef Name="UserID" />
-          </Key>
-          <Property Name="UserID" Type="nvarchar" MaxLength="128" Nullable="false" />
-          <Property Name="BioStarEmpNum" Type="int" />
-          <Property Name="Email" Type="nvarchar" MaxLength="256" />
-          <Property Name="UserName" Type="nvarchar" MaxLength="128" />
-        </EntityType>
         <EntityType Name="sysdiagrams">
           <Key>
             <PropertyRef Name="diagram_id" />
@@ -269,19 +261,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_AttendanceData_UserID">
-          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
-          <End Role="AttendanceData" Type="Self.AttendanceData" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUsers">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="AttendanceData">
-              <PropertyRef Name="UserID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_BreakHours_UserId">
+        <Association Name="FK_BreakHours_User">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
           <End Role="BreakHours" Type="Self.BreakHours" Multiplicity="*" />
           <ReferentialConstraint>
@@ -473,7 +453,6 @@
           <EntitySet Name="Leave" EntityType="Self.Leave" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveBalance" EntityType="Self.LeaveBalance" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveType" EntityType="Self.LeaveType" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="Managers" EntityType="Self.Managers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicy" EntityType="Self.UserLeavePolicy" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicyDetail" EntityType="Self.UserLeavePolicyDetail" Schema="dbo" store:Type="Tables" />
@@ -481,11 +460,7 @@
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
             <End Role="AnnualOffDays" EntitySet="AnnualOffDays" />
           </AssociationSet>
-          <AssociationSet Name="FK_AttendanceData_UserID" Association="Self.FK_AttendanceData_UserID">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="AttendanceData" EntitySet="AttendanceData" />
-          </AssociationSet>
-          <AssociationSet Name="FK_BreakHours_UserId" Association="Self.FK_BreakHours_UserId">
+          <AssociationSet Name="FK_BreakHours_User" Association="Self.FK_BreakHours_User">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="BreakHours" EntitySet="BreakHours" />
           </AssociationSet>
@@ -614,7 +589,6 @@
           </AssociationSet>
           <EntitySet Name="C__MigrationHistory" EntityType="LeaveONModels.C__MigrationHistory" />
           <EntitySet Name="sysdiagrams" EntityType="LeaveONModels.sysdiagram" />
-          <EntitySet Name="Managers" EntityType="LeaveONModels.Manager" />
           <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
           <AssociationSet Name="FK_AttendanceData_UserID" Association="LeaveONModels.FK_AttendanceData_UserID">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
@@ -1026,15 +1000,6 @@
           <Property Name="version" Type="Int32" />
           <Property Name="definition" Type="Binary" MaxLength="Max" FixedLength="false" />
         </EntityType>
-        <EntityType Name="Manager">
-          <Key>
-            <PropertyRef Name="UserID" />
-          </Key>
-          <Property Name="UserID" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="BioStarEmpNum" Type="Int32" />
-          <Property Name="Email" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="UserName" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-        </EntityType>
         <EntityType Name="AttendanceData">
           <Key>
             <PropertyRef Name="id" />
@@ -1058,13 +1023,14 @@
           <Property Name="CountryName" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="BioStarEmpNum" Type="Int32" />
-          <Property Name="ManagerID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
-          <Property Name="Manager2ID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="UserID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="DepartmentID" Type="String" MaxLength="255" Unicode="false" FixedLength="false" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AttendanceData" ToRole="AspNetUser" />
           <Property Name="DEVID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
-          <Property Name="devnm" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="ManagerId" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Manager2Id" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Devnm" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="TimeZone" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <Association Name="FK_AttendanceData_UserID">
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
@@ -1084,10 +1050,10 @@
           </Key>
           <Property Name="BreakHoursID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="BioStarEmpNum" Type="Int32" Nullable="false" />
-          <Property Name="Date" Type="DateTime" Nullable="false" Precision="0" />
-          <Property Name="PunchIn" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="PunchOut" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="BioStarEmpNum" Type="Int32" />
+          <Property Name="Date" Type="DateTime" Precision="0" Nullable="false" />
+          <Property Name="PunchIn" Type="DateTime" Precision="3" Nullable="false" />
+          <Property Name="PunchOut" Type="DateTime" Precision="3" Nullable="false" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_BreakHours_UserId" FromRole="BreakHour" ToRole="AspNetUser" />
         </EntityType>
         <Association Name="FK_BreakHours_UserId">
@@ -1320,25 +1286,16 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Managers">
-            <EntityTypeMapping TypeName="LeaveONModels.Manager">
-              <MappingFragment StoreEntitySet="Managers">
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-                <ScalarProperty Name="Email" ColumnName="Email" />
-                <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
-                <ScalarProperty Name="UserID" ColumnName="UserID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="AttendanceDatas">
             <EntityTypeMapping TypeName="LeaveONModels.AttendanceData">
               <MappingFragment StoreEntitySet="AttendanceData">
-                <ScalarProperty Name="devnm" ColumnName="devnm" />
+                <ScalarProperty Name="TimeZone" ColumnName="TimeZone" />
+                <ScalarProperty Name="Devnm" ColumnName="Devnm" />
+                <ScalarProperty Name="Manager2Id" ColumnName="Manager2Id" />
+                <ScalarProperty Name="ManagerId" ColumnName="ManagerId" />
                 <ScalarProperty Name="DEVID" ColumnName="DEVID" />
                 <ScalarProperty Name="DepartmentID" ColumnName="DepartmentID" />
                 <ScalarProperty Name="UserID" ColumnName="UserID" />
-                <ScalarProperty Name="Manager2ID" ColumnName="Manager2ID" />
-                <ScalarProperty Name="ManagerID" ColumnName="ManagerID" />
                 <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
                 <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
                 <ScalarProperty Name="CountryName" ColumnName="CountryName" />

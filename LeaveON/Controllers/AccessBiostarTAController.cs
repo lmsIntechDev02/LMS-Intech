@@ -2181,6 +2181,7 @@ namespace LeaveON.Controllers
 
     public async Task<ActionResult> GetOffHours(string reqDate, string UserId)
     {
+      try { 
       // Parse the date from request
       DateTime from_Date = DateTime.ParseExact(reqDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
       DateTime to_Date = from_Date.AddDays(1).Date;
@@ -2188,21 +2189,25 @@ namespace LeaveON.Controllers
       // Retrieve user data from BreakHours table using Entity Framework
       int intUserId = int.Parse(UserId);
 
-      // Fetch BreakHours data for the specific UserId and Date range
-      var breakHoursData = await dbLeaveOn.BreakHours
-            .Where(bh => bh.BioStarEmpNum == intUserId
-                && bh.PunchIn.Year == from_Date.Year && bh.PunchIn.Month == from_Date.Month && bh.PunchIn.Day == from_Date.Day
-                && bh.PunchOut.Year == from_Date.Year && bh.PunchOut.Month == from_Date.Month && bh.PunchOut.Day == from_Date.Day)
-            .OrderBy(bh => bh.PunchIn)
-            .ToListAsync();
+        // Fetch BreakHours data for the specific UserId and Date range
+        var breakHoursData = await dbLeaveOn.BreakHours
+              .AsNoTracking()
+              .Where(bh => bh.BioStarEmpNum == intUserId
+                  && bh.PunchIn.Year == from_Date.Year && bh.PunchIn.Month == from_Date.Month && bh.PunchIn.Day == from_Date.Day
+                  && bh.PunchOut.Year == from_Date.Year && bh.PunchOut.Month == from_Date.Month && bh.PunchOut.Day == from_Date.Day)
+              .OrderBy(bh => bh.PunchIn)
+              .ToListAsync();
+    
 
-      //  var breakHoursData = await dbLeaveOn.BreakHours
-      //.Where(bh => bh.BioStarEmpNum == intUserId
-      //             && DbFunctions.TruncateTime(bh.Date) == from_Date.Date) // Compare only the date part
-      //.OrderBy(bh => bh.PunchIn)
-      //.ToListAsync();
+        //var breakHoursData = await dbLeaveOn.BreakHours
+        //                .AsNoTracking() // Disable tracking for read-only data
+        //                .Where(bh => bh.BioStarEmpNum == intUserId
+        //                  && bh.Date == from_Date) 
+        //                .OrderBy(bh => bh.PunchIn)
+        //                .ToListAsync();
 
-      if (!breakHoursData.Any())
+
+        if (!breakHoursData.Any())
       {
         ViewBag.Message = "No break hours data found for the given date.";
         return View("OffTimeDetail", new List<OffTimeDetial>());
@@ -2242,6 +2247,18 @@ namespace LeaveON.Controllers
 
       // Return the view with the calculated off-time details
       return View("OffTimeDetail", LstOffTimeDetial);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("Error: " + ex.ToString());
+        // Check for inner exception
+        if (ex.InnerException != null)
+        {
+          Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+        }
+
+        throw (ex);
+      }
     }
 
 
@@ -3116,7 +3133,10 @@ namespace LeaveON.Controllers
           totalWorkingHoursAllUsers += totalWorkingHours;
           totalTimeAllUsers += totalTime;
 
-           //Chek weekend
+          var aspNetUser = dbLeaveOn.AspNetUsers
+                .FirstOrDefault(u => u.BioStarEmpNum == record.BioStarEmpNum);
+
+          //Chek weekend
           string status;
           if (record.CreatedDate.HasValue && (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
           {
@@ -3145,7 +3165,7 @@ namespace LeaveON.Controllers
             EmployeeName = record.UserName,
             EmployeeNumber = record.BioStarEmpNum ?? 0,
             Department = record.DepartmentName,
-            TimeZone = record.CountryName,
+            TimeZone = aspNetUser.CntryName,
             Policy = record.UserLeavePolicyID,
             Date = record.CreatedDate ?? DateTime.MinValue,
             Day = day,

@@ -16,6 +16,7 @@ namespace LeaveON.UtilityClasses
     [DisplayName("Emp.No.")]
     public int EmployeeNumber { get; set; }
     public string TimeZone { get; set; }
+    public string CountryName { get; set; }
     public string Policy { get; set; }
     public string Department { get; set; }
     [DisplayFormat(DataFormatString = "{0: dd/MM/yyyy}")]

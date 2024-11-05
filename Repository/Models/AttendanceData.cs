@@ -33,12 +33,13 @@ namespace Repository.Models
         public string CountryName { get; set; }
         public string Manager2Email { get; set; }
         public Nullable<int> BioStarEmpNum { get; set; }
-        public string ManagerID { get; set; }
-        public string Manager2ID { get; set; }
         public string UserID { get; set; }
         public string DepartmentID { get; set; }
         public string DEVID { get; set; }
-        public string devnm { get; set; }
+        public string ManagerId { get; set; }
+        public string Manager2Id { get; set; }
+        public string Devnm { get; set; }
+        public string TimeZone { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }
     }

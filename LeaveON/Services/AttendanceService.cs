@@ -32,8 +32,8 @@ namespace LeaveON.Services
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
-      List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-      //List<int> userIds = new List<int> { 1179, 2434 };
+      //List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+      List<int> userIds = new List<int> { 1339 };
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       string departmentID = string.Empty;
       string deviceName = string.Empty;
@@ -226,6 +226,8 @@ namespace LeaveON.Services
         for (int j = 0; j <= rowsCount - 1; j++)//this loop iterates over each row of the sorted DataTable to process attendance data
         {
           string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0, 3);
+          Console.WriteLine("Device name (devnm): " + dt.Rows[j]["devnm"].ToString());
+          Console.WriteLine("Device name : " + dt.Rows[j]["devnm"]);
 
           if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
           {
@@ -335,7 +337,7 @@ namespace LeaveON.Services
               {
                 countryChanged = true;
               }
-              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryChanged ? previousCountryName : countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName, leaveType = leaveName, leaveTypeID = leaveType };
+              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = timeZone, CountryName = countryChanged ? previousCountryName : countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName, leaveType = leaveName, leaveTypeID = leaveType };
 
               LstTimeData.Add(attendance);
               TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
@@ -383,7 +385,7 @@ namespace LeaveON.Services
         {
           TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
           depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
-          attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn) };
+          attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = timeZone, CountryName = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn) };
 
           LstTimeData.Add(attendance);
           TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
@@ -406,7 +408,8 @@ namespace LeaveON.Services
             {
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = timeZone,
+              CountryName = countryName,
               Department = depName,
               Policy = userLeavePolicyDescription,
               Date = weekEndDate,
@@ -448,7 +451,8 @@ namespace LeaveON.Services
             {
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = timeZone,
+              CountryName= countryName,
               Policy = userLeavePolicyDescription,
               Department = depName,
               Date = date,
@@ -485,7 +489,8 @@ namespace LeaveON.Services
             {
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = timeZone,
+              CountryName = countryName,
               Policy = userLeavePolicyDescription,
               Department = depName,
               Date = date,
@@ -548,14 +553,15 @@ namespace LeaveON.Services
           IsLeave = item.leaveTypeID != 0 ? true : false,
           LeaveTypeID = item.leaveTypeID,
           LeaveType = item.leaveType,
-          CountryName = item.TimeZone,
+          CountryName = item.CountryName,
+          TimeZone = item.TimeZone,
           ManagerEmail = userInfo.managerEmail,
           Manager2Email = userInfo.manager2Email,
-          ManagerID = userInfo.managerID,
-          Manager2ID = userInfo.manager2ID,
+          ManagerId = userInfo.managerID,
+          Manager2Id = userInfo.manager2ID,
           UserID = userInfo.UserID,
           DepartmentID = departmentID,
-          devnm = deviceName,
+          Devnm = deviceName,
           DEVID = deviceID
         };
         dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
