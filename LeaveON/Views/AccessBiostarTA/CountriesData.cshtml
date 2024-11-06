@@ -39,26 +39,61 @@
 <script type="text/javascript">
 
         $(document).ready(function () {
-          $('.datepicker').datepicker({
+          // Initialize start date picker
+          $('#datepickerStart').datepicker({
             dateFormat: 'dd-M-yy',
             changeMonth: true,
             changeYear: true,
             numberOfMonths: 1,
             maxDate: new Date(),
             onSelect: function (selectedDate) {
-              // Enable the end date picker after the start date is selected
+              // Set minDate for the end date based on the selected start date
               $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
               $('#datepickerEnd').prop('disabled', false);
+            },
+            onChangeMonthYear: function (year, month, inst) {
+              // Keep the calendar open and update month/year selection
+              var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+              currentDate.setFullYear(year);
+              currentDate.setMonth(month - 1);
+              $(this).datepicker("setDate", currentDate);
             }
           });
 
-          // Initialize the end date picker (disabled initially)
+          // Initialize end date picker (disabled initially)
           $('#datepickerEnd').datepicker({
             dateFormat: 'dd-M-yy',
             changeMonth: true,
             changeYear: true,
-            numberOfMonths: 1
+            numberOfMonths: 1,
+            maxDate: new Date(),
+            beforeShow: function (input, inst) {
+              // Check if start date is selected
+              var startDate = $('#datepickerStart').datepicker('getDate');
+              if (startDate) {
+                $(this).datepicker("option", "minDate", startDate);
+              }
+            },
+            onSelect: function (selectedDate) {
+              $(this).datepicker("hide"); // Close only when a date is selected
+            },
+            onChangeMonthYear: function (year, month, inst) {
+              // Keep the calendar open on month/year change
+              var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+              currentDate.setFullYear(year);
+              currentDate.setMonth(month - 1);
+              $(this).datepicker("setDate", currentDate);
+            }
           }).prop('disabled', true);
+
+
+          // Check if the start date is set and set the minDate for the end date
+          var startDateValue = $('#datepickerStart').val();
+          if (startDateValue) {
+            $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+            $('#datepickerEnd').prop('disabled', false);
+          }
+
           // Close dropdown when clicking outside
           $(document).click(function (e) {
             if (!$(e.target).closest('.dropdown-check-list').length) {
@@ -73,8 +108,6 @@
             $('#datepickerStart').prop('disabled', isDisabled);
             $('#datepickerEnd').prop('disabled', isDisabled);
           }
-
-
 
           $('#load').click(function () {
             //show Loader
@@ -126,7 +159,6 @@
              });
           });
         });
-
 
 </script>
 
