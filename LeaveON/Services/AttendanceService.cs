@@ -32,8 +32,8 @@ namespace LeaveON.Services
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
-      //List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-      List<int> userIds = new List<int> { 1339 };
+      List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+      // List<int> userIds = new List<int> { 2434, 1179 , 2205 };
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       string departmentID = string.Empty;
       string deviceName = string.Empty;
@@ -197,7 +197,17 @@ namespace LeaveON.Services
               TimeSpan breakDuration = timeInn - timeOutt;
               var user = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.BioStarEmpNum == UserId);
 
+              // Check for duplicates in LstBreakHours
+              bool exists = LstBreakHours.Any(b =>
+                  b.UserId == user.Id &&
+                  b.Date == timeOutt.Date &&
+                  b.PunchIn == timeOutt &&
+                  b.PunchOut == timeInn);
+
+
               // Add to break hours list
+              if (!exists) 
+              { 
               BreakHour breakEntry = new BreakHour
               {
                 UserId = user.Id,
@@ -208,13 +218,28 @@ namespace LeaveON.Services
               };
               LstBreakHours.Add(breakEntry);
             }
+           }
           }
         }
 
         // Save BreakHours after processing all users
         if (LstBreakHours.Any())
         {
-          dbLeaveOn.BreakHours.AddRange(LstBreakHours);
+          foreach (var breakEntry in LstBreakHours)
+          {
+            // Check for duplicates in the database before saving
+            bool dbExists = dbLeaveOn.BreakHours.Any(b =>
+                b.UserId == breakEntry.UserId &&
+                b.Date == breakEntry.Date &&
+                b.PunchIn == breakEntry.PunchIn &&
+                b.PunchOut == breakEntry.PunchOut);
+
+            // Add to the database only if it doesn't exist
+            if (!dbExists)
+            {
+              dbLeaveOn.BreakHours.Add(breakEntry);
+            }
+          }
           dbLeaveOn.SaveChanges();
         }
 
@@ -226,8 +251,6 @@ namespace LeaveON.Services
         for (int j = 0; j <= rowsCount - 1; j++)//this loop iterates over each row of the sorted DataTable to process attendance data
         {
           string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0, 3);
-          Console.WriteLine("Device name (devnm): " + dt.Rows[j]["devnm"].ToString());
-          Console.WriteLine("Device name : " + dt.Rows[j]["devnm"]);
 
           if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
           {
@@ -505,6 +528,8 @@ namespace LeaveON.Services
         }
       }
 
+;
+
       //to avaid showing current month all data which is not happend yet
       foreach (var itm in LstTimeData.ToList())
       {
@@ -513,7 +538,14 @@ namespace LeaveON.Services
           LstTimeData.Remove(itm);
         }
       }
-      foreach (var item in LstTimeData.ToList())
+
+      // Group by EmployeeNumber and Date to get distinct entries
+      var distinctTimeData = LstTimeData
+          .GroupBy(x => new { x.EmployeeNumber, x.Date.Date }) // Group by EmployeeNumber and Date
+          .Select(g => g.FirstOrDefault()) // Select the first occurrence of each group
+          .ToList();
+
+      foreach (var item in distinctTimeData)
       {
         // Check if the user arrives after 9:30 AM
         bool lateArrival = item.TimeIn.TimeOfDay > new TimeSpan(9, 30, 0);
@@ -534,7 +566,15 @@ namespace LeaveON.Services
         departmentID = depID.ToString();
 
         bool earlyDeparture = item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
-        item.isEarlyDeparture = earlyDeparture;  // Directly assign the boolean value
+        item.isEarlyDeparture = earlyDeparture;
+
+        // Check if an attendance record already exists for this user on the same date
+        bool exists = dbLeaveOn.AttendanceDatas
+            .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
+                        DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
+
+        if (!exists) 
+        { 
 
         AttendanceData attendanceDataToFill = new AttendanceData
         {
@@ -547,9 +587,9 @@ namespace LeaveON.Services
           LastPunchOut = item.TimeOut,
           TotalWorkHours = (long)item.WorkingHours.TotalSeconds,
           BreakHours = (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds),
-          IsLateArrival = item.isLateArrival, // Use boolean directly
-          IsEarlyDeparture = item.isEarlyDeparture, // Use boolean directly
-          IsAbsent = item.isAbsent, // Assuming isAbsent is also being assigned elsewhere as a string
+          IsLateArrival = item.isLateArrival, 
+          IsEarlyDeparture = item.isEarlyDeparture, 
+          IsAbsent = item.isAbsent,
           IsLeave = item.leaveTypeID != 0 ? true : false,
           LeaveTypeID = item.leaveTypeID,
           LeaveType = item.leaveType,
@@ -565,28 +605,14 @@ namespace LeaveON.Services
           DEVID = deviceID
         };
         dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
+        }
       }
-
-      // Populate BreakHours
-      //foreach (var breakEntry in LstBreakHours)
-      //{
-      //  bool exists = dbLeaveOn.BreakHours.Any(b =>
-      //      b.BioStarEmpNum == breakEntry.BioStarEmpNum &&
-      //      DbFunctions.TruncateTime(b.Date) == DbFunctions.TruncateTime(breakEntry.Date) &&
-      //      b.PunchIn == breakEntry.PunchIn &&
-      //      b.PunchOut == breakEntry.PunchOut);
-
-      //  if (!exists)
-      //  {
-      //    dbLeaveOn.BreakHours.Add(breakEntry);
-      //  }
-      //}
 
       try
       {
+        Console.WriteLine("Saved");
         dbLeaveOn.SaveChanges();
         Console.Read();
-        Console.WriteLine("Saved");
       }
       catch (DbEntityValidationException dbEx)
       {

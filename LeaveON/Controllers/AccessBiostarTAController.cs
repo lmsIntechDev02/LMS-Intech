@@ -683,7 +683,7 @@ namespace LeaveON.Controllers
           //{                           //                                |
           //  continue;   // Skip the remainder of this iteration. -----+
           //}
-          string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0, 3); ;
+          string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0,3).Trim();
           switch (shortCountryName)
           {
             case "PK":
@@ -3085,11 +3085,7 @@ namespace LeaveON.Controllers
           LstAttendances.Add(attendance);
 
         }
-
-
       }
-
-
       return View("_UserDataToday", await Task.FromResult(LstAttendances));
     }
 
@@ -3098,7 +3094,6 @@ namespace LeaveON.Controllers
     {
       DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
       DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
-
 
       List<TimeData> LstTimeData = new List<TimeData>();
       TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
@@ -3124,6 +3119,79 @@ namespace LeaveON.Controllers
           DateTime? timeOutNullable = record.LastPunchOut;
           DateTime timeIn = timeInNullable ?? DateTime.MinValue;
           DateTime timeOut = timeOutNullable ?? (timeInNullable ?? DateTime.MinValue);
+
+
+          var aspNetUser = dbLeaveOn.AspNetUsers
+                .FirstOrDefault(u => u.BioStarEmpNum == record.BioStarEmpNum);
+
+          string countryName = record.CountryName?.Trim();
+
+          if (timeIn != DateTime.MinValue && timeOut != DateTime.MinValue)
+          {
+            switch (countryName)
+            {
+              //    case "Pakistan":
+              //      timeIn = timeIn.AddHours(5);
+              //      timeOut = timeOut.AddHours(5);
+              //      break;
+              //case "United Arab Emirates":
+              //  timeIn = timeIn.AddHours(1);
+              //  timeOut = timeOut.AddHours(1);
+              //  break;
+              //    case "Saudi Arabia":
+              //      timeIn = timeIn.AddHours(3);
+              //      timeOut = timeOut.AddHours(3);
+              //      break;
+              //    //case "United Kingdom":
+              //    //  timeIn = timeIn.AddHours(0);
+              //    //  timeOut = timeOut.AddHours(0);
+              //    //  break;
+              //    case "United States":
+              //      timeIn = timeIn.AddHours(5);
+              //      timeOut = timeOut.AddHours(5);
+              //      break;
+              //    case "Nigeria":
+              //      timeIn = timeIn.AddHours(1);
+              //      timeOut = timeOut.AddHours(1);
+              //      break;
+              //    case "Egypt":
+              //      timeIn = timeIn.AddHours(2);
+              //      timeOut = timeOut.AddHours(2);
+              //      break;
+              //    case "Iraq":
+              //      timeIn = timeIn.AddHours(3);
+              //      timeOut = timeOut.AddHours(3);
+              //      break;
+              //case "Oman":
+              //  timeIn = timeIn.AddHours(-1);
+              //  timeOut = timeOut.AddHours(-1);
+              //  break;
+              //    case "Qatar":
+              //      timeIn = timeIn.AddHours(3);
+              //      timeOut = timeOut.AddHours(3);
+              //      break;
+              //case "Angola":
+              //  timeIn = timeIn.AddHours(-4);
+              //  timeOut = timeOut.AddHours(-4);
+              //  break;
+              //    case "Kazakhstan":
+              //      timeIn = timeIn.AddHours(5);
+              //      timeOut = timeOut.AddHours(5);
+              //      break;
+              //    case "Germany":
+              //      timeIn = timeIn.AddHours(1); 
+              //      timeOut = timeOut.AddHours(1);
+              //      break;
+              //    case "Singapore":
+              //      timeIn = timeIn.AddHours(8); 
+              //      timeOut = timeOut.AddHours(8);
+              //      break;
+              default:
+                break;
+            }
+          }
+
+
           TimeSpan totalTime = timeIn != DateTime.MinValue && timeOut != DateTime.MinValue ? timeOut - timeIn : TimeSpan.Zero;
           TimeSpan totalWorkingHours = record.TotalWorkHours.HasValue && record.TotalWorkHours > 0
              ? TimeSpan.FromSeconds((double)record.TotalWorkHours)
@@ -3133,9 +3201,7 @@ namespace LeaveON.Controllers
           totalWorkingHoursAllUsers += totalWorkingHours;
           totalTimeAllUsers += totalTime;
 
-          var aspNetUser = dbLeaveOn.AspNetUsers
-                .FirstOrDefault(u => u.BioStarEmpNum == record.BioStarEmpNum);
-
+      
           //Chek weekend
           string status;
           if (record.CreatedDate.HasValue && (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
@@ -3165,7 +3231,7 @@ namespace LeaveON.Controllers
             EmployeeName = record.UserName,
             EmployeeNumber = record.BioStarEmpNum ?? 0,
             Department = record.DepartmentName,
-            TimeZone = aspNetUser.CntryName,
+            TimeZone = record.CountryName,
             Policy = record.UserLeavePolicyID,
             Date = record.CreatedDate ?? DateTime.MinValue,
             Day = day,
