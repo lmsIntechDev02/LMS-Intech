@@ -10,6 +10,8 @@ using System.Data.Entity.Validation;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
+using System.Diagnostics;
+
 namespace LeaveON.Services
 {
   public class AttendanceService
@@ -20,6 +22,7 @@ namespace LeaveON.Services
 
     public Task ConnectToDBandFillAttendanceData(DateTime startDate, DateTime endDate)
     {
+      var overallStopwatch = Stopwatch.StartNew();
       Console.WriteLine("Connecting to database...");
       string countryName = string.Empty;
       string previousCountryName = string.Empty;
@@ -33,7 +36,7 @@ namespace LeaveON.Services
       List<string> logg = new List<string>();
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-      // List<int> userIds = new List<int> { 2434, 1179 , 2205 };
+      //  List<int> userIds = new List<int> { 2434, 1179 , 2205 };
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       string departmentID = string.Empty;
       string deviceName = string.Empty;
@@ -180,68 +183,68 @@ namespace LeaveON.Services
         TimeSpan ThidDayWorkingHours = new TimeSpan();
         List<OffTimeDetial> LstOffTimeDetial = new List<OffTimeDetial>();
         // Process each punch log to calculate breaks
-        for (int j = 0; j < rowsCount - 1; j++)
-        {
-          int currentDevid = Convert.ToInt32(dt.Rows[j]["DEVID"]);
-          int nextDevid = Convert.ToInt32(dt.Rows[j + 1]["DEVID"]);
+        //for (int j = 0; j < rowsCount - 1; j++)
+        //{
+        //  int currentDevid = Convert.ToInt32(dt.Rows[j]["DEVID"]);
+        //  int nextDevid = Convert.ToInt32(dt.Rows[j + 1]["DEVID"]);
 
-          // Check if the current device is "OUT" and the next device is "IN"
-          if (!LstCardReadersIn.Contains(currentDevid) && LstCardReadersIn.Contains(nextDevid))
-          {
-            DateTime timeOutt = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j]["devdt"], timeZone);
-            DateTime timeInn = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j + 1]["devdt"], timeZone);
+        //  // Check if the current device is "OUT" and the next device is "IN"
+        //  if (!LstCardReadersIn.Contains(currentDevid) && LstCardReadersIn.Contains(nextDevid))
+        //  {
+        //    DateTime timeOutt = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j]["devdt"], timeZone);
+        //    DateTime timeInn = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j + 1]["devdt"], timeZone);
 
-            // Ensure valid time difference for break hours
-            if (timeInn > timeOutt)
-            {
-              TimeSpan breakDuration = timeInn - timeOutt;
-              var user = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.BioStarEmpNum == UserId);
+        //    // Ensure valid time difference for break hours
+        //    if (timeInn > timeOutt)
+        //    {
+        //      TimeSpan breakDuration = timeInn - timeOutt;
+        //      var user = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.BioStarEmpNum == UserId);
 
-              // Check for duplicates in LstBreakHours
-              bool exists = LstBreakHours.Any(b =>
-                  b.UserId == user.Id &&
-                  b.Date == timeOutt.Date &&
-                  b.PunchIn == timeOutt &&
-                  b.PunchOut == timeInn);
+        //      // Check for duplicates in LstBreakHours
+        //      bool exists = LstBreakHours.Any(b =>
+        //          b.UserId == user.Id &&
+        //          b.Date == timeOutt.Date &&
+        //          b.PunchIn == timeOutt &&
+        //          b.PunchOut == timeInn);
 
 
-              // Add to break hours list
-              if (!exists) 
-              { 
-              BreakHour breakEntry = new BreakHour
-              {
-                UserId = user.Id,
-                BioStarEmpNum = UserId,
-                Date = timeOutt.Date,
-                PunchIn = timeOutt,
-                PunchOut = timeInn
-              };
-              LstBreakHours.Add(breakEntry);
-            }
-           }
-          }
-        }
+        //      // Add to break hours list
+        //      if (!exists) 
+        //      { 
+        //      BreakHour breakEntry = new BreakHour
+        //      {
+        //        UserId = user.Id,
+        //        BioStarEmpNum = UserId,
+        //        Date = timeOutt.Date,
+        //        PunchIn = timeOutt,
+        //        PunchOut = timeInn
+        //      };
+        //      LstBreakHours.Add(breakEntry);
+        //    }
+        //   }
+        //  }
+        //}
 
-        // Save BreakHours after processing all users
-        if (LstBreakHours.Any())
-        {
-          foreach (var breakEntry in LstBreakHours)
-          {
-            // Check for duplicates in the database before saving
-            bool dbExists = dbLeaveOn.BreakHours.Any(b =>
-                b.UserId == breakEntry.UserId &&
-                b.Date == breakEntry.Date &&
-                b.PunchIn == breakEntry.PunchIn &&
-                b.PunchOut == breakEntry.PunchOut);
+        //// Save BreakHours after processing all users
+        //if (LstBreakHours.Any())
+        //{
+        //  foreach (var breakEntry in LstBreakHours)
+        //  {
+        //    // Check for duplicates in the database before saving
+        //    bool dbExists = dbLeaveOn.BreakHours.Any(b =>
+        //        b.UserId == breakEntry.UserId &&
+        //        b.Date == breakEntry.Date &&
+        //        b.PunchIn == breakEntry.PunchIn &&
+        //        b.PunchOut == breakEntry.PunchOut);
 
-            // Add to the database only if it doesn't exist
-            if (!dbExists)
-            {
-              dbLeaveOn.BreakHours.Add(breakEntry);
-            }
-          }
-          dbLeaveOn.SaveChanges();
-        }
+        //    // Add to the database only if it doesn't exist
+        //    if (!dbExists)
+        //    {
+        //      dbLeaveOn.BreakHours.Add(breakEntry);
+        //    }
+        //  }
+        //  dbLeaveOn.SaveChanges();
+        //}
 
 
 
@@ -360,7 +363,12 @@ namespace LeaveON.Services
               {
                 countryChanged = true;
               }
-              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = timeZone, CountryName = countryChanged ? previousCountryName : countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName, leaveType = leaveName, leaveTypeID = leaveType };
+              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = timeZone, CountryName = countryChanged ? previousCountryName : countryName,
+                Policy = userLeavePolicyDescription, Department = depName,
+                Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(),
+                TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours,
+                TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName, leaveType = leaveName,
+                leaveTypeID = leaveType };
 
               LstTimeData.Add(attendance);
               TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
@@ -545,6 +553,7 @@ namespace LeaveON.Services
           .Select(g => g.FirstOrDefault()) // Select the first occurrence of each group
           .ToList();
 
+
       foreach (var item in distinctTimeData)
       {
         // Check if the user arrives after 9:30 AM
@@ -574,9 +583,11 @@ namespace LeaveON.Services
                         DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
 
         if (!exists) 
-        { 
+        {
+          try
+          {
 
-        AttendanceData attendanceDataToFill = new AttendanceData
+            AttendanceData attendanceDataToFill = new AttendanceData
         {
           BioStarEmpNum = item.EmployeeNumber,
           UserName = item.EmployeeName,
@@ -605,7 +616,13 @@ namespace LeaveON.Services
           DEVID = deviceID
         };
         dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
+            Console.WriteLine("Added the user: " + attendanceDataToFill.UserName + " for a: " + attendanceDataToFill.CreatedDate);
         }
+        catch (Exception ex)
+        {
+          Console.WriteLine("Error adding AttendanceData: " + ex.Message);
+        }
+      }
       }
 
       try
@@ -634,6 +651,8 @@ namespace LeaveON.Services
       }
 
       con.Close();
+      overallStopwatch.Stop(); // Stop the overall timer
+      Console.WriteLine($"Total execution time for ConnectToDBandFillAttendanceData: {overallStopwatch.ElapsedMilliseconds} ms");
       return null;
     }
     private DateTime ConvertToCountryTimeZoneNew(DateTime dateTime, string timeZone)

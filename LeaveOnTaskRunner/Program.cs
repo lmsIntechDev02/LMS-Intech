@@ -9,7 +9,9 @@ namespace LeaveOnTaskRunner
 {
     class Program
     {
-        static void Main(string[] args)
+        //static void Main(string[] args)
+        static async Task Main(string[] args)
+
         {
             //// Calculate 'yesterday'
             //DateTime yesterday = DateTime.Today.AddDays(-1);
@@ -28,16 +30,18 @@ namespace LeaveOnTaskRunner
 
             //DateTime startDate = new DateTime(DateTime.Today.Year, 1, 1);
             //DateTime endDate = new DateTime(DateTime.Today.Year, 1, 2);
-            DateTime startDate = new DateTime(2023, 06, 19);
-            DateTime endDate = new DateTime(2023, 06, 21);
+            DateTime startDate = new DateTime(2024, 02, 01);
+            DateTime endDate = new DateTime(2024, 02, 02);
 
 
 
             // Initialize the service
             AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved
-
+            BreakHoursService breakHours = new BreakHoursService();
             // Call the method with 'startDate' and 'endDate'
-            service.ConnectToDBandFillAttendanceData(startDate, endDate);
+            //  await service.ConnectToDBandFillAttendanceData(startDate, endDate);
+
+              await service.ConnectToDBandFillAttendanceData(startDate, endDate);
 
             //Console.WriteLine("Attendance data processed for: " + yesterday.ToShortDateString());
         }

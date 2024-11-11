@@ -137,21 +137,23 @@
 
                             }
 
-                            <td>
+                          <td>
 
-                              @{
-                                if (String.IsNullOrEmpty(item.Status))
-                                {
-                                  @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })
-                                }
-                                else
-                                {
-                                  @Html.DisplayFor(modelItem => item.Status)
-                                }
+                            @{
+                              //if (String.IsNullOrEmpty(item.Status))
+                              if (item.WorkingHours != offDayTime)
+                              {
+                                @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
+                                @Html.DisplayFor(modelItem => item.Status)
                               }
+                              else
+                              {
+                                @Html.DisplayFor(modelItem => item.Status)
+                              }
+                            }
 
 
-                            </td>
+                          </td>
                           </tr>
                           }
                         </tbody>

@@ -2539,7 +2539,7 @@ namespace LeaveON.Controllers
       int thisYear = DateTime.Now.Year;
 
       List<SelectListItem> monthSelectList = new List<SelectListItem>();
-      for (int i = 1; i <= 13; i++)
+      for (int i = 1; i <= 23; i++)
       {
         if (thisMonth < 1)
         {
@@ -2884,8 +2884,6 @@ namespace LeaveON.Controllers
     public async Task<ActionResult> MonthsWiseData(string ReqFromMonth, string ReqToMonth)
     {
 
-
-
       //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",
       //                                 System.Globalization.CultureInfo.InvariantCulture);
       ViewBag.MonthSelectList = GetMonthSelectList();
@@ -2938,8 +2936,15 @@ namespace LeaveON.Controllers
         totalDepData = new List<TimeData>();
         for (var month = reqFromDate.Date; month.Date <= reqToDate.Date; month = month.AddMonths(1))
         {
+          var startOfMonth = new DateTime(month.Year, month.Month, 1);
+          var endOfMonth = new DateTime(month.Year, month.Month, DateTime.DaysInMonth(month.Year, month.Month));
           ReqMonthYearFormated = month.Month.ToString("00") + "-" + month.Year;
-          depData = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, userIds);
+         // depData = await ConnectToDBandReturnWorkingHours(ReqMonthYearFormated, userIds);
+
+          string formattedStartDate = startOfMonth.ToString("dd-MM-yyyy");
+          string formattedEndDate = endOfMonth.ToString("dd-MM-yyyy");
+          depData = await GetMonthWiseData(formattedStartDate, formattedEndDate, userIds);
+
           totalDepData.AddRange(depData);
         }
         //}
@@ -3250,6 +3255,83 @@ namespace LeaveON.Controllers
 
       return Task.FromResult(LstTimeData);
     }
+
+    private Task<List<TimeData>> GetMonthWiseData(string formattedStartDate, string formattedEndDate, List<int> UserIds)
+    {
+      DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+
+
+      List<TimeData> LstTimeData = new List<TimeData>();
+      TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
+      TimeSpan totalTimeAllUsers = TimeSpan.Zero;
+
+      // Fetch attendance data for each user
+      foreach (int UserId in UserIds)
+      {
+        // Fetch attendance records for this user within the provided date range
+        var attendanceRecords = dbLeaveOn.AttendanceDatas
+        .Where(a => a.BioStarEmpNum == UserId && a.CreatedDate >= startDate && a.CreatedDate <= endDate)
+        .GroupBy(a => new { a.BioStarEmpNum, Date = DbFunctions.TruncateTime(a.CreatedDate) })
+        .Select(g => g.FirstOrDefault()) // Take only the first record for each day per user
+        .OrderBy(a => a.CreatedDate)
+        .ToList();
+
+        if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
+
+        // Process each attendance record
+        foreach (var record in attendanceRecords)
+        {
+          DateTime? timeInNullable = record.FirstPunchIn;
+          DateTime? timeOutNullable = record.LastPunchOut;
+          DateTime timeIn = timeInNullable ?? DateTime.MinValue;
+          DateTime timeOut = timeOutNullable ?? (timeInNullable ?? DateTime.MinValue);
+          TimeSpan totalTime = timeIn != DateTime.MinValue && timeOut != DateTime.MinValue ? timeOut - timeIn : TimeSpan.Zero;
+          TimeSpan totalWorkingHours = record.TotalWorkHours.HasValue && record.TotalWorkHours > 0
+             ? TimeSpan.FromSeconds((double)record.TotalWorkHours)
+             : TimeSpan.Zero;
+          string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
+
+          totalWorkingHoursAllUsers += totalWorkingHours;
+          totalTimeAllUsers += totalTime;
+
+          //Chek weekend
+          string status;
+          if (record.CreatedDate.HasValue && (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
+          {
+            status = "Weekend";
+          }
+          else
+          {
+            status = record.IsAbsent == true ? "Absent" : null;
+          }
+
+          // Map the data directly from AttendanceData
+          LstTimeData.Add(new TimeData()
+          {
+            EmployeeName = record.UserName,
+            EmployeeNumber = record.BioStarEmpNum ?? 0,
+            Department = record.DepartmentName,
+            TimeZone = record.CountryName,
+            Policy = record.UserLeavePolicyID,
+            Date = record.CreatedDate ?? DateTime.MinValue,
+            Day = day,
+            TimeIn = timeIn,
+            TimeOut = timeOut,
+            TotalTime = totalTime,
+            WorkingHours = totalWorkingHours,
+            Status = status,
+
+          });
+        }
+      }
+
+      ViewBag.TotalWorkingHours = totalWorkingHoursAllUsers.TotalHours.ToString("N2");
+      ViewBag.TotalHours = totalTimeAllUsers.TotalHours.ToString("N2");
+
+      return Task.FromResult(LstTimeData);
+    }
+
 
   }
 }

@@ -333,7 +333,10 @@
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Services\AttendanceService.cs" />
+    <Compile Include="Services\AttendanceService2.cs" />
+    <Compile Include="Services\AttendanceService3.cs" />
     <Compile Include="Services\AutomatedReportService.cs" />
+    <Compile Include="Services\BreakHoursService.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="UtilityClasses\Dashboard.cs" />
     <Compile Include="UtilityClasses\TimeData.cs" />
