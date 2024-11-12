@@ -30,18 +30,23 @@ namespace LeaveOnTaskRunner
 
             //DateTime startDate = new DateTime(DateTime.Today.Year, 1, 1);
             //DateTime endDate = new DateTime(DateTime.Today.Year, 1, 2);
-            DateTime startDate = new DateTime(2024, 02, 01);
-            DateTime endDate = new DateTime(2024, 02, 02);
+            DateTime startDate = new DateTime(2024, 02, 3);
+            DateTime endDate = new DateTime(2024, 02, 09);
 
 
 
             // Initialize the service
-            AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved
+          //  AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved
             BreakHoursService breakHours = new BreakHoursService();
+            AttendanceService4 service = new AttendanceService4();
             // Call the method with 'startDate' and 'endDate'
-            //  await service.ConnectToDBandFillAttendanceData(startDate, endDate);
+            // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
 
-              await service.ConnectToDBandFillAttendanceData(startDate, endDate);
+            //  await service.ConnectToDBandFillAttendanceData(startDate, endDate);
+            //  await breakHours.ConnectToDBandFillBreakHours(startDate, endDate);
+
+
+             await service.ConnectToDBandReturnAttendanceData(startDate, endDate);
 
             //Console.WriteLine("Attendance data processed for: " + yesterday.ToShortDateString());
         }

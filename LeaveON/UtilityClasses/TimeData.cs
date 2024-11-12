@@ -39,7 +39,11 @@ namespace LeaveON.UtilityClasses
     public bool isAbsent { get; set; }
     public string leaveType { get; set; }
     public int leaveTypeID { get; set; }
-
+    public string UserID { get; set; }
+    public string ManagerEmail { get; set; }
+    public string Manager2Email { get; set; }
+    public string ManagerID { get; set; }
+    public string Manager2ID { get; set; }
   }
   public class OffTimeDetial
   {

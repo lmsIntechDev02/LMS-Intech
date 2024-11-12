@@ -228,12 +228,12 @@ namespace LeaveON.Services
                   .FirstOrDefault();
 
               // Retrieve device ID and device name from BioStar database if available
-              var device = dbBioStar.PunchLogs
-                  .Where(p => p.UserId == a.EmployeeNumber && p.DevDateTime == a.TimeIn)
-                  .Select(p => new { p.DeviceId, p.DeviceName })
-                  .FirstOrDefault();
+              //var device = dbBioStar.PunchLogs
+              //    .Where(p => p.UserId == a.EmployeeNumber && p.DevDateTime == a.TimeIn)
+              //    .Select(p => new { p.DeviceId, p.DeviceName })
+              //    .FirstOrDefault();
 
-              if (userInfo != null && device != null)
+              if (userInfo != null)
               {
                 newAttendance.Add(new AttendanceData
                 {
@@ -259,8 +259,8 @@ namespace LeaveON.Services
                   ManagerId = userInfo.ManagerID,
                   Manager2Id = userInfo.Manager2ID,
                   UserID = userInfo.Id,
-                  Devnm = device.DeviceName,
-                  DEVID = device.DeviceId
+                  //Devnm = device.DeviceName,
+                  //DEVID = device.DeviceId
                 });
               }
             }

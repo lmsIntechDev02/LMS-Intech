@@ -2563,7 +2563,7 @@ namespace LeaveON.Controllers
 
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
-        ReqMonthYear = "06-2023"; // hard coded value for testing
+        //ReqMonthYear = "06-2023"; // hard coded value for testing
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
               System.Globalization.CultureInfo.CurrentCulture);
         // Get the last day of the month
