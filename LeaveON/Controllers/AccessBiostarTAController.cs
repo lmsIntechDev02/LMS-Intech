@@ -2433,7 +2433,7 @@ namespace LeaveON.Controllers
           ViewBag.SelectedEmployees = UserIds;
         }
         //else if (User.IsInRole("Manager") || User.IsInRole("User"))
-        else if (User.IsInRole("Manager"))
+        else if (User.IsInRole("Manager") || User.IsInRole("User"))
         {
 
           var managerDepartment = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
@@ -2444,13 +2444,13 @@ namespace LeaveON.Controllers
           //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
           ViewBag.SelectedEmployees = UserIds;
         }
-        else if (User.IsInRole("User"))
-        {
-          var currentUser = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId);
-          ViewBag.Departments = new SelectList(new List<string> { currentUser.DepartmentName });
-          ViewBag.Employees = new SelectList(new List<AspNetUser> { currentUser }, "BioStarEmpNum", "UserName");
-          ViewBag.SelectedEmployees = new List<string> { currentUser.BioStarEmpNum.ToString() }; // Populate selected employee for User
-        }
+        //else if (User.IsInRole("User"))
+        //{
+        //  var currentUser = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+        //  ViewBag.Departments = new SelectList(new List<string> { currentUser.DepartmentName });
+        //  ViewBag.Employees = new SelectList(new List<AspNetUser> { currentUser }, "BioStarEmpNum", "UserName");
+        //  ViewBag.SelectedEmployees = new List<string> { currentUser.BioStarEmpNum.ToString() }; // Populate selected employee for User
+        //}
 
         if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
         {
@@ -2652,7 +2652,7 @@ namespace LeaveON.Controllers
           StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
           EndDate = DateTime.Now;
           string userId = User.Identity.GetUserId();
-          string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId).CountryName.Id.ToString();
+          string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId)?.CountryName?.Id.ToString();
 
           List<string> SelectedDeps = new List<string>();
           SelectedDeps.Add(CountryId);//CountryName);

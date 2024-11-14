@@ -30,24 +30,9 @@
   <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
     <span class="anchor">Select Employees</span>
     <ul class="items">
-       @*<li>
-      <label for="selectAllEmployees">
-        <input type="checkbox" id="selectAllEmployees" /> Select All Employees
-      </label>
-    </li>
-    @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
-    {
-      var username = employee.Text.Split('@')[0]; 
-      username = username.Replace(".", " ");
-      <li>
-        <label for="emp_@employee.Value">
-          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" id="emp_@employee.Value"  /> @username
-        </label>
-      </li>
-    }*@
     </ul>
 </div> }
-  else if (User.IsInRole("Manager"))
+  else if (User.IsInRole("Manager") || User.IsInRole("User"))
   {
     // Department Dropdown for Manager (Single department, disabled)
   @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
@@ -73,13 +58,13 @@
         }
     </ul>
   </div> }
-  else if (User.IsInRole("User"))
+  @*else if (User.IsInRole("User"))
   {
     // Department Dropdown for User (Single department, disabled)
   @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
              htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
   @Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-             htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}
+             htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}*@
 
 
   @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
@@ -290,7 +275,7 @@
 
           
 
-            if (userRole === "Admin" || userRole === "Manager") {
+            if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
               var selectedEmployees = [];
               $('#listEmployees input[type="checkbox"]:checked').each(function () {
                 selectedEmployees.push($(this).val());
