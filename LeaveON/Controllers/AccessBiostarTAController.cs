@@ -2539,7 +2539,7 @@ namespace LeaveON.Controllers
       int thisYear = DateTime.Now.Year;
 
       List<SelectListItem> monthSelectList = new List<SelectListItem>();
-      for (int i = 1; i <= 23; i++)
+      for (int i = 1; i <= 13; i++)
       {
         if (thisMonth < 1)
         {
@@ -2554,7 +2554,7 @@ namespace LeaveON.Controllers
       }
       return monthSelectList;
     }
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin,Manager,User")]
     public async Task<ActionResult> DepartmentData(string ReqMonthYear, string DepartmentName)
     {
       ViewBag.MonthSelectList = GetMonthSelectList();
@@ -2567,30 +2567,94 @@ namespace LeaveON.Controllers
         reqDate = DateTime.ParseExact(ReqMonthYear, "MM-yyyy",
               System.Globalization.CultureInfo.CurrentCulture);
         // Get the last day of the month
-       endDate = reqDate.AddMonths(1).AddDays(-1);
+        endDate = reqDate.AddMonths(1).AddDays(-1);
       }
       else
       {
         reqDate = DateTime.Now;
         endDate = new DateTime(reqDate.Year, reqDate.Month, DateTime.DaysInMonth(reqDate.Year, reqDate.Month)); // Set endDate as the last day of the current month
 
+      }
+
+      if (User.IsInRole("Admin"))
+      {
+        var departments = dbLeaveOn.AspNetUsers
+               .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+               .Select(u => u.DepartmentName)
+               .Distinct()
+               .Select(d => new SelectListItem { Value = d, Text = d })
+               .ToList();
+        ViewBag.Departments = new SelectList(departments, "Value", "Text");
+      }
+      else if (User.IsInRole("Manager") || User.IsInRole("User"))
+      {
         string userId = User.Identity.GetUserId();
-        var departmentClaims = dbLeaveOn.AspNetUserClaims
-            .Where(u => u.UserId == userId)
-           .Select(u => new { Value = u.ClaimValue, Text = u.ClaimValue })
-            .Distinct() 
+        //var departmentClaims = dbLeaveOn.AspNetUserClaims
+        //    .Where(u => u.UserId == userId)
+        //  .Select(u => new { Value = u.ClaimValue, Text = u.ClaimValue })
+        //   .Distinct() 
+        //    .ToList();\
+        // Fetch the User own department
+        var userDepartment = dbLeaveOn.AspNetUsers
+            .Where(u => u.Id == userId)
+            .Select(u => u.DepartmentName)
+            .FirstOrDefault();
+
+
+        // Get all employees under the manager
+        var employeesUnderManager = dbLeaveOn.AspNetUsers
+            .Where(u => u.ManagerID == userId || u.Manager2ID == userId)
             .ToList();
 
-        // Check if departments are available; if not, add a placeholder
-            if (!departmentClaims.Any())
-         {
-          departmentClaims.Add(new { Value = "", Text = "No department exists" });
-         }
-   
-        // Set the departments in the ViewBag for use in the dropdown
-       ViewBag.Departments = new SelectList(departmentClaims, "Value", "Text");
-       ViewBag.SelectedDepartments = departmentClaims;
+        // Retrieve unique departments of employees under the manager
+        var employeeDepartments = employeesUnderManager
+            .Where(e => !string.IsNullOrEmpty(e.DepartmentName)) // Ensure department is not null or empty
+            .Select(e => e.DepartmentName)
+            .Distinct() // Ensure distinct departments
+            .ToList();
+        //// Add the user own department to the list if it's not already included
+        //if (!string.IsNullOrEmpty(userDepartment) && !employeeDepartments.Contains(userDepartment))
+        //{
+        //  employeeDepartments.Add(userDepartment);
+        //}
+
+        // Create the department list for the dropdown
+        var departmentClaims = employeeDepartments
+            .Select(d => new { Value = d, Text = d })
+            .ToList();
+
+
+          // Check if departments are available; if not, add a placeholder
+          if (!departmentClaims.Any())
+          {
+            departmentClaims.Add(new { Value = "", Text = "Department Not Exists" });
+          }
+
+        
+
+        //  // Set the departments in the ViewBag for use in the dropdown
+         ViewBag.Departments = new SelectList(departmentClaims, "Value", "Text");
+         ViewBag.SelectedDepartments = departmentClaims;
       }
+
+      //string userId = User.Identity.GetUserId();
+      // Get From Access Rights
+      //  var departmentClaims = dbLeaveOn.AspNetUserClaims
+      //      .Where(u => u.UserId == userId)
+      //     .Select(u => new { Value = u.ClaimValue, Text = u.ClaimValue })
+      //      .Distinct() 
+      //      .ToList();
+
+      //  // Check if departments are available; if not, add a placeholder
+      //      if (!departmentClaims.Any())
+      //   {
+      //    departmentClaims.Add(new { Value = "", Text = "No department exists" });
+      //   }
+
+      //  // Set the departments in the ViewBag for use in the dropdown
+      // ViewBag.Departments = new SelectList(departmentClaims, "Value", "Text");
+      // ViewBag.SelectedDepartments = departmentClaims;
+      //}
       List<TimeData> depData = null;
       if (!string.IsNullOrEmpty(ReqMonthYear))
       {
@@ -2629,6 +2693,8 @@ namespace LeaveON.Controllers
 
     }
 
+
+
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> CountriesData(string startDate, string endDate, string CountryName)
     {
@@ -2652,15 +2718,43 @@ namespace LeaveON.Controllers
           StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
           EndDate = DateTime.Now;
           string userId = User.Identity.GetUserId();
-          string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId)?.CountryName?.Id.ToString();
-
           List<string> SelectedDeps = new List<string>();
-          SelectedDeps.Add(CountryId);//CountryName);
-          ViewBag.SelectedDepartments = SelectedDeps;
-          //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
-          ViewBag.Departments = new SelectList(dbLeaveOn.CountryNames, "Id", "Name");
-          ViewBag.startDate = StartDate.ToString("dd-MMM-yyyy");
-          ViewBag.endDate = EndDate.ToString("dd-MMM-yyyy");
+
+          if (User.IsInRole("Admin")) { 
+            string CountryId = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.Id == userId)?.CountryName?.Id.ToString();
+            if (!string.IsNullOrEmpty(CountryId))
+            {
+              SelectedDeps.Add(CountryId);
+            }
+            SelectedDeps.Add(SelectedDeps.ToString());
+            ViewBag.SelectedDepartments = SelectedDeps;
+            ViewBag.Departments = new SelectList(dbLeaveOn.CountryNames, "Id", "Name");
+            ViewBag.startDate = StartDate.ToString("dd-MMM-yyyy");
+            ViewBag.endDate = EndDate.ToString("dd-MMM-yyyy");
+
+          }
+          else if (User.IsInRole("Manager"))
+          {
+            SelectedDeps = dbLeaveOn.AspNetUsers
+                                   .Where(u => (u.ManagerID == userId || u.Manager2ID == userId)
+                                               && u.CountryName != null)
+                                   .Select(u => u.CountryName.Id.ToString())
+                                   .Distinct()
+                                   .ToList();
+            SelectedDeps.Add(SelectedDeps.ToString());//CountryName);
+            ViewBag.SelectedDepartments = SelectedDeps;
+            //ViewBag.Departments = new SelectList(dbLeaveOn.Departments, "Id", "Name");
+            ViewBag.Departments = new SelectList(
+                dbLeaveOn.CountryNames
+                         .Where(c => SelectedDeps.Contains(c.Id.ToString())),
+                "Id",
+                "Name"
+            );
+            ViewBag.startDate = StartDate.ToString("dd-MMM-yyyy");
+            ViewBag.endDate = EndDate.ToString("dd-MMM-yyyy");
+          }
+     
+
 
         }
         else
@@ -2678,6 +2772,8 @@ namespace LeaveON.Controllers
           List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.CntryName == CountryName).ToList<AspNetUser>();
 
           List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
+
+
 
           //string ReqMonthYearFormated = reqDate.Month.ToString("00") + "-" + reqDate.Year;
           //string ReqMonthYearFormated = startDate + "," + endDate; 

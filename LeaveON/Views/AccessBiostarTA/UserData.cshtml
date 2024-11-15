@@ -126,6 +126,11 @@
         currentDate.setFullYear(year);
         currentDate.setMonth(month - 1);
         $(this).datepicker("setDate", currentDate);
+        var startDateValue = $('#datepickerStart').val();
+        if (startDateValue) {
+          $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+          $('#datepickerEnd').prop('disabled', false);
+        }
       }
     });
 
@@ -251,6 +256,14 @@
       });
     }
 
+    // Show alert if no employees exist
+    $('#listEmployees .anchor').click(function () {
+      if ($('#listEmployees ul.items li').length === 1) { 
+        alert("Data Not Exist");
+        $('#listEmployees ul.items').css('display', 'none');
+      }
+    });
+
     // Function to disable or enable inputs
     function disableInputs(isDisabled) {
       $('#load').prop('disabled', isDisabled);
@@ -295,6 +308,10 @@
                 disableInputs(false);
                   return;
               } else {
+                if ($('#listEmployees ul.items li').length === 1) { 
+                  alert("Data Not Exist");
+                  $('#listEmployees ul.items').css('display', 'none');
+                } else
                 alert('Please select at least one employee.');
                 $('.loader').hide();
                 $('.button-text').show();

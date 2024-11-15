@@ -117,6 +117,11 @@
               currentDate.setFullYear(year);
               currentDate.setMonth(month - 1);
               $(this).datepicker("setDate", currentDate);
+              var startDateValue = $('#datepickerStart').val();
+              if (startDateValue) {
+                $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+                $('#datepickerEnd').prop('disabled', false);
+              }
             }
           });
 
