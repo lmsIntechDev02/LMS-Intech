@@ -2483,6 +2483,13 @@ namespace LeaveON.Controllers
       }
       catch (Exception ex)
       {
+        Console.WriteLine("Error: " + ex.ToString());
+        // Check for inner exception
+        if (ex.InnerException != null)
+        {
+          Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+        }
+
         throw (ex);
       }
 

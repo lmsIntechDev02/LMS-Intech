@@ -19,6 +19,7 @@ namespace LeaveON.Services
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042 };
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
+    LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
     public async Task ConnectToDBandFillBreakHours(DateTime startDate, DateTime endDate)
     {
       var overallStopwatch = Stopwatch.StartNew();
@@ -30,7 +31,9 @@ namespace LeaveON.Services
       SqlCommand cmd;
       SqlDataReader dr;
       List<string> logg = new List<string>();
-      List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
+       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
+      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "kashif.ijaz@intechww.com").ToList();
+
       List<BreakHour> LstBreakHours = new List<BreakHour>();
 
       con.Open();
@@ -48,6 +51,11 @@ namespace LeaveON.Services
         List<PunchLog> punchLogs = new List<PunchLog>();
         string timeZone = aspNetUser.CountryName?.TimeZone ?? string.Empty;
         string userGuidId = aspNetUser.Id;
+        if (string.IsNullOrEmpty(userGuidId))
+        {
+          Console.WriteLine($"Skipping user with invalid Id: {aspNetUser.BioStarEmpNum}");
+          continue;
+        }
 
         // Processing user country and timezone data
         if (aspNetUser.IsRelocated)
@@ -75,7 +83,18 @@ namespace LeaveON.Services
       }
 
       // After processing all users, save break hours
-      SaveBreakHours(LstBreakHours);
+      try
+      {
+        SaveBreakHours(LstBreakHours);
+      } 
+      catch (Exception ex)
+      {
+        Console.WriteLine("Exceptioin => " + ex.Message);
+        if (ex.InnerException != null)
+        {
+          Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+        }
+      }
     }
 
     private void ProcessBreakHours(List<PunchLog> punchLogs, AspNetUser aspNetUser, string timeZone, List<BreakHour> LstBreakHours)
@@ -103,6 +122,12 @@ namespace LeaveON.Services
 
             if (!exists)
             {
+
+              if (aspNetUser.BioStarEmpNum == null)
+              {
+                Console.WriteLine($"BioStarEmpNum is null for user with Id {aspNetUser.Id}. Skipping entry.");
+                continue;
+              }
               BreakHour breakEntry = new BreakHour
               {
                 UserId = aspNetUser.Id,
@@ -111,7 +136,7 @@ namespace LeaveON.Services
                 PunchIn = timeOutt,
                 PunchOut = timeInn
               };
-              Console.WriteLine($"Processing User: {breakEntry.BioStarEmpNum}, Date: {breakEntry.Date}");
+              Console.WriteLine($"Processing User: {breakEntry.UserId},{breakEntry.BioStarEmpNum}, Date: {breakEntry.Date}");
               LstBreakHours.Add(breakEntry);
             }
           }
@@ -135,6 +160,11 @@ namespace LeaveON.Services
     {
       foreach (var breakEntry in LstBreakHours)
       {
+        if (string.IsNullOrEmpty(breakEntry.UserId))
+        {
+          Console.WriteLine($"Skipping user with bio Id: {breakEntry.BioStarEmpNum}");
+          continue;
+        }
         bool dbExists = dbLeaveOn.BreakHours.Any(b =>
             b.UserId == breakEntry.UserId &&
             b.Date == breakEntry.Date &&
@@ -143,12 +173,19 @@ namespace LeaveON.Services
 
         if (!dbExists)
         {
-          Console.WriteLine($"BreakHours for user: {breakEntry.BioStarEmpNum}, Date: {breakEntry.Date}, PunchIn: {breakEntry.PunchIn}, PunchOut: {breakEntry.PunchOut}");
+
+          Console.WriteLine($"BreakHours for user: {breakEntry.UserId}, {breakEntry.BioStarEmpNum}, Date: {breakEntry.Date}, PunchIn: {breakEntry.PunchIn}, PunchOut: {breakEntry.PunchOut}");
           dbLeaveOn.BreakHours.Add(breakEntry);
         }
       }
-      Console.WriteLine("Saved");
-      dbLeaveOn.SaveChanges();
+      try
+      {
+        dbLeaveOn.SaveChanges();
+      }
+      catch (SqlException ex)
+      {
+        Console.WriteLine($"SQL Error: {ex.Message}");
+      }
     }
 
     public class PunchLog

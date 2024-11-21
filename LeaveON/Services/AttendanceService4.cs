@@ -19,6 +19,8 @@ namespace LeaveON.Services
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042 };
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
+    LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
+    
 
     public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
     {
@@ -34,16 +36,13 @@ namespace LeaveON.Services
       TimeSpan TotalTime = new TimeSpan();
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
-       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
+        List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       //mohsin.ali@intechww.com
       //Emmanuel.Dakore@intechww.com
       // Osaid.Hafeez@intechww.com
-      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "ahsan.ismail@intechww.com").ToList();
+      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "kashif.ijaz@intechww.com").ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       List<BreakHour> LstBreakHours = new List<BreakHour>();
-      string departmentID = string.Empty;
-      string deviceName = string.Empty;
-      string deviceID = string.Empty;
       con.Open();
       foreach (var aspNetUser in users)
       {
@@ -455,12 +454,15 @@ namespace LeaveON.Services
 
       foreach (var item in distinctTimeData)
       {
+        var value = dbLeaveOn.AttendanceDatas;
         // Check if the user arrives after 9:30 AM
         bool lateArrival = item.TimeIn.TimeOfDay > new TimeSpan(9, 30, 0);
         item.isLateArrival = lateArrival; 
         bool earlyDeparture = item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
         item.isEarlyDeparture = earlyDeparture;
         // Check if an attendance record already exists for this user on the same date
+    
+
         bool exists = dbLeaveOn.AttendanceDatas
             .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
                         DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
