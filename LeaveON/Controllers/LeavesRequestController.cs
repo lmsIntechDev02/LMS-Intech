@@ -429,7 +429,23 @@ namespace LeaveON.Controllers
         {
           if (leave.LeaveType.Id != 10 && leave.LeaveType.Id != 9 && leave.LeaveType.Id != 7 && leave.LeaveType.Id != 8) // Casual Short Day, Official Short Day, Official Full Day, and Work From Home
           {
-            if (daysCount <= balanceCheck)
+            if (leave.LeaveType.Id == 5) // Marriage Leave
+            {
+              int validDaysCount = Enumerable.Range(0, daysCount)
+                  .Select(offset => leave.StartDate.AddDays(offset))
+                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
+            }
+           else if (leave.LeaveType.Id == 1) // Sick Leave
+            {
+              int validDaysCount = Enumerable.Range(0, daysCount)
+                  .Select(offset => leave.StartDate.AddDays(offset))
+                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              leave.TotalDays = validDaysCount; // Set TotalDays for Sick leave
+            }
+            else if (daysCount <= balanceCheck)
             {
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
               leave.TotalDays = daysCount;
