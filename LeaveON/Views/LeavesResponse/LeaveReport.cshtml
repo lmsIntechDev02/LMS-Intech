@@ -48,7 +48,7 @@
           }*@
       </ul>
     </div> }
-  else if (User.IsInRole("Manager"))
+  else
   {
     // Department Dropdown for Manager (Single department, disabled)
     @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
@@ -279,7 +279,7 @@
 
 
 
-            if (userRole === "Admin" || userRole === "Manager") {
+      if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
               var selectedEmployees = [];
               $('#listEmployees input[type="checkbox"]:checked').each(function () {
                 selectedEmployees.push($(this).val());
@@ -328,14 +328,13 @@
               console.log("selectedEmployees", selectedEmployees)
 
               requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
-            } else if (userRole === "User") {
-              var employeeId = $('#selectedEmployees').val();
-              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
             }
-            @*else {
-              var employeeId = $('#listEmployees').val();
-              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId};
-            }*@
+
+            //else if (userRole === "User") {
+            //  var employeeId = $('#selectedEmployees').val();
+            //  requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
+            //}
+         
 
            // JSON.stringify(selectedEmployees)
               $.ajax({

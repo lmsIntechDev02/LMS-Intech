@@ -2897,7 +2897,7 @@ namespace LeaveON.Controllers
       return Json(new SelectList(selDepEmps, "Value", "Text"));
 
     }
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin,Manager,User")]
     public async Task<ActionResult> AbsenteesData(string ReqMonthYear, string DepartmentName, string UserId)
     {
       try
@@ -2935,8 +2935,7 @@ namespace LeaveON.Controllers
             ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName");
             ViewBag.SelectedEmployees = UserId;
           }
-          //else if (User.IsInRole("Manager") || User.IsInRole("User"))
-          else if (User.IsInRole("Manager"))
+          else if (User.IsInRole("Manager") || User.IsInRole("User"))
           {
             var managerDepartment = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
             ViewBag.Departments = new SelectList(new List<string> { managerDepartment });

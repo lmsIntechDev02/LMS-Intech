@@ -666,7 +666,7 @@ namespace LeaveON.Controllers
           ViewBag.SelectedEmployees = UserIds;
         }
         //else if (User.IsInRole("Manager") || User.IsInRole("User"))
-        else if (User.IsInRole("Manager"))
+        else if (User.IsInRole("Manager") || User.IsInRole("User"))
         {
 
           var managerDepartment = db.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
