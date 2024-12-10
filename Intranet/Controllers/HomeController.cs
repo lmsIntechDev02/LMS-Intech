@@ -19,6 +19,8 @@ namespace Intranet.Controllers
             List<string> loginsList = new List<string>();
             PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
             UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+            DirectoryEntry directoryEntry = (DirectoryEntry)currentUser.GetUnderlyingObject();
+            DateTime whenCreated = (DateTime)directoryEntry.Properties["whenCreated"].Value;
             loginsList.Add(currentUser.UserPrincipalName);
             var path = Server.MapPath(@"~/myLog.txt");
             System.IO.File.AppendAllLines(path, loginsList);
@@ -32,6 +34,8 @@ namespace Intranet.Controllers
 
             //currently using
             return Redirect("http://lms-stage.intechww.com/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue);//this for production *new test
+//            return Redirect("https://localhost:44380/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue);//this for production *new test
+
         }
         public ActionResult Sync()
         {
@@ -80,7 +84,6 @@ namespace Intranet.Controllers
 
             }
         }
-      
 
     }
 }
