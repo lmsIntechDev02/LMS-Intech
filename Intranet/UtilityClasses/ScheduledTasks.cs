@@ -305,6 +305,10 @@ namespace LeaveON.UtilityClasses
                 //return;
                 AspNetUser emp = new AspNetUser();
 
+                DateTime? whenCreated = de.Properties["whenCreated"].Value != null
+                    ? (DateTime?)de.Properties["whenCreated"].Value
+                   : null;
+
                 emp.UserName = Convert.ToString(de.Properties["userPrincipalName"].Value);
                 emp.Email = Convert.ToString(de.Properties["userPrincipalName"].Value);
                 emp.Id = Guid.NewGuid().ToString();
@@ -322,10 +326,11 @@ namespace LeaveON.UtilityClasses
                 emp.CntryName = Convert.ToString(de.Properties["co"].Value);
                 emp.IsActive = IsActive(de);
                 emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
+                emp.JoiningDate = whenCreated;
 
 
 
-                db.AspNetUsers.Add(emp);
+            db.AspNetUsers.Add(emp);
 
                 //----add user role
                 //if (String.IsNullOrEmpty( emp.CntryName ))
@@ -350,6 +355,19 @@ namespace LeaveON.UtilityClasses
             oldEmp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
             oldEmp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);
             oldEmp.DateModified = DateTime.Now;
+
+            // Retrieve "whenCreated" from DirectoryEntry
+            DateTime? whenCreated = de.Properties["whenCreated"].Value != null
+                ? (DateTime?)de.Properties["whenCreated"].Value
+                : null;
+
+            // Assign "JoiningDate" if it hasn't been set already
+            if (oldEmp.JoiningDate == null)
+            {
+                oldEmp.JoiningDate = whenCreated;
+            }
+
+
             db.AspNetUsers.Attach(oldEmp);
 
             db.Entry(oldEmp).Property(x => x.IsActive).IsModified = true;
@@ -357,6 +375,7 @@ namespace LeaveON.UtilityClasses
             db.Entry(oldEmp).Property(x => x.CntryName).IsModified = true;
             db.Entry(oldEmp).Property(x => x.BioStarEmpNum).IsModified = true;
             db.Entry(oldEmp).Property(x => x.DateModified).IsModified = true;
+            db.Entry(oldEmp).Property(x => x.JoiningDate).IsModified = true;
             //db.SaveChangesAsync();
             db.SaveChanges();
             //db.Entry(emp).State = EntityState.Modified;

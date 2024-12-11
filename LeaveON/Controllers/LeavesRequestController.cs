@@ -186,9 +186,11 @@ namespace LeaveON.Controllers
       //LstAspNetUser.Select(m => m.UserName.Substring(0, m.UserName.IndexOf('@')).Replace(".", " ")).ToList();
 
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
-      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId); // Replace with your DB query logic
-
-      ViewBag.JoiningDate = currentUser.DateCreated.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId); 
+//      ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+      ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
+             ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+             : "Joining date not available";
 
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
@@ -234,6 +236,12 @@ namespace LeaveON.Controllers
       //List<AspNetUser> Seniors = GetSeniorStaff();
       //ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+      //ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+      ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
+            ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+            : "Joining date not available";
+
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
 

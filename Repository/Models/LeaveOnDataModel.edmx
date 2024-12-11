@@ -101,6 +101,7 @@
           <Property Name="Manager2ID" Type="nvarchar" MaxLength="128" />
           <Property Name="Manager2Name" Type="nvarchar(max)" />
           <Property Name="Manager2Email" Type="nvarchar(max)" />
+          <Property Name="JoiningDate" Type="datetime" />
         </EntityType>
         <EntityType Name="AttendanceData">
           <Key>
@@ -128,10 +129,10 @@
           <Property Name="ManagerId" Type="varchar" MaxLength="255" />
           <Property Name="Manager2Id" Type="varchar" MaxLength="255" />
           <Property Name="UserID" Type="nvarchar" MaxLength="128" />
-          <Property Name="DepartmentID" Type="varchar" MaxLength="255" />
-          <Property Name="DEVID" Type="varchar" MaxLength="255" />
-          <Property Name="Devnm" Type="varchar" MaxLength="255" />
           <Property Name="TimeZone" Type="nvarchar(max)" />
+          <Property Name="DepartmentID" Type="nvarchar" MaxLength="128" />
+          <Property Name="DEVID" Type="nvarchar" MaxLength="128" />
+          <Property Name="Devnm" Type="nvarchar" MaxLength="128" />
         </EntityType>
         <EntityType Name="BreakHours">
           <Key>
@@ -691,6 +692,7 @@
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AttendanceDatas" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AspNetUser" ToRole="AttendanceData" />
           <NavigationProperty Name="BreakHours" Relationship="LeaveONModels.FK_BreakHours_UserId" FromRole="AspNetUser" ToRole="BreakHour" />
+          <Property Name="JoiningDate" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -1024,12 +1026,12 @@
           <Property Name="Manager2Email" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="BioStarEmpNum" Type="Int32" />
           <Property Name="UserID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="DepartmentID" Type="String" MaxLength="255" Unicode="false" FixedLength="false" />
+          <Property Name="DepartmentID" Type="String" MaxLength="128" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AttendanceData" ToRole="AspNetUser" />
-          <Property Name="DEVID" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DEVID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="ManagerId" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="Manager2Id" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
-          <Property Name="Devnm" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Devnm" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="TimeZone" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <Association Name="FK_AttendanceData_UserID">
@@ -1123,6 +1125,7 @@
           <EntitySetMapping Name="AspNetUsers">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUser">
               <MappingFragment StoreEntitySet="AspNetUsers">
+                <ScalarProperty Name="JoiningDate" ColumnName="JoiningDate" />
                 <ScalarProperty Name="Manager2Email" ColumnName="Manager2Email" />
                 <ScalarProperty Name="Manager2Name" ColumnName="Manager2Name" />
                 <ScalarProperty Name="Manager2ID" ColumnName="Manager2ID" />
