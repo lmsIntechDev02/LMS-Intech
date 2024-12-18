@@ -2450,6 +2450,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\AttendenceSercice5\" />
     <Folder Include="Views\Default\" />
     <Folder Include="Views\SelectWeakListHtmlHelper\" />
   </ItemGroup>

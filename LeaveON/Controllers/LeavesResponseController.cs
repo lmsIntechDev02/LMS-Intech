@@ -172,7 +172,6 @@ namespace LeaveON.Controllers
         await db.SaveChangesAsync();
         if (IsLineManager1 == "True")
         {
-          if (leave.IsAccepted1 > Consts.Rejected && leave.LineManager1Id != leave.LineManager2Id)
           {
             //sending email to 2nd admin for request of second acceptance
             AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);

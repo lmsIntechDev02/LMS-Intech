@@ -136,18 +136,18 @@ namespace LeaveON.UtilityClasses
                     foreach (var result in AllIntechUsers)
                     {
                         DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
-                        //Console.WriteLine("First Name: " + de.Properties["givenName"].Value);
-                        //Console.WriteLine("Last Name : " + de.Properties["sn"].Value);
-                        //Console.WriteLine("SAM account name   : " + de.Properties["samAccountName"].Value);
-                        //Console.WriteLine("User principal name: " + de.Properties["userPrincipalName"].Value);
-                        //Console.WriteLine();
-                        //if (de.Properties["userPrincipalName"].Value == null)
-                        //{
-                        //    continue;
-                        //}
-                        //DateTime WhenCreated = DateTime.Parse(de.Properties["whenCreated"].Value.ToString().Trim());
-                        //DateTime LastLogon = DateTime.ParseExact("01/01/2019", "dd/MM/yyyy", CultureInfo.InvariantCulture); //= DateTime.Parse(de.Properties["LastLogon"].Value.ToString().Trim());
-                        auth = result as AuthenticablePrincipal;
+                            //Console.WriteLine("First Name: " + de.Properties["givenName"].Value);
+                            //Console.WriteLine("Last Name : " + de.Properties["sn"].Value);
+                            //Console.WriteLine("SAM account name   : " + de.Properties["samAccountName"].Value);
+                            //Console.WriteLine("User principal name: " + de.Properties["userPrincipalName"].Value);
+                            //Console.WriteLine();
+                            //if (de.Properties["userPrincipalName"].Value == null)
+                            //{
+                            //    continue;
+                            //}
+                            //DateTime WhenCreated = DateTime.Parse(de.Properties["whenCreated"].Value.ToString().Trim());
+                            //DateTime LastLogon = DateTime.ParseExact("01/01/2019", "dd/MM/yyyy", CultureInfo.InvariantCulture); //= DateTime.Parse(de.Properties["LastLogon"].Value.ToString().Trim());
+                            auth = result as AuthenticablePrincipal;
 
                         if (auth == null || auth.UserPrincipalName == null || string.IsNullOrEmpty(auth.UserPrincipalName) || auth.Enabled == false)
                         {
@@ -330,7 +330,7 @@ namespace LeaveON.UtilityClasses
 
 
 
-            db.AspNetUsers.Add(emp);
+      db.AspNetUsers.Add(emp);
 
                 //----add user role
                 //if (String.IsNullOrEmpty( emp.CntryName ))
@@ -366,8 +366,8 @@ namespace LeaveON.UtilityClasses
             {
                 oldEmp.JoiningDate = whenCreated;
             }
-
-
+           
+           
             db.AspNetUsers.Attach(oldEmp);
 
             db.Entry(oldEmp).Property(x => x.IsActive).IsModified = true;
