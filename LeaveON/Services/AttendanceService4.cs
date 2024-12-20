@@ -91,7 +91,7 @@ namespace LeaveON.Services
         dr.Close();
 
         int rowsCount = records.Count;
-        Console.WriteLine($"Retrieved {rowsCount} attendance records for Employee: {aspNetUser.UserName}");
+        Console.WriteLine($"Retrieved {rowsCount} attendance records for Employee: {aspNetUser.UserName} , Created Date : {aspNetUser.DateCreated}");
 
         if (rowsCount <= 0) continue;
         DateTime firstDateTime = records.First().DevDt;
@@ -461,7 +461,7 @@ namespace LeaveON.Services
         bool earlyDeparture = item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
         item.isEarlyDeparture = earlyDeparture;
         // Check if an attendance record already exists for this user on the same date
-    
+        Console.WriteLine("distinctTimeData: " + item.EmployeeName + " for a: " + item.EmployeeNumber + " " + item.Date);
 
         bool exists = dbLeaveOn.AttendanceDatas
             .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&

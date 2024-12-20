@@ -163,9 +163,10 @@ namespace LeaveON.Services
 
                 //if(reportData.Department.ToLower() == "is&t")
                 //{
-                // GeneratePDFIndividuals(reportData, user.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
+                GeneratePDFIndividuals(reportData, user.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
               }
             }
+            Console.WriteLine($"Data not exist against this user {user.email}");
           }
 
         }
@@ -185,9 +186,13 @@ namespace LeaveON.Services
       try
       {
         mail.From = new MailAddress(LeavON_Email);
-        mail.To.Add(new MailAddress("haiderali98.ha61@gmail.com"));
+        mail.To.Add(new MailAddress(userEmail));
         mail.Subject = $"Monthly Report - {reportData.EmployeeName}";
         mail.Body = $"Attached is the monthly report for {reportData.EmployeeName}.";
+
+        Console.WriteLine($"Email Subject: {mail.Subject}");
+        Console.WriteLine($"Email Body: {mail.Body}");
+
 
         using (MemoryStream memoryStream = new MemoryStream())
         {
@@ -249,7 +254,16 @@ namespace LeaveON.Services
           mail.Attachments.Add(new Attachment(new MemoryStream(bytes), "MonthlyReport.pdf", "application/pdf"));
         }
 
-        smtpServer.Send(mail);
+        // Try to send the email and capture any exceptions
+        try
+        {
+          smtpServer.Send(mail);
+          Console.WriteLine("Email sent successfully.");
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine("Email sending failed: {ex.Message}");
+        }
       }
       catch (Exception ex)
       {
@@ -295,7 +309,7 @@ namespace LeaveON.Services
         Port = 587,
         EnableSsl = true
       };
-      var managerEmails = GetManagersIDs();
+        var managerEmails = GetManagersIDs();
       foreach (var data in reportData)
       {
         MailMessage mail = new MailMessage
@@ -318,8 +332,27 @@ namespace LeaveON.Services
         {
           foreach (var manager in managerEmails)
           {
-            mail.To.Add(new MailAddress(manager));
+            try
+            {
+              using (var context = new LeaveONEntities())
+              {
+                //var email = new MailAddress(manager); // This will throw if the email is invalid
+                //mail.To.Add(email);  // Add only if the email is valid
+                var managerEmail = context.AspNetUsers
+            .Where(u => u.ManagerID == manager || u.Manager2ID == manager)
+            .Select(u => u.Email) // Assuming the email field is named "Email"
+            .FirstOrDefault();
+                mail.To.Add(new MailAddress(managerEmail));
+              }
+            }
+            catch (FormatException)
+            {
+              // Handle invalid email format
+              Console.WriteLine($"Invalid email: {manager}");
+              // Optionally, log the invalid email or skip this iteration
+            }
           }
+
         }
 
         using (MemoryStream memoryStream = new MemoryStream())
@@ -363,6 +396,7 @@ namespace LeaveON.Services
         try
         {
           smtpServer.Send(mail);
+          Console.WriteLine("Email send successfully ...");
         }
         catch (Exception ex)
         {
@@ -384,8 +418,12 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-        var managersIDs = context.Managers.Select(x => x.UserID).ToList();
-
+       // var managersIDs = context.Managers.Select(x => x.UserID).ToList();
+        var managersIDs = context.AspNetUsers
+               .Where(user => !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)) // Filter out null or empty ManagerIDs
+               .Select(user => !string.IsNullOrEmpty(user.ManagerID) ? user.ManagerID : user.Manager2ID) // Select only ManagerID
+               .Distinct() // Ensure unique IDs (optional)
+               .ToList();
         return managersIDs;
       }
     }

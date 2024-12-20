@@ -151,7 +151,8 @@ namespace LeaveON.Controllers
       // Ensure Manager 1 exists
       if (!string.IsNullOrEmpty(aspNetUser.ManagerID))
       {
-        var managerExists = db.Managers.Any(m => m.UserID == aspNetUser.ManagerID);
+        //var managerExists = db.Managers.Any(m => m.UserID == aspNetUser.ManagerID);
+        var managerExists = db.AspNetUsers.Any(user => user.Id == aspNetUser.ManagerID || user.Id == aspNetUser.Manager2ID);
         if (!managerExists)
         {
           var newManager = new Manager
@@ -167,7 +168,9 @@ namespace LeaveON.Controllers
       // Ensure Manager 2 exists
       if (!string.IsNullOrEmpty(aspNetUser.Manager2ID))
       {
-        var manager2Exists = db.Managers.Any(m => m.UserID == aspNetUser.Manager2ID);
+        //var manager2Exists = db.Managers.Any(m => m.UserID == aspNetUser.Manager2ID);
+        var manager2Exists = db.AspNetUsers.Any(user => user.Id == aspNetUser.ManagerID || user.Id == aspNetUser.Manager2ID);
+
         if (!manager2Exists)
         {
           var newManager2 = new Manager
