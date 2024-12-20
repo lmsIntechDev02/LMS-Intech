@@ -15,7 +15,6 @@ namespace Repository.Models
     public partial class AttendanceData
     {
         public int id { get; set; }
-        public Nullable<int> EmployeeID { get; set; }
         public string UserName { get; set; }
         public string DepartmentName { get; set; }
         public string UserLeavePolicyID { get; set; }
@@ -33,5 +32,15 @@ namespace Repository.Models
         public string ManagerEmail { get; set; }
         public string CountryName { get; set; }
         public string Manager2Email { get; set; }
+        public Nullable<int> BioStarEmpNum { get; set; }
+        public string UserID { get; set; }
+        public string DepartmentID { get; set; }
+        public string DEVID { get; set; }
+        public string ManagerId { get; set; }
+        public string Manager2Id { get; set; }
+        public string Devnm { get; set; }
+        public string TimeZone { get; set; }
+    
+        public virtual AspNetUser AspNetUser { get; set; }
     }
 }

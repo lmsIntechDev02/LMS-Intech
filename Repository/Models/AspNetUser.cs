@@ -22,6 +22,8 @@ namespace Repository.Models
             this.Leaves = new HashSet<Leave>();
             this.LeaveBalances = new HashSet<LeaveBalance>();
             this.AspNetRoles = new HashSet<AspNetRole>();
+            this.AttendanceDatas = new HashSet<AttendanceData>();
+            this.BreakHours = new HashSet<BreakHour>();
         }
     
         public string Id { get; set; }
@@ -55,9 +57,8 @@ namespace Repository.Models
         public string Manager2ID { get; set; }
         public string Manager2Name { get; set; }
         public string Manager2Email { get; set; }
-        public string RoleId { get; set; }
-        
-
+        public Nullable<System.DateTime> JoiningDate { get; set; }
+    
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AspNetUserClaim> AspNetUserClaims { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -70,5 +71,9 @@ namespace Repository.Models
         public virtual ICollection<LeaveBalance> LeaveBalances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AspNetRole> AspNetRoles { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AttendanceData> AttendanceDatas { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<BreakHour> BreakHours { get; set; }
     }
 }

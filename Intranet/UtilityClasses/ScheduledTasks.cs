@@ -136,18 +136,18 @@ namespace LeaveON.UtilityClasses
                     foreach (var result in AllIntechUsers)
                     {
                         DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
-                        //Console.WriteLine("First Name: " + de.Properties["givenName"].Value);
-                        //Console.WriteLine("Last Name : " + de.Properties["sn"].Value);
-                        //Console.WriteLine("SAM account name   : " + de.Properties["samAccountName"].Value);
-                        //Console.WriteLine("User principal name: " + de.Properties["userPrincipalName"].Value);
-                        //Console.WriteLine();
-                        //if (de.Properties["userPrincipalName"].Value == null)
-                        //{
-                        //    continue;
-                        //}
-                        //DateTime WhenCreated = DateTime.Parse(de.Properties["whenCreated"].Value.ToString().Trim());
-                        //DateTime LastLogon = DateTime.ParseExact("01/01/2019", "dd/MM/yyyy", CultureInfo.InvariantCulture); //= DateTime.Parse(de.Properties["LastLogon"].Value.ToString().Trim());
-                        auth = result as AuthenticablePrincipal;
+                            //Console.WriteLine("First Name: " + de.Properties["givenName"].Value);
+                            //Console.WriteLine("Last Name : " + de.Properties["sn"].Value);
+                            //Console.WriteLine("SAM account name   : " + de.Properties["samAccountName"].Value);
+                            //Console.WriteLine("User principal name: " + de.Properties["userPrincipalName"].Value);
+                            //Console.WriteLine();
+                            //if (de.Properties["userPrincipalName"].Value == null)
+                            //{
+                            //    continue;
+                            //}
+                            //DateTime WhenCreated = DateTime.Parse(de.Properties["whenCreated"].Value.ToString().Trim());
+                            //DateTime LastLogon = DateTime.ParseExact("01/01/2019", "dd/MM/yyyy", CultureInfo.InvariantCulture); //= DateTime.Parse(de.Properties["LastLogon"].Value.ToString().Trim());
+                            auth = result as AuthenticablePrincipal;
 
                         if (auth == null || auth.UserPrincipalName == null || string.IsNullOrEmpty(auth.UserPrincipalName) || auth.Enabled == false)
                         {
@@ -305,6 +305,10 @@ namespace LeaveON.UtilityClasses
                 //return;
                 AspNetUser emp = new AspNetUser();
 
+                DateTime? whenCreated = de.Properties["whenCreated"].Value != null
+                    ? (DateTime?)de.Properties["whenCreated"].Value
+                   : null;
+
                 emp.UserName = Convert.ToString(de.Properties["userPrincipalName"].Value);
                 emp.Email = Convert.ToString(de.Properties["userPrincipalName"].Value);
                 emp.Id = Guid.NewGuid().ToString();
@@ -322,10 +326,11 @@ namespace LeaveON.UtilityClasses
                 emp.CntryName = Convert.ToString(de.Properties["co"].Value);
                 emp.IsActive = IsActive(de);
                 emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
+                emp.JoiningDate = whenCreated;
 
 
 
-                db.AspNetUsers.Add(emp);
+      db.AspNetUsers.Add(emp);
 
                 //----add user role
                 //if (String.IsNullOrEmpty( emp.CntryName ))
@@ -350,6 +355,19 @@ namespace LeaveON.UtilityClasses
             oldEmp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
             oldEmp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);
             oldEmp.DateModified = DateTime.Now;
+
+            // Retrieve "whenCreated" from DirectoryEntry
+            DateTime? whenCreated = de.Properties["whenCreated"].Value != null
+                ? (DateTime?)de.Properties["whenCreated"].Value
+                : null;
+
+            // Assign "JoiningDate" if it hasn't been set already
+            if (oldEmp.JoiningDate == null)
+            {
+                oldEmp.JoiningDate = whenCreated;
+            }
+           
+           
             db.AspNetUsers.Attach(oldEmp);
 
             db.Entry(oldEmp).Property(x => x.IsActive).IsModified = true;
@@ -357,6 +375,7 @@ namespace LeaveON.UtilityClasses
             db.Entry(oldEmp).Property(x => x.CntryName).IsModified = true;
             db.Entry(oldEmp).Property(x => x.BioStarEmpNum).IsModified = true;
             db.Entry(oldEmp).Property(x => x.DateModified).IsModified = true;
+            db.Entry(oldEmp).Property(x => x.JoiningDate).IsModified = true;
             //db.SaveChangesAsync();
             db.SaveChanges();
             //db.Entry(emp).State = EntityState.Modified;

@@ -1,4 +1,6 @@
 @model IEnumerable<LeaveON.UtilityClasses.TimeData>
+@using System.Globalization
+
 @{
 
   <div id="NewData">
@@ -48,8 +50,8 @@
                               Policy
                             </th>
                             @*<th>
-      Dep
-    </th>*@
+                                Dep
+                              </th>*@
                             <th>
                               @Html.DisplayNameFor(model => model.Date)
                             </th>
@@ -77,82 +79,85 @@
                         <tbody>
                           @foreach (var item in Model)
                           {
-                          <tr>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.EmployeeName)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.EmployeeNumber)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Department)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.TimeZone)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Policy)
-                            </td>
-                            @*<td>
-      @Html.DisplayFor(modelItem => item.)
-    </td>*@
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Date)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Day)
-                            </td>
-                            @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
+                            <tr>
+                              <td>
+                                @CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower())
+                              </td>
+                              <td>
+                                @Html.DisplayFor(modelItem => item.EmployeeNumber)
+                              </td>
+                              <td>
+                                @Html.DisplayFor(modelItem => item.Department)
+                              </td>
+                              <td>
+                                @Html.DisplayFor(modelItem => item.TimeZone)
+                              </td>
+                              <td>
+                                @Html.DisplayFor(modelItem => item.Policy)
+                              </td>
+                              @*<td>
+                                  @Html.DisplayFor(modelItem => item.)
+                                </td>*@
+                              <td>
+                                @Html.DisplayFor(modelItem => item.Date)
+                              </td>
+                              <td>
+                                @Html.DisplayFor(modelItem => item.Day)
+                              </td>
+                              @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
 
-                              if (item.WorkingHours != offDayTime)
-                              {
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.TimeIn)
-                                </td>
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.TimeOut)
-                                </td>
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.WorkingHours)
-                                </td>
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.TotalTime)
-                                </td>
-                              }
-                              else
-                              {
-                                <td>
-                                  <text>-</text>
-                                </td>
-                                <td>
-                                  <text>-</text>
-                                </td>
-                                <td>
-                                  <text>-</text>
-                                </td>
-                                <td>
-                                  <text>-</text>
-                                </td>
-                              }
-
-                            }
-
-                            <td>
-
-                              @{
-                                if (String.IsNullOrEmpty(item.Status))
+                                if (item.WorkingHours != offDayTime)
                                 {
-                                  @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })
+                                  <td>
+                                    @Html.DisplayFor(modelItem => item.TimeIn)
+                                  </td>
+                                  <td>
+                                    @Html.DisplayFor(modelItem => item.TimeOut)
+                                  </td>
+                                  <td>
+                                    @Html.DisplayFor(modelItem => item.WorkingHours)
+                                  </td>
+                                  <td>
+                                    @Html.DisplayFor(modelItem => item.TotalTime)
+                                  </td>
                                 }
                                 else
                                 {
-                                  @Html.DisplayFor(modelItem => item.Status)
+                                  <td>
+                                    <text>-</text>
+                                  </td>
+                                  <td>
+                                    <text>-</text>
+                                  </td>
+                                  <td>
+                                    <text>-</text>
+                                  </td>
+                                  <td>
+                                    <text>-</text>
+                                  </td>
                                 }
+
                               }
 
+                              <td>
 
-                            </td>
-                          </tr>
+                                @{
+                                  //if (String.IsNullOrEmpty(item.Status))
+                                  if (item.WorkingHours != offDayTime)
+                                  {
+                                       @*@Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
+                                    @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
+                                    @Html.DisplayFor(modelItem => item.Status)
+                                  }
+                                  else
+                                  {
+                                    @Html.DisplayFor(modelItem => item.Status)
+                                  }
+                                }
+
+
+                              </td>
+                            </tr>
                           }
                         </tbody>
                         <tfoot>
@@ -165,8 +170,9 @@
                             <td></td>
                             <td></td>
                             <td></td>
+                            @*<td style="font-weight:bold">@Html.DisplayNameFor(model => model.EmployeeName) Hours</td>*@
                             <td style="font-weight:bold">@ViewBag.TotalWorkingHours Hours</td>
-                            <td style="font-weight:bold">@Html.DisplayNameFor(model => model.EmployeeName) Hours</td>
+                            <td style="font-weight:bold">@ViewBag.TotalHours Hours</td>
                             <td></td>
                           </tr>
                         </tfoot>

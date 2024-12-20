@@ -28,7 +28,7 @@
     <span class="button-text">Go</span>
     <span class="loader" style="display: none;">Loading...</span>
   </button>
-
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
   @{ Html.RenderPartial("_UserData", Model); }
 </div>
 
@@ -43,26 +43,65 @@
     $('#datepickerStart').val('@ViewBag.StartDate');
     $('#datepickerEnd').val('@ViewBag.EndDate');
 
-    $('.datepicker').datepicker({
+    // Initialize start date picker
+    $('#datepickerStart').datepicker({
       dateFormat: 'dd-M-yy',
       changeMonth: true,
       changeYear: true,
       numberOfMonths: 1,
       maxDate: new Date(),
       onSelect: function (selectedDate) {
-        // Enable the end date picker after the start date is selected
+        // Set minDate for the end date based on the selected start date
         $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
         $('#datepickerEnd').prop('disabled', false);
+      },
+      onChangeMonthYear: function (year, month, inst) {
+        // Keep the calendar open and update month/year selection
+        var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+        currentDate.setFullYear(year);
+        currentDate.setMonth(month - 1);
+        $(this).datepicker("setDate", currentDate);
+        var startDateValue = $('#datepickerStart').val();
+        if (startDateValue) {
+          $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+          $('#datepickerEnd').prop('disabled', false);
+        }
       }
     });
 
-    // Initialize the end date picker (disabled initially)
+    // Initialize end date picker (disabled initially)
     $('#datepickerEnd').datepicker({
       dateFormat: 'dd-M-yy',
       changeMonth: true,
       changeYear: true,
-      numberOfMonths: 1
+      numberOfMonths: 1,
+      maxDate: new Date(),
+      beforeShow: function (input, inst) {
+        // Check if start date is selected
+        var startDate = $('#datepickerStart').datepicker('getDate');
+        if (startDate) {
+          $(this).datepicker("option", "minDate", startDate);
+        }
+      },
+      onSelect: function (selectedDate) {
+        $(this).datepicker("hide"); // Close only when a date is selected
+      },
+      onChangeMonthYear: function (year, month, inst) {
+        // Keep the calendar open on month/year change
+        var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+        currentDate.setFullYear(year);
+        currentDate.setMonth(month - 1);
+        $(this).datepicker("setDate", currentDate);
+      }
     }).prop('disabled', true);
+
+
+    // Check if the start date is set and set the minDate for the end date
+    var startDateValue = $('#datepickerStart').val();
+    if (startDateValue) {
+      $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+      $('#datepickerEnd').prop('disabled', false);
+    }
 
     // Function to disable or enable inputs
     function disableInputs(isDisabled) {
@@ -79,8 +118,10 @@
       // Show the loader and hide the button text
       $('.loader').show();
       $('.button-text').hide();
+      $("#wait").css("display", "block");
       disableInputs(true);
 
+          var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
           var startDate = $('#datepickerStart').val();
           var endDate = $('#datepickerEnd').val();
 
@@ -89,6 +130,7 @@
             alert('Please select a start date.');
             $('.loader').hide();
             $('.button-text').show();
+            $("#wait").css("display", "none");
             disableInputs(false);
             return;
           }
@@ -96,15 +138,17 @@
             alert('Please select an end date.');
             $('.loader').hide();
             $('.button-text').show();
+            $("#wait").css("display", "none");
             disableInputs(false);
             return;
           }
 
-          var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
-          var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
+
+      var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
+
 
             $.ajax({
-                url: "@Url.Action("UserData", "AccessBiostarTA")",
+                url: "@Url.Action("MyReportData", "AccessBiostarTA")",
                 data: requestData,
                 type: "POST",
                 success: function (data) {
@@ -117,6 +161,7 @@
                 // Hide the loader when the request is complete (success or error)
                 $('.loader').hide();
                 $('.button-text').show();
+                  $("#wait").css("display", "none");
                 disableInputs(false);
               }
             });

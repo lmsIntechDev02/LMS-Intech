@@ -19,12 +19,14 @@ namespace AutomatedReportTaskRunner
             // Initialize the service
             AutomatedReportService service = new AutomatedReportService();  // Make sure any dependencies are resolved
             if (DateTime.Today.Day == 26)
-            {
-                service.GetMonthlyReportData(4, 2024, true);
+                //if (today == new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month)))
+                {
+                    service.GetMonthlyReportData(month, year, true);
+                 // service.GetMonthlyReportData(month, year, true);
             }
-            else
             {
-                service.GetMonthlyReportData(6, 2023, false);
+                service.GetMonthlyReportData(month, year, false);
+             //   Console.WriteLine("Report will be generated on the last day of the month.");
             }
             Console.WriteLine("Automated Report Made");
         }

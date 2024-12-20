@@ -1,5 +1,6 @@
 @model IEnumerable<LeaveON.UtilityClasses.TimeData>
 
+
 @{ ViewBag.Title = "Index";
   Layout = "~/Views/Shared/_Layout.cshtml"; }
 
@@ -12,68 +13,67 @@
     // Department Dropdown for Admin (Multi-select)
     //@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments),
     //    htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Admin (Multi-select)
-  <div id="listDepartments" class="dropdown-check-list">
-    <span class="anchor">Select Departments</span>
-    <ul class="items">
-      @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
+    <div id="listDepartments" class="dropdown-check-list">
+      <span class="anchor">Select Departments</span>
+      <ul class="items">
+        @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
         {
-      <li>
-        <label for="dept_@department.Value">
-          <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
-        </label>
-      </li>
+          <li>
+            <label for="dept_@department.Value">
+              <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
+            </label>
+          </li>
         }
-    </ul>
-  </div>  @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-    htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+      </ul>
+    </div> @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+      htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
 
-  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-    <span class="anchor">Select Employees</span>
-    <ul class="items">
-    </ul>
-</div> }
-  else if (User.IsInRole("Manager") || User.IsInRole("User"))
+    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+      <span class="anchor">Select Employees</span>
+      <ul class="items">
+        @*<li>
+            <label for="selectAllEmployees">
+              <input type="checkbox" id="selectAllEmployees" /> Select All Employees
+            </label>
+          </li>
+          @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+          {
+            var username = employee.Text.Split('@')[0];
+            username = username.Replace(".", " ");
+            <li>
+              <label for="emp_@employee.Value">
+                <input type="checkbox" class="employeeCheckbox" value="@employee.Value" id="emp_@employee.Value"  /> @username
+              </label>
+            </li>
+          }*@
+      </ul>
+    </div> }
+  else
   {
     // Department Dropdown for Manager (Single department, disabled)
-  @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-                       htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
+    @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+                         htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
     // Employee List with Checkboxes for Manager (multi-select)
-  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-    <span class="anchor">Select Employees</span>
-    <ul class="items">
-      <li>
-        <label for="selectAllEmployees">
-          <input type="checkbox" id="selectAllEmployees" checked  /> Select All Employees
-        </label>
-      </li>
-      @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+      <span class="anchor">Select Employees</span>
+      <ul class="items">
+        <li>
+          <label for="selectAllEmployees">
+            <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
+          </label>
+        </li>
+        @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
         {
           var username = employee.Text.Split('@')[0];
           username = username.Replace(".", " ");
-      <li>
-        <label for="emp_@employee.Value">
-          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked  /> @username
-        </label>
-      </li>
+          <li>
+            <label for="emp_@employee.Value">
+              <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked /> @username
+            </label>
+          </li>
         }
-    </ul>
-  </div> }
-  @*else if (User.IsInRole("User"))
-  {
-    // Department Dropdown for User (Single department, disabled)
-  @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-             htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
-  @Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-             htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}*@
-
-
-  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
-
-  @*<button id="load">Go</button>*@
-
-
-  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
-
+      </ul>
+    </div>}
 
 
   @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
@@ -89,7 +89,7 @@
     <span class="loader" style="display: none;">Loading...</span>
   </button>
   <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
-  @{ Html.RenderPartial("_UserData", Model); }
+  @{Html.RenderPartial("_LeaveReport", Model); }
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -160,7 +160,6 @@
       }
     }).prop('disabled', true);
 
-
     // Check if the start date is set and set the minDate for the end date
     var startDateValue = $('#datepickerStart').val();
     if (startDateValue) {
@@ -210,7 +209,7 @@
       }
 
               $.ajax({
-            url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
+            url: '@Url.Action("GetUsersByDepartments", "LeavesResponse")',
             type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ departmentNames: selectedDepartments }),
@@ -256,14 +255,6 @@
       });
     }
 
-    // Show alert if no employees exist
-    $('#listEmployees .anchor').click(function () {
-      if ($('#listEmployees ul.items li').length === 1) { 
-        alert("Data Not Exist");
-        $('#listEmployees ul.items').css('display', 'none');
-      }
-    });
-
     // Function to disable or enable inputs
     function disableInputs(isDisabled) {
       $('#load').prop('disabled', isDisabled);
@@ -286,9 +277,9 @@
             var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
             var requestData;
 
-          
 
-            if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
+
+      if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
               var selectedEmployees = [];
               $('#listEmployees input[type="checkbox"]:checked').each(function () {
                 selectedEmployees.push($(this).val());
@@ -308,10 +299,6 @@
                 disableInputs(false);
                   return;
               } else {
-                if ($('#listEmployees ul.items li').length === 1) { 
-                  alert("Data Not Exist");
-                  $('#listEmployees ul.items').css('display', 'none');
-                } else
                 alert('Please select at least one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
@@ -338,19 +325,20 @@
                 return;
               }
 
+              console.log("selectedEmployees", selectedEmployees)
+
               requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
-            } else if (userRole === "User") {
-              var employeeId = $('#selectedEmployees').val();
-              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
             }
-            @*else {
-              var employeeId = $('#listEmployees').val();
-              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId};
-            }*@
+
+            //else if (userRole === "User") {
+            //  var employeeId = $('#selectedEmployees').val();
+            //  requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
+            //}
+         
 
            // JSON.stringify(selectedEmployees)
               $.ajax({
-                url: "@Url.Action("UserData", "AccessBiostarTA")",
+                url: "@Url.Action("LeaveReport", "LeavesResponse")",
                 data: requestData,
                   type: "POST",
                   success: function (data) {
@@ -507,7 +495,7 @@
   .ui-datepicker {
     width: 250px;
   }
-  
+
 
 </style>
 

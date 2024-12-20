@@ -333,7 +333,10 @@
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Services\AttendanceService.cs" />
+    <Compile Include="Services\AttendanceService2.cs" />
     <Compile Include="Services\AutomatedReportService.cs" />
+    <Compile Include="Services\BreakHoursService.cs" />
+    <Compile Include="Services\AttendanceService4.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="UtilityClasses\Dashboard.cs" />
     <Compile Include="UtilityClasses\TimeData.cs" />
@@ -2442,9 +2445,13 @@
     <Content Include="Views\AttendanceMachine\AttendaceUserData.cshtml" />
     <Content Include="Uploads\holidays.csv" />
     <Content Include="Views\AccessBiostarTA\UserReportData.cshtml" />
+    <Content Include="Views\LeavesResponse\LeaveReport.cshtml" />
+    <Content Include="Views\LeavesResponse\_LeaveReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\AttendenceSercice5\" />
+    <Folder Include="Views\Default\" />
     <Folder Include="Views\SelectWeakListHtmlHelper\" />
   </ItemGroup>
   <ItemGroup>
