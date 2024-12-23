@@ -187,9 +187,9 @@ namespace LeaveON.Services
       {
         mail.From = new MailAddress(LeavON_Email);
         mail.To.Add(new MailAddress(userEmail));
-        mail.Subject = $"Monthly Report - {reportData.EmployeeName}";
-        mail.Body = $"Attached is the monthly report for {reportData.EmployeeName}.";
-
+        mail.Subject = $"Monthly Attendance Report";
+        mail.Body = $"Dear {reportData.EmployeeName},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n";
+        Console.WriteLine($"Sending email to => {userEmail}");
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
 
@@ -315,9 +315,9 @@ namespace LeaveON.Services
         MailMessage mail = new MailMessage
         {
           From = new MailAddress(LeavON_Email),
-          Subject = $"Monthly Attendance Report for {data.EmployeeName}",
-          Body = "Attached is the monthly attendance report."
-        };
+          Subject = $"Monthly Attendance Report",
+          Body = $"Dear {data.EmployeeName},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
+      };
 
         // Check if legitimacy checks are needed
         if (legitimacyCheckForReports)
@@ -343,7 +343,9 @@ namespace LeaveON.Services
             .Select(u => u.Email) // Assuming the email field is named "Email"
             .FirstOrDefault();
                 mail.To.Add(new MailAddress(managerEmail));
+                Console.WriteLine($"Sending Manager email to => {managerEmail}");
               }
+
             }
             catch (FormatException)
             {
