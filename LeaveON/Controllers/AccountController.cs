@@ -191,18 +191,19 @@ namespace LeaveON.Controllers
       // ADUser = "Muzammil.Riaz@intechww.com";
       /*User*/
       ADUser = "nouman.sial@intechww.com";
+      //ADUser = "Omer.Khan @intechww.com";
 
-      // ADUser = "umme.kalsoom@intechww.com";
-      //ADUser = "laiba.khan@intechww.com";
-      // ADUser = "nouman.sial@intechww.com";
-      // ADUser = "lms.dev02@intechww.com";
-      //ADUser = "Usman.Ghani @intechww.com";
-      //ADUser = "Haseeb.hayat@intechww.com";
-      //ADUser = "haseeb.aslam@intechww.com";
-      //ADUser = "Khawaja.jawad@intechww.com";
-      //ADUser = "abdullah.abusalah@intechww.com";
-      //  ADUser = "lms.dev02@intechww.com";
-      //ali.raza@intechww.com
+       // ADUser = "umme.kalsoom@intechww.com";
+       //ADUser = "laiba.khan@intechww.com";
+       // ADUser = "nouman.sial@intechww.com";
+       // ADUser = "lms.dev02@intechww.com";
+       //ADUser = "Usman.Ghani @intechww.com";
+       //ADUser = "Haseeb.hayat@intechww.com";
+       //ADUser = "haseeb.aslam@intechww.com";
+       //ADUser = "Khawaja.jawad@intechww.com";
+       //ADUser = "abdullah.abusalah@intechww.com";
+       //  ADUser = "lms.dev02@intechww.com";
+       //ali.raza@intechww.com
 
       // test user
       // ADUser = "Bilal.Yasin@intechww.com";
@@ -675,10 +676,10 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult LoginAgain()
     {
-      //return Redirect("http://lms-stage.intechww.com/");
+      // return Redirect("http://lms-stage.intechww.com/");
 
-      //return Redirect("https://lms.intechww.com:1001/");
-      return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
+      return Redirect("https://lms.intechww.com:1001/");
+      //return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
     }
     //
     // GET: /Account/ExternalLoginFailure

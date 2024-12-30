@@ -22,7 +22,9 @@ namespace LeaveON.Services
     LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
     
 
-    public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
+    //public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
+      public async Task<List<TimeData>> ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
+
     {
       var overallStopwatch = Stopwatch.StartNew();
       Console.WriteLine("Connecting to database...");
@@ -511,7 +513,7 @@ namespace LeaveON.Services
       {
         Console.WriteLine("Saved");
         dbLeaveOn.SaveChanges();
-        Console.Read();
+        //Console.Read();
       }
       catch (DbEntityValidationException dbEx)
       {
@@ -535,7 +537,8 @@ namespace LeaveON.Services
       con.Close();
       overallStopwatch.Stop(); // Stop the overall timer
       Console.WriteLine($"Total execution time for ConnectToDBandFillAttendanceData: {overallStopwatch.ElapsedMilliseconds} ms");
-      return null;
+      return LstTimeData;
+      ;
     }
 
     private DateTime ConvertToCountryTimeZoneNew(DateTime dateTime, string timeZone)
