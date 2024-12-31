@@ -186,23 +186,24 @@ namespace LeaveON.Controllers
       //ADUser = "salman.saleem@intechww.com";
 
       /*Admin*/
-      //  ADUser = "asrar.ahmed@intechww.com";
+     //   ADUser = "asrar.ahmed@intechww.com";
       /*Manager*/
       // ADUser = "Muzammil.Riaz@intechww.com";
       /*User*/
-      ADUser = "nouman.sial@intechww.com";
+  //    ADUser = "nouman.sial@intechww.com";
+      //ADUser = "Omer.Khan @intechww.com";
 
-      // ADUser = "umme.kalsoom@intechww.com";
-      //ADUser = "laiba.khan@intechww.com";
-      // ADUser = "nouman.sial@intechww.com";
-      // ADUser = "lms.dev02@intechww.com";
-      //ADUser = "Usman.Ghani @intechww.com";
-      //ADUser = "Haseeb.hayat@intechww.com";
-      //ADUser = "haseeb.aslam@intechww.com";
-      //ADUser = "Khawaja.jawad@intechww.com";
-      //ADUser = "abdullah.abusalah@intechww.com";
-      //  ADUser = "lms.dev02@intechww.com";
-      //ali.raza@intechww.com
+       // ADUser = "umme.kalsoom@intechww.com";
+       //ADUser = "laiba.khan@intechww.com";
+       // ADUser = "nouman.sial@intechww.com";
+       // ADUser = "lms.dev02@intechww.com";
+       //ADUser = "Usman.Ghani @intechww.com";
+       //ADUser = "Haseeb.hayat@intechww.com";
+       //ADUser = "haseeb.aslam@intechww.com";
+       //ADUser = "Khawaja.jawad@intechww.com";
+       //ADUser = "abdullah.abusalah@intechww.com";
+       //  ADUser = "lms.dev02@intechww.com";
+       //ali.raza@intechww.com
 
       // test user
       // ADUser = "Bilal.Yasin@intechww.com";
@@ -211,10 +212,20 @@ namespace LeaveON.Controllers
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
 
-      if (user != null && !UserManager.IsInRole(user.Id, "User"))
-      {
+     // if (user != null && !UserManager.IsInRole(user.Id, "User"))
+     // {
        // UserManager.AddToRole(user.Id, "User");
        // UserManager.AddToRole(user.Id, "Manager");
+     // }
+
+      if (user != null)
+      {
+        var userRoles = UserManager.GetRoles(user.Id);
+        if (userRoles == null || !userRoles.Any())
+        {
+          // Assign "User" role to the user
+          UserManager.AddToRole(user.Id, "User");
+        }
       }
 
       if (user?.UserLeavePolicyId == null)
@@ -675,10 +686,10 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult LoginAgain()
     {
-      //return Redirect("http://lms-stage.intechww.com/");
+      // return Redirect("http://lms-stage.intechww.com/");
 
-      //return Redirect("https://lms.intechww.com:1001/");
-      return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
+      return Redirect("https://lms.intechww.com:1001/");
+      //return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
     }
     //
     // GET: /Account/ExternalLoginFailure
