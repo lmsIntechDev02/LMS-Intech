@@ -203,7 +203,7 @@ namespace LeaveON.Services
           }
         }
       //  GeneratePDFManager(managerReportOfUsersList, totalWorkDays, monthName, legetimacyCheckForReports, legitimacyCheckers, sentEmails);
-        GeneratePDFManager1(managerReportOfUsersList, totalWorkDays, monthName, managerEmail, legetimacyCheckForReports, legitimacyCheckers);
+        GeneratePDFManager1(managerReportOfUsersList, totalWorkDays, monthName, year, managerEmail, legetimacyCheckForReports, legitimacyCheckers);
       }
 
       return null;
@@ -334,7 +334,7 @@ namespace LeaveON.Services
 
       return workingDays;
     }
-    public void GeneratePDFManager1(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
+    public void GeneratePDFManager1(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, int year, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
     {
 
       if (reportData == null || reportData.Count == 0)
@@ -379,7 +379,7 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
        // mail.To.Add("laiba.khan@intechww.com");
-        //mail.To.Add("nouman.sial@intechww.com");
+       // mail.To.Add("nouman.sial@intechww.com");
         mail.To.Add("saeed.dev125@gmail.com");
       }
 
@@ -393,14 +393,14 @@ namespace LeaveON.Services
         document.Open();
 
         //PdfPTable table = new PdfPTable(9); // Assuming 8 columns as before
-        PdfPTable table = new PdfPTable(new float[] { 2, 3, 3, 2, 2, 2, 2, 2, 2 });
+        PdfPTable table = new PdfPTable(new float[] { 2, 3, 2, 2, 2.5f, 2.5f, 2, 2.5f });
         table.WidthPercentage = 100;
 
         // Header
 
         // Title row above "Number of working days"
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
-        PdfPCell titleCell = new PdfPCell(new Phrase("Monthly Attendance Summary Report", titleFont))
+        PdfPCell titleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", titleFont))
         {
           Colspan = 9, // Spanning all 9 columns
           HorizontalAlignment = Element.ALIGN_CENTER,
@@ -410,7 +410,7 @@ namespace LeaveON.Services
         table.AddCell(titleCell);
 
         Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
-        PdfPCell headerCell = new PdfPCell(new Phrase($"Number of working days in {monthName}: {totalWorkDays}", headerFont))
+        PdfPCell headerCell = new PdfPCell(new Phrase($"Number of working days: {totalWorkDays}", headerFont))
         {
           Colspan = 9,
           HorizontalAlignment = Element.ALIGN_CENTER,
@@ -428,7 +428,7 @@ namespace LeaveON.Services
         table.AddCell(headerCell2);
 
         // Column headers
-        string[] headers = {  "Employee ID", "Employee Name", "Department", "Average \nEntry Time", "Average \nExit Time", "Total Working Days", "Absent\nLeaves Days", "Work From \nHome Days", "Official Days \nOff" };
+        string[] headers = {  "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
         Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
         foreach (var header in headers)
         {
@@ -438,28 +438,46 @@ namespace LeaveON.Services
             BackgroundColor = BaseColor.GRAY,
             Padding = 5
           };
-       /*   PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
-          {
-            HorizontalAlignment = Element.ALIGN_CENTER,
-            VerticalAlignment = Element.ALIGN_CENTER,
-            BackgroundColor = new BaseColor(100, 120, 150),
-            //Padding = 5
-          };*/
           table.AddCell(colHeaderCell);
-
         }
 
         // Data rows
         Font dataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
         Font nameFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
         BaseColor yellowColor = new BaseColor(255, 255, 0);
+        // Sort data by Department, then by EmployeeName
         reportData = reportData
-            .OrderBy(data => data.Department) // Pehle Department ke mutabiq sort karein
-            .ThenBy(data => data.EmployeeName) // Phir EmployeeName ke mutabiq sort karein
+            .OrderBy(data => data.Department)
+            .ThenBy(data => data.EmployeeName)
             .ToList();
 
+        // Initialize variables
+        string currentDepartment = null;
+        Font departmnetFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
+        BaseColor departmentRowColor = new BaseColor(200, 200, 200); // Light gray background for department rows
+
+        // Iterate through the sorted data
         foreach (var data in reportData)
         {
+          // Check if the department has changed
+          if (currentDepartment != data.Department)
+          {
+            // Update the current department
+            currentDepartment = data.Department;
+
+            // Add a department row
+            PdfPCell departmentCell = new PdfPCell(new Phrase(currentDepartment, departmnetFont))
+            {
+              Colspan = 9, // Span across all columns
+              HorizontalAlignment = Element.ALIGN_LEFT,
+              BackgroundColor = departmentRowColor,
+              PaddingLeft = 20,
+              Padding = 5
+            };
+            table.AddCell(departmentCell);
+          }
+
+          // Add employee data rows
           PdfPCell cell;
 
           cell = new PdfPCell(new Phrase(data.EmployeeID.ToString(), nameFont))
@@ -468,20 +486,10 @@ namespace LeaveON.Services
           };
           table.AddCell(cell);
 
-          //  cell = new PdfPCell(new Phrase(data.EmployeeName, nameFont))
-          cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), nameFont))
+         // cell = new PdfPCell(new Phrase(data.EmployeeName, dataFont))
+        cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), nameFont))
           {
-            HorizontalAlignment = PdfPCell.ALIGN_LEFT
-          };
-          table.AddCell(cell);
-
-        
-
-          cell = new PdfPCell(new Phrase(data.Department, dataFont))
-          // cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.Department), dataFont))
-
-          {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+             HorizontalAlignment = PdfPCell.ALIGN_LEFT
           };
           table.AddCell(cell);
 
@@ -505,8 +513,7 @@ namespace LeaveON.Services
 
           cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
           {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
-            BackgroundColor = BaseColor.WHITE
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
           table.AddCell(cell);
 
@@ -522,6 +529,7 @@ namespace LeaveON.Services
           };
           table.AddCell(cell);
         }
+
 
         document.Add(table);
         document.Close();

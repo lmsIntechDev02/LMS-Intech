@@ -186,11 +186,11 @@ namespace LeaveON.Controllers
       //ADUser = "salman.saleem@intechww.com";
 
       /*Admin*/
-      //  ADUser = "asrar.ahmed@intechww.com";
+     //   ADUser = "asrar.ahmed@intechww.com";
       /*Manager*/
       // ADUser = "Muzammil.Riaz@intechww.com";
       /*User*/
-      ADUser = "nouman.sial@intechww.com";
+  //    ADUser = "nouman.sial@intechww.com";
       //ADUser = "Omer.Khan @intechww.com";
 
        // ADUser = "umme.kalsoom@intechww.com";
@@ -212,10 +212,20 @@ namespace LeaveON.Controllers
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
 
-      if (user != null && !UserManager.IsInRole(user.Id, "User"))
-      {
+     // if (user != null && !UserManager.IsInRole(user.Id, "User"))
+     // {
        // UserManager.AddToRole(user.Id, "User");
        // UserManager.AddToRole(user.Id, "Manager");
+     // }
+
+      if (user != null)
+      {
+        var userRoles = UserManager.GetRoles(user.Id);
+        if (userRoles == null || !userRoles.Any())
+        {
+          // Assign "User" role to the user
+          UserManager.AddToRole(user.Id, "User");
+        }
       }
 
       if (user?.UserLeavePolicyId == null)
