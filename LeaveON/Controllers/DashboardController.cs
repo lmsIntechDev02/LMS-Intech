@@ -48,10 +48,12 @@ namespace LeaveON.Controllers
       dashboard.MyLeavesApproved = LstLeaveAprovalApproved.Count;
 
       List<UserLeavePolicyDetail> TotalAnnualLeaves = userLeavePolicy.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId &&  x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
-      dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Count;
+    //  dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Count;
+      dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Sum(x => x.Allowed ?? 0);
+
 
       List<Leave> BalanceAnnualLeaves = db.Leaves.Where(x => x.UserId == userId && x.IsAccepted1 > 0 && x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
-      int approvedAnnaulLeaves = BalanceAnnualLeaves.Count;
+      int approvedAnnaulLeaves = (int)BalanceAnnualLeaves.Sum(x => x.TotalDays ?? 0);
       dashboard.BalanceAnnualLeaves = dashboard.TotalAnnualLeaves - approvedAnnaulLeaves;
 
 

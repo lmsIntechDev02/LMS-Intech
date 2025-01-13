@@ -427,8 +427,8 @@ namespace LeaveON.Controllers
             //Get from AnnualLeaveManager table
             admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
               db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-            //admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 2205);
-            leave.LineManager1Id = admin1.Id;
+          // admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 1179);
+           // leave.LineManager1Id = admin1.Id;
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
           }
           else
@@ -513,6 +513,7 @@ namespace LeaveON.Controllers
       leave.DateCreated = DateTime.Now;
       leave.LeaveTypeId = CompensatoryLeaveTypeId;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == CompensatoryLeaveTypeId);
+      leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       TimeSpan duration = leave.EndDate - leave.StartDate;
       leave.TotalDays = duration.Days + 1; //total days including weekends
 
