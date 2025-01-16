@@ -202,6 +202,9 @@ namespace LeaveON.Controllers
         };
         db.LeaveBalances.Add(leaveBalance);
       }
+
+      var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+
       //// Now proceed with your logic for calculating additional days taken
       //int existingTaken = (int)leaveBalance.Taken;
       //int additionalDaysTaken = Utility.GetAdditionalCasualLeaveCountFromShortLeave(leaveUserId, existingTaken);
@@ -215,7 +218,7 @@ namespace LeaveON.Controllers
       //  // Save changes to the database
       //  await db.SaveChangesAsync();
       //}
-      
+
       //userLeavePolicy.LeaveBalances.Add(new LeaveBalance { Taken = Utility.GetCasualLeaveCountFromShortLeave(leaveUserId), UserId = leaveUserId, LeaveTypeId = Consts.CasualShortLeaveTypeId });
 
       userLeavePolicyViewModel.userLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.AsQueryable<UserLeavePolicyDetail>();

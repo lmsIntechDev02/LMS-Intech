@@ -36,6 +36,7 @@ namespace LeaveON.Services
       public string CountryName { get; set; }
       public string ManagerEmail { get; set; }
       public string Manager2Email { get; set; }
+      public int TotalDays { get; set; }
     }
     public class EmailAndIDs
     {
@@ -47,7 +48,8 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-        var users = context.AspNetUsers.Where(y => y.CntryName == "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
+        //  var users = context.AspNetUsers.Where(y => y.CntryName != "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
+        var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower())
         .Select(x => new EmailAndIDs
         {
           userId = x.BioStarEmpNum.Value,
@@ -157,13 +159,14 @@ namespace LeaveON.Services
                 OfficialDaysOff = attendanceData.Count(x => x.LeaveTypeID == 8 || x.LeaveTypeID == 9),
                 CountryName = attendanceData.First().CountryName,
                 ManagerEmail = managerEmail,
+                TotalDays = totalWorkDays,
               };
               managerReportOfUsersList.Add(reportData);
               if (legetimacyCheckForReports)//make it true again, false is for testing
               {
                 foreach (EmailAndIDs legitChecker in legitimacyCheckers)
                 {
-             //     GeneratePDFIndividuals(reportData, legitChecker.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
+              //    GeneratePDFIndividuals(reportData, legitChecker.email, totalWorkDays, monthName); // Pass the user's email to the PDF generation and sending function
                 }
               }
               else
@@ -221,6 +224,7 @@ namespace LeaveON.Services
       {
         mail.From = new MailAddress(LeavON_Email);
         mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
+        //  mail.To.Add(new MailAddress(userEmail));
         mail.Subject = $"Monthly Attendance Report";
         mail.Body = $"Dear {reportData.EmployeeName},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n";
         Console.WriteLine($"Sending email to => {userEmail}");
@@ -349,6 +353,8 @@ namespace LeaveON.Services
          .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
          .Select(user => user.Email) // Select the corresponding email
          .FirstOrDefault(); // Get the first match or null if no match
+
+
       string MangerName = managerEmailName.Split('@')[0].Replace('.', ' ');
 
       SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
@@ -363,7 +369,7 @@ namespace LeaveON.Services
       {
         From = new MailAddress(LeavON_Email),
         Subject = $"Monthly Attendance Summary Report",
-        Body = $"Dear {managerEmailName.Split('@')[0].Replace('.', ' ')},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
+        Body = $"Dear {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerEmailName.Split('@')[0].Replace('.', ' '))},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
       };
 
       // Check if legitimacy checks are needed
@@ -378,13 +384,15 @@ namespace LeaveON.Services
       {
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
-       // mail.To.Add("laiba.khan@intechww.com");
-       // mail.To.Add("nouman.sial@intechww.com");
+          mail.To.Add("laiba.khan@intechww.com");
+        // mail.To.Add("nouman.sial@intechww.com");
+        // mail.To.Add("somia.waseem@acme-one.com");
         mail.To.Add("saeed.dev125@gmail.com");
+        //  mail.To.Add(managerEmailName);
       }
 
-   
-   
+
+
 
       using (MemoryStream memoryStream = new MemoryStream())
       {
@@ -393,7 +401,8 @@ namespace LeaveON.Services
         document.Open();
 
         //PdfPTable table = new PdfPTable(9); // Assuming 8 columns as before
-        PdfPTable table = new PdfPTable(new float[] { 2, 3, 2, 2, 2.5f, 2.5f, 2, 2.5f });
+        PdfPTable table = new PdfPTable(new float[] { 2, 3, 2, 2, 2, 2, 3, 2.5f, 2.5f });
+
         table.WidthPercentage = 100;
 
         // Header
@@ -410,14 +419,14 @@ namespace LeaveON.Services
         table.AddCell(titleCell);
 
         Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
-        PdfPCell headerCell = new PdfPCell(new Phrase($"Number of working days: {totalWorkDays}", headerFont))
-        {
-          Colspan = 9,
-          HorizontalAlignment = Element.ALIGN_CENTER,
-          BackgroundColor = new BaseColor(0, 51, 102),
-          Padding = 8
-        };
-        table.AddCell(headerCell);
+        //PdfPCell headerCell = new PdfPCell(new Phrase($"Number of working days: {totalWorkDays}", headerFont))
+        //{
+        //  Colspan = 9,
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 8
+        //};
+        //table.AddCell(headerCell);
         PdfPCell headerCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headerFont))
         {
           Colspan = 9,
@@ -428,7 +437,7 @@ namespace LeaveON.Services
         table.AddCell(headerCell2);
 
         // Column headers
-        string[] headers = {  "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
+        string[] headers = {  "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total\n Days", "Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
         Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
         foreach (var header in headers)
         {
@@ -505,7 +514,13 @@ namespace LeaveON.Services
           };
           table.AddCell(cell);
 
-          cell = new PdfPCell(new Phrase((totalWorkDays - data.AbsentDays).ToString(), dataFont))
+          cell = new PdfPCell(new Phrase(data.TotalDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase((data.TotalDays - data.AbsentDays).ToString(), dataFont))
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
@@ -598,7 +613,7 @@ namespace LeaveON.Services
         {
           From = new MailAddress(LeavON_Email),
           Subject = $"Monthly Attendance Report",
-          Body = $"Dear {managerEmail.Split('@')[0].Replace('.', ' ')},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
+          Body = $"Dear {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerEmail.Split('@')[0].Replace('.', ' '))},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
         };
 
         // Check if legitimacy checks are needed
@@ -759,12 +774,34 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-       // var managersIDs = context.Managers.Select(x => x.UserID).ToList();
+           var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "G&A", "iCSG" };
+        //  var allowedDepartments = new[] { "IS&T" };
+        //var managersIDs = context.AspNetUsers
+        //    .Where(user =>
+        //        allowedDepartments.Contains(user.DepartmentName) &&
+        //        (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID))) // Correct grouping
+        //    .Select(user =>
+        //        !string.IsNullOrEmpty(user.ManagerID) ? user.ManagerID : user.Manager2ID) // Select ManagerID or Manager2ID
+        //    .Distinct() // Ensure unique IDs
+        //    .ToList();
+
         var managersIDs = context.AspNetUsers
-               .Where(user => !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)) // Filter out null or empty ManagerIDs
-               .Select(user => !string.IsNullOrEmpty(user.ManagerID) ? user.ManagerID : user.Manager2ID) // Select only ManagerID
-               .Distinct() // Ensure unique IDs (optional)
-               .ToList();
+    .Where(user =>
+        allowedDepartments.Contains(user.DepartmentName) &&
+        (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)))
+    .SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
+    .Where(id => !string.IsNullOrEmpty(id)) // Filter out null or empty IDs
+    .Distinct() // Ensure unique IDs
+    .ToList();
+
+
+        // var managersIDs = context.AspNetUsers
+        //.Where(user => !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)) // Filter out null or empty ManagerIDs
+        //.Select(user => !string.IsNullOrEmpty(user.ManagerID) ? user.ManagerID : user.Manager2ID) // Select only ManagerID
+        //.Distinct() // Ensure unique IDs (optional)
+        //.ToList();
+
+
 
         foreach (var managerID in managersIDs)
         {
