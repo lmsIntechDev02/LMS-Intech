@@ -385,7 +385,7 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
           mail.To.Add("laiba.khan@intechww.com");
-        // mail.To.Add("nouman.sial@intechww.com");
+         mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
         mail.To.Add("saeed.dev125@gmail.com");
         //  mail.To.Add(managerEmailName);
@@ -774,7 +774,7 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-           var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "G&A", "iCSG" };
+           var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
         //  var allowedDepartments = new[] { "IS&T" };
         //var managersIDs = context.AspNetUsers
         //    .Where(user =>

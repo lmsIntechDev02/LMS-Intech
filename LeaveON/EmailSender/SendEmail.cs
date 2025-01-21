@@ -85,9 +85,9 @@ namespace LeaveON.EmailSender
           case "LeaveResponse":
             if (userLeave.LeaveTypeId == Consts.CompensatoryLeaveTypeId)
             {
-              mail.Subject = sender.UserName + " posted a Leave response";
-              emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/?ReturnUrl=http://lms-stage.intechww.com/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
-              //  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
+              mail.Subject = sender.UserName + " posted a Leave response";  
+              emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesRequest/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
+              //  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
               emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
               break;
             }
