@@ -43,7 +43,7 @@ namespace LeaveON.EmailSender
 
         mail.From = new MailAddress(LeavON_Email);
         mail.To.Add(new MailAddress(receiver.Email));
-       // mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
+        // mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
         //mail.CC.Add(new MailAddress("hrsupport@intechww.com"));
         //mail.CC.Add(new MailAddress("waqqasjavaid@gmail.com"));
         //-----------------
@@ -86,17 +86,17 @@ namespace LeaveON.EmailSender
             if (userLeave.LeaveTypeId == Consts.CompensatoryLeaveTypeId)
             {
               mail.Subject = sender.UserName + " posted a Leave response";  
-              emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesRequest/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
-              //  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
+              emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
+              //  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/EditCompensatoryQuotaRequest/Edit/" + userLeave.Id);
               emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
               break;
             }
             else
             {
             mail.Subject = sender.UserName + " posted a Leave response";
-            emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesRequest/Edit/" + userLeave.Id);  
-            //  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/Edit/" + userLeave.Id);
-            emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
+            emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/Edit/" + userLeave.Id);
+              //  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/Edit/" + userLeave.Id);
+              emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
               break;
             }
            

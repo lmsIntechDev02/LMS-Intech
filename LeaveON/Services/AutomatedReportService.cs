@@ -134,6 +134,12 @@ namespace LeaveON.Services
               double averageTimeInSecondsIn = validPunchIns.Any() ? validPunchIns.Average() : 0;
               double averageTimeInSecondsOut = validPunchOuts.Any() ? validPunchOuts.Average() : 0;
 
+              if (averageTimeInSecondsIn == 0 && averageTimeInSecondsOut == 0)
+              {
+                Console.WriteLine($"Data not exist against this {user.email.Split('@')[0].Replace('.', ' ')}.");
+                continue;
+              }
+
               // Convert average seconds to TimeSpan
               TimeSpan averageTimeIn = TimeSpan.FromSeconds(averageTimeInSecondsIn);
               TimeSpan averageTimeOut = TimeSpan.FromSeconds(averageTimeInSecondsOut);
@@ -384,11 +390,11 @@ namespace LeaveON.Services
       {
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
-          mail.To.Add("laiba.khan@intechww.com");
-         mail.To.Add("nouman.sial@intechww.com");
+       // mail.To.Add("laiba.khan@intechww.com");
+       // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-        mail.To.Add("saeed.dev125@gmail.com");
-        //  mail.To.Add(managerEmailName);
+      // mail.To.Add("saeed.dev125@gmail.com");
+        mail.To.Add(managerEmailName);
       }
 
 
@@ -774,8 +780,9 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-           var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
-        //  var allowedDepartments = new[] { "IS&T" };
+          var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
+
+      //  var allowedDepartments = new[] { "IS&T" };
         //var managersIDs = context.AspNetUsers
         //    .Where(user =>
         //        allowedDepartments.Contains(user.DepartmentName) &&
@@ -801,13 +808,20 @@ namespace LeaveON.Services
         //.Distinct() // Ensure unique IDs (optional)
         //.ToList();
 
+        // Manager ID to exclude
+        var excludedManagerID = "708ada81-4409-48a0-905b-769b7b0da6b0";
+
+        // Exclude the specific manager ID
+        var filteredManagersIDs = managersIDs
+            .Where(id => id != excludedManagerID)
+            .ToList();
 
 
-        foreach (var managerID in managersIDs)
+        foreach (var managerID in filteredManagersIDs)
         {
           Console.WriteLine($"managerID => { managerID}");
         }
-        return managersIDs;
+        return filteredManagersIDs;
       }
     }
     private List<string> GetManagerEmailByDepartment(string department)
