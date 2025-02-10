@@ -151,8 +151,8 @@
 
                                 @{if (item.WorkingHours != offDayTime)
                                   {
-                                  @*@Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
-                                  @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
+                                    @*@Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
+                                    @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
                                   }
                                   @Html.DisplayFor(modelItem => item.Status)
                                 }
@@ -196,21 +196,26 @@
   </div>
 }
 <script>
-  $(function () {
-    $("#example1").DataTable({
-      "responsive": true,
-      "autoWidth": false,
-    });
-    $('#example2').DataTable({
-      "paging": false,
-      "lengthChange": false,
-      "searching": true,
-      "ordering": true,
-      "info": false,
-      "autoWidth": false,
-      "responsive": true,
-      "order": [[5, "asc"]]
-    });
+    $.fn.dataTable.ext.type.order['date-uk-pre'] = function (date) {
+      var parts = date.split('-');
+    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+  };
+
+    $(function () {
+      $('#example2').DataTable({
+        "paging": false,
+        "lengthChange": false,
+        "searching": true,
+        "ordering": true,
+        "info": false,
+        "autoWidth": false,
+        "responsive": true,
+        "order": [[6, "asc"]], 
+        "columnDefs": [
+          { "type": "date-uk", "targets": 6 }
+        ]
+      });
   });
 </script>
+
 

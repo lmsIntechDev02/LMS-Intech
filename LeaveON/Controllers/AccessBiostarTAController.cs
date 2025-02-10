@@ -2571,8 +2571,8 @@ namespace LeaveON.Controllers
           //in case of null param or first time
           if (!(LstAttendances is null))
           {
-            return View(LstAttendances.OrderBy(i => i.Date).ToList());
-
+          //  return View(LstAttendances.OrderByDescending(i => i.Date).ToList());
+            return View(LstAttendances.OrderByDescending(i => i.Date).ToList());
           }
           else
           {

@@ -178,6 +178,10 @@
 
 <!-- page script -->
 <script>
+  $.fn.dataTable.ext.type.order['date-uk-pre'] = function (date) {
+    var parts = date.split('-');
+    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+  };
   $(function () {
     $("#example1").DataTable({
       "responsive": true,
@@ -191,7 +195,10 @@
       "info": false,
       "autoWidth": false,
       "responsive": true,
-      "order": [[5, "desc"]]
+      "order": [[1, "asc"]],
+      "columnDefs": [
+        { "type": "date-uk", "targets": 1 }
+      ]
     });
   });
 </script>
