@@ -1995,6 +1995,16 @@ namespace LeaveON.Controllers
 
         if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
 
+        // Fetch UserId and UserLeavePolicyID from AspNetUsers based on BioStarEmpNum
+        var userData = dbLeaveOn.AspNetUsers
+            .Where(u => u.BioStarEmpNum == UserId)
+            .Select(u => new { u.Id, u.UserLeavePolicyId })
+            .FirstOrDefault();
+
+        if (userData == null) continue; // Skip if user not found
+
+        int? userLeavePolicyId = userData.UserLeavePolicyId;
+
         // Process each attendance record
         foreach (var record in attendanceRecords)
         {
@@ -2012,15 +2022,56 @@ namespace LeaveON.Controllers
           totalTimeAllUsers += totalTime;
 
           //Chek weekend
-          string status;
-          if(record.CreatedDate.HasValue && (record.CreatedDate.Value.DayOfWeek == DayOfWeek.Saturday || record.CreatedDate.Value.DayOfWeek == DayOfWeek.Sunday))
+          string status = "Absent";
+
+          if (record.CreatedDate.HasValue)
           {
-            status = "Weekend";
-          } 
-          else
-          {
-            status = record.IsAbsent == true ? "Absent" : null;
+            DateTime currentDate = record.CreatedDate.Value;
+
+            // Check if the day is a weekend
+            if (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday)
+            {
+              status = "Weekend";
+            }
+            else
+            {
+              // Check officialOffDay 
+              var officialOffDay = dbLeaveOn.AnnualOffDays
+                      .Where(o => DbFunctions.TruncateTime(o.OffDay) == currentDate.Date && o.UserLeavePolicyId == userLeavePolicyId.Value)
+                      .Select(o => o.Description) 
+                      .FirstOrDefault();
+
+              if (!string.IsNullOrEmpty(officialOffDay))
+              {
+                status = officialOffDay;
+              }
+
+              else
+              {
+                // Check leave type 
+                var leaveRecord = dbLeaveOn.Leaves.Where(l => l.UserId == userData.Id && DbFunctions.TruncateTime(l.StartDate) <= currentDate.Date && DbFunctions.TruncateTime(l.EndDate) >= currentDate.Date)
+                  .Join(dbLeaveOn.LeaveTypes,
+                  l => l.LeaveTypeId, lt => lt.Id,
+                  (l, lt) => lt.Name).FirstOrDefault();
+
+
+                if (leaveRecord != null)
+                {
+                  status = leaveRecord;
+                }
+                else if (record.IsAbsent == true)
+                {
+                  status = "Absent";
+                }
+                else
+                {
+                  status = null; 
+                }
+              }
+            }
           }
+
+
 
           // Map the data directly from AttendanceData
           LstTimeData.Add(new TimeData()
