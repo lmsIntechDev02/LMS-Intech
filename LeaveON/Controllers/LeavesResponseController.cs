@@ -579,8 +579,8 @@ namespace LeaveON.Controllers
       {
         // Fetch leaves records for this user within the provided date range
         var leaveRecords = db.Leaves
-        .Where(a => a.UserId == UserId && a.DateCreated >= startDate && a.DateCreated <= endDate)
-        .OrderBy(a => a.DateCreated)
+        .Where(a => a.UserId == UserId && a.StartDate >= startDate && a.StartDate <= endDate)
+        .OrderBy(a => a.StartDate)
         .ToList();
 
 
