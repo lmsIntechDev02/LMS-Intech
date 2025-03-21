@@ -18,12 +18,12 @@ namespace LeaveON.Services
   {
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042 };
     private BioStarEntities dbBioStar = new BioStarEntities();
-    LeaveONEntities dbLeaveOn = new LeaveONEntities();
-    LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
-    
+     LeaveONEntities dbLeaveOn = new LeaveONEntities(); 
+     LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
+
 
     //public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
-      public async Task<List<TimeData>> ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
+    public async Task<List<TimeData>> ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
 
     {
       var overallStopwatch = Stopwatch.StartNew();
@@ -38,11 +38,11 @@ namespace LeaveON.Services
       TimeSpan TotalTime = new TimeSpan();
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
-        List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
+      List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       //mohsin.ali@intechww.com
       //Emmanuel.Dakore@intechww.com
       // Osaid.Hafeez@intechww.com
-      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "kashif.ijaz@intechww.com").ToList();
+      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "asrar.ahmed@intechww.com").ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       con.Open();
