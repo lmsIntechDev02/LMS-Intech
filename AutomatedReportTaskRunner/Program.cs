@@ -24,8 +24,9 @@ namespace AutomatedReportTaskRunner
             }
             {
                 service.GetMonthlyReportData(month, year, false);
-                
-             //   Console.WriteLine("Report will be generated on the last day of the month.");
+                //service.GetMonthlyReportData(01, 2025, false);
+
+                //   Console.WriteLine("Report will be generated on the last day of the month.");
             }
             Console.WriteLine("Automated Report Made");
         }

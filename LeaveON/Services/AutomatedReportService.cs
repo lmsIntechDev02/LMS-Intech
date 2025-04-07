@@ -37,12 +37,21 @@ namespace LeaveON.Services
       public string ManagerEmail { get; set; }
       public string Manager2Email { get; set; }
       public int TotalDays { get; set; }
+      public string AverageTimeInOffice { get; set; }
+      public string AssignedLeaveQuota { get; set; }
+      public string BalanceLeave { get; set; }
+      public string AvailableLeave { get; set; }
+      public string CompensatoryLeave { get; set; }
+      public string ShortHoursInMonth { get; set; }
+      public string OffcialDaysOff { get; set; }
+
     }
     public class EmailAndIDs
     {
       public int? userId { get; set; }
       public string email { get; set; }
       public int? userLeavePolicyID { get; set; }
+      public string UserID { get; set; }
     }
     public List<EmailAndIDs> GetUserEmailsAndIDs(string managerEmail)
     {
@@ -55,6 +64,7 @@ namespace LeaveON.Services
           userId = x.BioStarEmpNum.Value,
           email = x.Email,
           userLeavePolicyID = x.UserLeavePolicyId,
+          UserID = x.Id,
         })
         .ToList();
 
@@ -110,7 +120,8 @@ namespace LeaveON.Services
         foreach (var user in usersAgainstManagers)
         {
           totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
-          using (var context = new LeaveONEntities())
+          //using (var context = new LeaveONEntities())
+            using (var context = new LeaveONEntitiesTarget())
           {
             DateTime invalidDate = new DateTime(0001, 01, 01);
 
@@ -148,6 +159,54 @@ namespace LeaveON.Services
               string formattedAverageTimeIn = new DateTime(averageTimeIn.Ticks).ToString("hh:mm tt");
               string formattedAverageTimeOut = new DateTime(averageTimeOut.Ticks).ToString("hh:mm tt");
 
+              // Calculate average time in office
+              TimeSpan averageTimeInOffice = averageTimeOut - averageTimeIn;
+
+              //string assignedLeaveQuota = context.UserLeavePolicyDetails
+              //                           .Where(ulpd => ulpd.UserLeavePolicyId == user.userLeavePolicyID)
+              //                           .Select(ulpd => ulpd.Allowed)
+              //                           .FirstOrDefault().ToString();
+
+              // Sum the taken and balance leave values for leave types 1 and 2 for the given user.(causal + annual)
+              int? assignedLeaveQuota = context.LeaveBalances
+                  .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                  .Select(lb => ((int?)lb.Taken ?? 0) + ((int?)lb.Balance ?? 0))
+                  .DefaultIfEmpty(0)
+                  .Sum();
+
+
+              // Get balance leave from LeaveBalance 
+
+              int? balanceLeave = context.LeaveBalances
+                            .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                            .Select(lb => (int?)lb.Balance)
+                            .DefaultIfEmpty(0)
+                            .Sum();
+
+              // Get available leave days from LeaveBalance 
+              int? availableLeaveDays = context.LeaveBalances
+                            .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                            .Select(lb => (int?)lb.Balance)
+                            .DefaultIfEmpty(0)
+                            .Sum();
+
+              // Get compensatory leaves from LeaveBalances where LeaveTypeId is 0
+              int? compensatoryLeaves = context.LeaveBalances
+                  .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && lb.LeaveTypeId == 0)
+                  .Select(lb => (int?)lb.Balance)
+                  .FirstOrDefault();
+
+              // Get short hours in month from LeaveBalance table (using HoursTaken column)
+              int? shortHoursInMonth = context.LeaveBalances
+                                       .Where(lb => lb.UserId == user.UserID)
+                                       .Select(lb => (int?)lb.HoursTaken)
+                                       .FirstOrDefault();
+
+              // Get public holidays from AnnualOffDays based on user's leave policy ID
+              string publicHolidays = context.AnnualOffDays
+                                   .Where(aod => aod.UserLeavePolicyId == user.userLeavePolicyID)
+                                   .Count().ToString();
+
               var reportData = new EmployeeReportData
               {
                 EmployeeID = user.userId,
@@ -166,6 +225,15 @@ namespace LeaveON.Services
                 CountryName = attendanceData.First().CountryName,
                 ManagerEmail = managerEmail,
                 TotalDays = totalWorkDays,
+                AverageTimeInOffice = averageTimeInOffice.ToString(@"hh\:mm\:ss"),
+                AssignedLeaveQuota = assignedLeaveQuota.HasValue ? (assignedLeaveQuota.Value < 0 ? "0" : assignedLeaveQuota.Value.ToString()) : "0",
+                BalanceLeave = balanceLeave.HasValue ? (balanceLeave.Value < 0 ? "0" : balanceLeave.Value.ToString()) : "0",
+                AvailableLeave = availableLeaveDays.HasValue ? (availableLeaveDays.Value < 0 ? "0" : availableLeaveDays.Value.ToString()) : "0",
+                CompensatoryLeave = compensatoryLeaves.HasValue ? (compensatoryLeaves.Value < 0 ? "0" : compensatoryLeaves.Value.ToString()) : "0",
+                //ShortHoursInMonth = shortHoursInMonth,
+                ShortHoursInMonth = shortHoursInMonth.HasValue ? shortHoursInMonth.Value.ToString() : "0",
+                OffcialDaysOff = publicHolidays
+
               };
               managerReportOfUsersList.Add(reportData);
               if (legetimacyCheckForReports)//make it true again, false is for testing
@@ -344,7 +412,964 @@ namespace LeaveON.Services
 
       return workingDays;
     }
+
     public void GeneratePDFManager1(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, int year, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
+    {
+      if (reportData == null || reportData.Count == 0)
+      {
+        Console.WriteLine("No report data available. Skipping email generation.");
+        return; // Exit the method if no data to process
+      }
+
+      //LeaveONEntities context = new LeaveONEntities();
+      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+
+      string managerEmailName = context.AspNetUsers
+         .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
+         .Select(user => user.Email) // Select the corresponding email
+         .FirstOrDefault(); // Get the first match or null if no match
+
+      string MangerName = managerEmailName.Split('@')[0].Replace('.', ' ');
+
+      SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
+      {
+        UseDefaultCredentials = false,
+        Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password),
+        Port = 587,
+        EnableSsl = true
+      };
+
+      MailMessage mail = new MailMessage
+      {
+        From = new MailAddress(LeavON_Email),
+        Subject = $"Monthly Attendance Summary Report",
+        Body = $"Dear {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerEmailName.Split('@')[0].Replace('.', ' '))},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
+      };
+
+      // Check if legitimacy checks are needed
+      if (legitimacyCheckForReports)
+      {
+        foreach (var checker in legitimacyCheckers)
+        {
+          mail.To.Add(new MailAddress(checker.email));
+        }
+      }
+      else
+      {
+        Console.WriteLine($"Email Subject: {mail.Subject}");
+        Console.WriteLine($"Email Body: {mail.Body}");
+        // Uncomment or adjust the following as needed
+         //mail.To.Add("laiba.khan@intechww.com");
+        // mail.To.Add("nouman.sial@intechww.com");
+        // mail.To.Add("somia.waseem@acme-one.com");
+        mail.To.Add("saeed.dev125@gmail.com");
+
+        // mail.To.Add(managerEmailName);
+      }
+
+      using (MemoryStream memoryStream = new MemoryStream())
+      {
+        Document document = new Document(PageSize.A3, 50, 50, 25, 25);
+        PdfWriter.GetInstance(document, memoryStream);
+        document.Open();
+
+        // *****************************************
+        // New Table: Territory, Total days, Working days, Public Holidays
+        // *****************************************
+        PdfPTable territoryTable = new PdfPTable(4); // 4 columns
+        territoryTable.WidthPercentage = 100;
+
+        // Title row above attendance table
+        Font headTitleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
+        PdfPCell headTitleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", headTitleFont))
+        {
+          Colspan = 9, // Spanning all 9 columns
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 10
+        };
+        territoryTable.AddCell(headTitleCell);
+
+        Font headHeaderFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+        PdfPCell headHeaderCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
+        {
+          Colspan = 9,
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 9
+        };
+        territoryTable.AddCell(headHeaderCell2);
+
+        // Define header cells for the new table
+        string[] territoryHeaders = { "Territory", "Total days", "Working days", "Public Holidays" };
+        Font territoryHeaderFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        foreach (var header in territoryHeaders)
+        {
+          PdfPCell headerCell = new PdfPCell(new Phrase(header, territoryHeaderFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER,
+            BackgroundColor = BaseColor.GRAY,
+            Padding = 5
+          };
+          territoryTable.AddCell(headerCell);
+        }
+
+        // Query the CountryNames table from your database
+        var countryData = context.CountryNames.ToList();
+
+        Font territoryDataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        foreach (var country in countryData)
+        {
+          // Adjust property names if they differ in your model
+          PdfPCell cell = new PdfPCell(new Phrase(country.Name, territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          int monthNumber = DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture).Month;
+
+          var daysInMonth = DateTime.DaysInMonth(year, monthNumber);
+
+
+          cell = new PdfPCell(new Phrase(daysInMonth.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(totalWorkDays.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+
+          // Column 4: Public Holidays
+          // Get a user's LeavePolicyId from AspNetUsers for this country
+          var policyId = context.AspNetUsers
+          .Where(u => u.CntryName == country.Name)
+          .Select(u => u.UserLeavePolicyId)
+          .FirstOrDefault();
+          int publicHolidayCount = 0;
+
+          if (policyId != null)
+          {
+
+            DateTime startOfMonth = new DateTime(year, monthNumber, 1);
+            DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+            // Query AnnualOffDays for public holidays for this policy in the given month/year
+            publicHolidayCount = context.AnnualOffDays
+                                .Where(o => o.UserLeavePolicyId == policyId
+                                 && o.OffDay >= startOfMonth
+                                 && o.OffDay <= endOfMonth)
+                                .Count();
+          }
+
+          cell = new PdfPCell(new Phrase(publicHolidayCount.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+        }
+
+        // Add the territory table to the document (it will appear above the main attendance table)
+        document.Add(territoryTable);
+
+        territoryTable.SpacingAfter = 20f;
+
+        // *****************************************
+        // Existing Attendance Table
+        // *****************************************
+
+        //PdfPTable table = new PdfPTable(new float[] { 2, 3, 2, 2, 2, 2, 3, 2.5f, 2.5f });
+        //table.WidthPercentage = 100;
+        //table.SpacingBefore = 20f;
+
+        // Title row above attendance table
+        //Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
+        //PdfPCell titleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", titleFont))
+        //{
+        //  Colspan = 9, // Spanning all 9 columns
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 10
+        //};
+        //table.AddCell(titleCell);
+
+        //Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+        //PdfPCell headerCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headerFont))
+        //{
+        //  Colspan = 9,
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //////////  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 9
+        //};
+        //table.AddCell(headerCell2);
+
+        // Column headers for attendance table
+        //string[] headers = { "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total\n Days", "Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
+        // Create a 12-column table; adjust the float array as needed for column widths
+        PdfPTable table = new PdfPTable(new float[] { 2.5f, 3, 2.7f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f });
+        table.WidthPercentage = 100;
+        table.SpacingBefore = 20f;
+
+        // Define header cells for the attendance table
+        string[] headers = { "Employee\n ID", "Employee\n Name", "Assigned\n Leave\n Quota", "Balance\n Leave", "Average Entry Time", "Average Exit Time", "Average\n Time\n In Office", "Absent/Leaves Days", "Available/Leaves Days", "Compensatory Leaves", "Official\n Days Off", "Short\n Hours\n In Month" };
+        Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        foreach (var header in headers)
+        {
+          PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER,
+            BackgroundColor = BaseColor.GRAY,
+            Padding = 5,
+          };
+          table.AddCell(colHeaderCell);
+        }
+
+        // Data rows for attendance table
+
+        Font dataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        Font nameFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        string currentDepartment = null;
+        Font departmnetFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
+        BaseColor departmentRowColor = new BaseColor(200, 200, 200); // Light gray background for department rows
+
+        // Iterate through sorted reportData (sorting logic remains unchanged)
+        foreach (var data in reportData.OrderBy(d => d.Department).ThenBy(d => d.EmployeeName))
+        {
+          // Add a new row for department change if needed
+          if (currentDepartment != data.Department)
+          {
+            currentDepartment = data.Department;
+            PdfPCell departmentCell = new PdfPCell(new Phrase(currentDepartment, departmnetFont))
+            {
+              Colspan = 12, // Span across all 12 columns
+              HorizontalAlignment = Element.ALIGN_LEFT,
+              BackgroundColor = departmentRowColor,
+              PaddingLeft = 20,
+              Padding = 5
+            };
+            table.AddCell(departmentCell);
+          }
+
+          PdfPCell cell;
+
+          // Employee ID
+          cell = new PdfPCell(new Phrase(data.EmployeeID.ToString(), nameFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Employee Name
+          cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), nameFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_LEFT
+          };
+          table.AddCell(cell);
+
+          // Assigned Leave Quota (dummy data)
+          cell = new PdfPCell(new Phrase(data.AssignedLeaveQuota, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Balance Leave (dummy data)
+          cell = new PdfPCell(new Phrase(data.BalanceLeave, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Average Entry Time (existing)
+          cell = new PdfPCell(new Phrase(data.AverageTimeIn, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Average Exit Time (existing)
+          cell = new PdfPCell(new Phrase(data.AverageTimeOut, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Average Time In Office (dummy data, update if you have actual data)
+          cell = new PdfPCell(new Phrase(data.AverageTimeInOffice, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Absent/Leaves Days (existing)
+          cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Available/Leaves Days (dummy data)
+          cell = new PdfPCell(new Phrase(data.AvailableLeave, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Compensatory Leaves (dummy data)
+          cell = new PdfPCell(new Phrase(data.CompensatoryLeave, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Official Days Off (existing)
+          cell = new PdfPCell(new Phrase(data.OfficialDaysOff.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Short Hours In Month (dummy data)
+          cell = new PdfPCell(new Phrase(data.ShortHoursInMonth, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+        }
+
+
+        // Add the attendance table to the document
+        document.Add(table);
+        document.Close();
+        mail.Attachments.Add(new Attachment(new MemoryStream(memoryStream.ToArray()), $"ManagerReport_{monthName}.pdf", "application/pdf"));
+      }
+
+      try
+      {
+        smtpServer.Send(mail);
+        Console.WriteLine("Email sent successfully ...");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Failed to send email to {(legitimacyCheckForReports ? "legitimacy checkers" : "")}: {ex.Message}");
+      }
+    }
+    
+    public void GeneratePDFManager1p(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, int year, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
+    {
+      if (reportData == null || reportData.Count == 0)
+      {
+        Console.WriteLine("No report data available. Skipping email generation.");
+        return; // Exit the method if no data to process
+      }
+
+      //LeaveONEntities context = new LeaveONEntities();
+      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+
+      string managerEmailName = context.AspNetUsers
+         .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
+         .Select(user => user.Email) // Select the corresponding email
+         .FirstOrDefault(); // Get the first match or null if no match
+
+      string MangerName = managerEmailName.Split('@')[0].Replace('.', ' ');
+
+      SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
+      {
+        UseDefaultCredentials = false,
+        Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password),
+        Port = 587,
+        EnableSsl = true
+      };
+
+      MailMessage mail = new MailMessage
+      {
+        From = new MailAddress(LeavON_Email),
+        Subject = $"Monthly Attendance Summary Report",
+        Body = $"Dear {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerEmailName.Split('@')[0].Replace('.', ' '))},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
+      };
+
+      // Check if legitimacy checks are needed
+      if (legitimacyCheckForReports)
+      {
+        foreach (var checker in legitimacyCheckers)
+        {
+          mail.To.Add(new MailAddress(checker.email));
+        }
+      }
+      else
+      {
+        Console.WriteLine($"Email Subject: {mail.Subject}");
+        Console.WriteLine($"Email Body: {mail.Body}");
+        // Uncomment or adjust the following as needed
+        // mail.To.Add("laiba.khan@intechww.com");
+        // mail.To.Add("nouman.sial@intechww.com");
+        // mail.To.Add("somia.waseem@acme-one.com");
+        mail.To.Add("saeed.dev125@gmail.com");
+        // mail.To.Add(managerEmailName);
+      }
+
+      using (MemoryStream memoryStream = new MemoryStream())
+      {
+        Document document = new Document(PageSize.A3, 50, 50, 25, 25);
+        PdfWriter.GetInstance(document, memoryStream);
+        document.Open();
+
+        // *****************************************
+        // New Table: Territory, Total days, Working days, Public Holidays
+        // *****************************************
+        PdfPTable territoryTable = new PdfPTable(4); // 4 columns
+        territoryTable.WidthPercentage = 100;
+
+        // Title row above attendance table
+        Font headTitleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
+        PdfPCell headTitleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", headTitleFont))
+        {
+          Colspan = 9, // Spanning all 9 columns
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 10
+        };
+        territoryTable.AddCell(headTitleCell);
+
+        Font headHeaderFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+        PdfPCell headHeaderCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
+        {
+          Colspan = 9,
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 9
+        };
+        territoryTable.AddCell(headHeaderCell2);
+
+        // Define header cells for the new table
+        string[] territoryHeaders = { "Territory", "Total days", "Working days", "Public Holidays" };
+        Font territoryHeaderFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        foreach (var header in territoryHeaders)
+        {
+          PdfPCell headerCell = new PdfPCell(new Phrase(header, territoryHeaderFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER,
+            BackgroundColor = BaseColor.GRAY,
+            Padding = 5
+          };
+          territoryTable.AddCell(headerCell);
+        }
+
+        // Query the CountryNames table from your database
+        var countryData = context.CountryNames.ToList();
+
+        Font territoryDataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        foreach (var country in countryData)
+        {
+          // Adjust property names if they differ in your model
+          PdfPCell cell = new PdfPCell(new Phrase(country.Name, territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(country.Id.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(country.Id.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(country.Id.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+        }
+
+        // Add the territory table to the document (it will appear above the main attendance table)
+        document.Add(territoryTable);
+
+        territoryTable.SpacingAfter = 20f;
+
+        // *****************************************
+        // Existing Attendance Table
+        // *****************************************
+        
+        //PdfPTable table = new PdfPTable(new float[] { 2, 3, 2, 2, 2, 2, 3, 2.5f, 2.5f });
+        //table.WidthPercentage = 100;
+        //table.SpacingBefore = 20f;
+
+        // Title row above attendance table
+        //Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
+        //PdfPCell titleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", titleFont))
+        //{
+        //  Colspan = 9, // Spanning all 9 columns
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 10
+        //};
+        //table.AddCell(titleCell);
+
+        //Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+        //PdfPCell headerCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headerFont))
+        //{
+        //  Colspan = 9,
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //////////  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 9
+        //};
+        //table.AddCell(headerCell2);
+
+        // Column headers for attendance table
+        //string[] headers = { "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total\n Days", "Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
+        // Create a 12-column table; adjust the float array as needed for column widths
+        PdfPTable table = new PdfPTable(new float[] { 2.5f, 3, 2.7f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f });
+        table.WidthPercentage = 100;
+        table.SpacingBefore = 20f;
+
+        // Define header cells for the attendance table
+        string[] headers = { "Employee\n ID", "Employee\n Name", "Assigned\n Leave\n Quota", "Balance\n Leave", "Average Entry Time", "Average Exit Time", "Average\n Time\n In Office", "Absent/Leaves Days", "Available/Leaves Days", "Compensatory Leaves", "Official\n Days Off", "Short\n Hours\n In Month" };
+        Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        foreach (var header in headers)
+        {
+          PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER,
+            BackgroundColor = BaseColor.GRAY,
+            Padding = 5,
+          };
+          table.AddCell(colHeaderCell);
+        }
+
+        // Data rows for attendance table
+ 
+        Font dataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        Font nameFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        string currentDepartment = null;
+        Font departmnetFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
+        BaseColor departmentRowColor = new BaseColor(200, 200, 200); // Light gray background for department rows
+
+        // Iterate through sorted reportData (sorting logic remains unchanged)
+        foreach (var data in reportData.OrderBy(d => d.Department).ThenBy(d => d.EmployeeName))
+        {
+          // Add a new row for department change if needed
+          if (currentDepartment != data.Department)
+          {
+            currentDepartment = data.Department;
+            PdfPCell departmentCell = new PdfPCell(new Phrase(currentDepartment, departmnetFont))
+            {
+              Colspan = 12, // Span across all 12 columns
+              HorizontalAlignment = Element.ALIGN_LEFT,
+              BackgroundColor = departmentRowColor,
+              PaddingLeft = 20,
+              Padding = 5
+            };
+            table.AddCell(departmentCell);
+          }
+
+          PdfPCell cell;
+
+          // Employee ID
+          cell = new PdfPCell(new Phrase(data.EmployeeID.ToString(), nameFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Employee Name
+          cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), nameFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_LEFT
+          };
+          table.AddCell(cell);
+
+          // Assigned Leave Quota (dummy data)
+          cell = new PdfPCell(new Phrase("N/A", dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Balance Leave (dummy data)
+          cell = new PdfPCell(new Phrase("N/A", dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Average Entry Time (existing)
+          cell = new PdfPCell(new Phrase(data.AverageTimeIn, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Average Exit Time (existing)
+          cell = new PdfPCell(new Phrase(data.AverageTimeOut, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Average Time In Office (dummy data, update if you have actual data)
+          cell = new PdfPCell(new Phrase("00:00", dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Absent/Leaves Days (existing)
+          cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Available/Leaves Days (dummy data)
+          cell = new PdfPCell(new Phrase("N/A", dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Compensatory Leaves (dummy data)
+          cell = new PdfPCell(new Phrase("N/A", dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Official Days Off (existing)
+          cell = new PdfPCell(new Phrase(data.OfficialDaysOff.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          // Short Hours In Month (dummy data)
+          cell = new PdfPCell(new Phrase("N/A", dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+        }
+
+
+        // Add the attendance table to the document
+        document.Add(table);
+        document.Close();
+        mail.Attachments.Add(new Attachment(new MemoryStream(memoryStream.ToArray()), $"ManagerReport_{monthName}.pdf", "application/pdf"));
+      }
+
+      try
+      {
+        smtpServer.Send(mail);
+        Console.WriteLine("Email sent successfully ...");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Failed to send email to {(legitimacyCheckForReports ? "legitimacy checkers" : "")}: {ex.Message}");
+      }
+    }
+
+    public void GeneratePDFManager1plus(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, int year, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
+    {
+      if (reportData == null || reportData.Count == 0)
+      {
+        Console.WriteLine("No report data available. Skipping email generation.");
+        return; // Exit the method if no data to process
+      }
+
+      //LeaveONEntities context = new LeaveONEntities();
+      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+
+      string managerEmailName = context.AspNetUsers
+         .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
+         .Select(user => user.Email) // Select the corresponding email
+         .FirstOrDefault(); // Get the first match or null if no match
+
+      string MangerName = managerEmailName.Split('@')[0].Replace('.', ' ');
+
+      SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
+      {
+        UseDefaultCredentials = false,
+        Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password),
+        Port = 587,
+        EnableSsl = true
+      };
+
+      MailMessage mail = new MailMessage
+      {
+        From = new MailAddress(LeavON_Email),
+        Subject = $"Monthly Attendance Summary Report",
+        Body = $"Dear {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerEmailName.Split('@')[0].Replace('.', ' '))},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
+      };
+
+      // Check if legitimacy checks are needed
+      if (legitimacyCheckForReports)
+      {
+        foreach (var checker in legitimacyCheckers)
+        {
+          mail.To.Add(new MailAddress(checker.email));
+        }
+      }
+      else
+      {
+        Console.WriteLine($"Email Subject: {mail.Subject}");
+        Console.WriteLine($"Email Body: {mail.Body}");
+        // Uncomment or adjust the following as needed
+        // mail.To.Add("laiba.khan@intechww.com");
+        // mail.To.Add("nouman.sial@intechww.com");
+        // mail.To.Add("somia.waseem@acme-one.com");
+        mail.To.Add("saeed.dev125@gmail.com");
+        // mail.To.Add(managerEmailName);
+      }
+
+      using (MemoryStream memoryStream = new MemoryStream())
+      {
+        Document document = new Document(PageSize.A3, 50, 50, 25, 25);
+        PdfWriter.GetInstance(document, memoryStream);
+        document.Open();
+
+        // *****************************************
+        // New Table: Territory, Total days, Working days, Public Holidays
+        // *****************************************
+        PdfPTable territoryTable = new PdfPTable(4); // 4 columns
+        territoryTable.WidthPercentage = 100;
+
+        // Title row above attendance table
+        Font headTitleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
+        PdfPCell headTitleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", headTitleFont))
+        {
+          Colspan = 9, // Spanning all 9 columns
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 10
+        };
+        territoryTable.AddCell(headTitleCell);
+
+        Font headHeaderFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+        PdfPCell headHeaderCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
+        {
+          Colspan = 9,
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 9
+        };
+        territoryTable.AddCell(headHeaderCell2);
+
+        // Define header cells for the new table
+        string[] territoryHeaders = { "Territory", "Total days", "Working days", "Public Holidays" };
+        Font territoryHeaderFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        foreach (var header in territoryHeaders)
+        {
+          PdfPCell headerCell = new PdfPCell(new Phrase(header, territoryHeaderFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER,
+            BackgroundColor = BaseColor.GRAY,
+            Padding = 5
+          };
+          territoryTable.AddCell(headerCell);
+        }
+
+        // Query the CountryNames table from your database
+        var countryData = context.CountryNames.ToList();
+
+        Font territoryDataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        foreach (var country in countryData)
+        {
+          // Adjust property names if they differ in your model
+          PdfPCell cell = new PdfPCell(new Phrase(country.Name, territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(country.Id.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(country.Id.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(country.Id.ToString(), territoryDataFont))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER
+          };
+          territoryTable.AddCell(cell);
+        }
+
+        // Add the territory table to the document (it will appear above the main attendance table)
+        document.Add(territoryTable);
+
+        territoryTable.SpacingAfter = 20f; 
+
+        // *****************************************
+        // Existing Attendance Table
+        // *****************************************
+        PdfPTable table = new PdfPTable(new float[] { 2, 3, 2, 2, 2, 2, 3, 2.5f, 2.5f });
+        table.WidthPercentage = 100;
+        table.SpacingBefore = 20f;
+        // Title row above attendance table
+        //Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
+        //PdfPCell titleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", titleFont))
+        //{
+        //  Colspan = 9, // Spanning all 9 columns
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 10
+        //};
+        //table.AddCell(titleCell);
+
+        //Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+        //PdfPCell headerCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headerFont))
+        //{
+        //  Colspan = 9,
+        //  HorizontalAlignment = Element.ALIGN_CENTER,
+        //  BackgroundColor = new BaseColor(0, 51, 102),
+        //  Padding = 9
+        //};
+        //table.AddCell(headerCell2);
+
+        // Column headers for attendance table
+        string[] headers = { "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total\n Days", "Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
+        Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+        foreach (var header in headers)
+        {
+          PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
+          {
+            HorizontalAlignment = Element.ALIGN_CENTER,
+            BackgroundColor = BaseColor.GRAY,
+            Padding = 5,
+          };
+          table.AddCell(colHeaderCell);
+        }
+
+        // Data rows for attendance table
+        Font dataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        Font nameFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        BaseColor yellowColor = new BaseColor(255, 255, 0);
+
+        // Sort data by Department, then by EmployeeName
+        reportData = reportData
+            .OrderBy(data => data.Department)
+            .ThenBy(data => data.EmployeeName)
+            .ToList();
+
+        // Initialize variables
+        string currentDepartment = null;
+        Font departmnetFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
+        BaseColor departmentRowColor = new BaseColor(200, 200, 200); // Light gray background for department rows
+
+        // Iterate through the sorted data
+        foreach (var data in reportData)
+        {
+          // Check if the department has changed
+          if (currentDepartment != data.Department)
+          {
+            // Update the current department
+            currentDepartment = data.Department;
+
+            // Add a department row
+            PdfPCell departmentCell = new PdfPCell(new Phrase(currentDepartment, departmnetFont))
+            {
+              Colspan = 9, // Span across all columns
+              HorizontalAlignment = Element.ALIGN_LEFT,
+              BackgroundColor = departmentRowColor,
+              PaddingLeft = 20,
+              Padding = 5
+            };
+            table.AddCell(departmentCell);
+          }
+
+          // Add employee data rows
+          PdfPCell cell;
+
+          cell = new PdfPCell(new Phrase(data.EmployeeID.ToString(), nameFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), nameFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_LEFT
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(data.AverageTimeIn, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(data.AverageTimeOut, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(data.TotalDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase((data.TotalDays - data.AbsentDays).ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(data.WorkFromHomeDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+
+          cell = new PdfPCell(new Phrase(data.OfficialDaysOff.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          };
+          table.AddCell(cell);
+        }
+
+        // Add the attendance table to the document
+        document.Add(table);
+        document.Close();
+        mail.Attachments.Add(new Attachment(new MemoryStream(memoryStream.ToArray()), $"ManagerReport_{monthName}.pdf", "application/pdf"));
+      }
+
+      try
+      {
+        smtpServer.Send(mail);
+        Console.WriteLine("Email sent successfully ...");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Failed to send email to {(legitimacyCheckForReports ? "legitimacy checkers" : "")}: {ex.Message}");
+      }
+    }
+
+    public void GeneratePDFManager11(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, int year, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
     {
 
       if (reportData == null || reportData.Count == 0)
@@ -353,7 +1378,9 @@ namespace LeaveON.Services
         return; // Exit the method if no data to process
       }
 
-      LeaveONEntities context = new LeaveONEntities();
+      //LeaveONEntities context = new LeaveONEntities();
+      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+
 
       string managerEmailName = context.AspNetUsers
          .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
@@ -393,8 +1420,8 @@ namespace LeaveON.Services
        // mail.To.Add("laiba.khan@intechww.com");
        // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-      // mail.To.Add("saeed.dev125@gmail.com");
-        mail.To.Add(managerEmailName);
+       mail.To.Add("saeed.dev125@gmail.com");
+        //mail.To.Add(managerEmailName);
       }
 
 
@@ -778,7 +1805,8 @@ namespace LeaveON.Services
 
     private List<string> GetManagersIDs()
     {
-      using (var context = new LeaveONEntities())
+      //using (var context = new LeaveONEntities())
+        using (var context = new LeaveONEntitiesTarget())
       {
           var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
 
