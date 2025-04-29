@@ -42,7 +42,7 @@ namespace LeaveON.Services
       //mohsin.ali@intechww.com
       //Emmanuel.Dakore@intechww.com
       // Osaid.Hafeez@intechww.com
-      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "asrar.ahmed@intechww.com").ToList();
+      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "waqar.ahmad@intechww.com").ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       con.Open();
@@ -130,6 +130,31 @@ namespace LeaveON.Services
           {
             timeZone = "W. Central Africa Standard Time";
             countryName = "Nigeria Port Harcourt";
+          }
+          else if (records[j].DevNm.ToString().Substring(0, 4) == "IN01")
+          {
+            timeZone = "Pakistan Standard Time";
+            countryName = "Pakistan";
+          }
+          else if (records[j].DevNm.ToString().Substring(0, 4) == "IN03")
+          {
+            timeZone = "W. Central Africa Standard Time";
+            countryName = "Nigeria";
+          }
+          else if (records[j].DevNm.ToString().Substring(0, 4) == "IN04")
+          {
+            timeZone = "W. Central Africa Standard Time";
+            countryName = "Angola";
+          }
+          else if (records[j].DevNm.ToString().Substring(0, 4) == "IN05")
+          {
+            timeZone = "Arab Standard Time";
+            countryName = "Saudi Arabia";
+          }
+          else if (records[j].DevNm.ToString().Substring(0, 4) == "IN08")
+          {
+            timeZone = "Arab Standard Time";
+            countryName = "United Arab Emirates";
           }
           else
           {

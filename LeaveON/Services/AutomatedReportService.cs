@@ -125,6 +125,13 @@ namespace LeaveON.Services
           {
             DateTime invalidDate = new DateTime(0001, 01, 01);
 
+            // For opening balance leave
+            var fullYearAttendanceData = context.AttendanceDatas
+                  .Where(a => a.BioStarEmpNum == user.userId
+                           && a.CreatedDate.HasValue
+                           && a.CreatedDate.Value.Year == year)
+                  .ToList();
+
             var attendanceData = context.AttendanceDatas.Distinct()
             .Where(a => a.BioStarEmpNum == user.userId && a.CreatedDate.Value.Month == month && a.CreatedDate.Value.Year == year &&
             a.IsLeave != true)
@@ -167,21 +174,47 @@ namespace LeaveON.Services
               //                           .Select(ulpd => ulpd.Allowed)
               //                           .FirstOrDefault().ToString();
 
-              // Sum the taken and balance leave values for leave types 1 and 2 for the given user.(causal + annual)
-              int? assignedLeaveQuota = context.LeaveBalances
-                  .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-                  .Select(lb => ((int?)lb.Taken ?? 0) + ((int?)lb.Balance ?? 0))
-                  .DefaultIfEmpty(0)
-                  .Sum();
+              // getting assingledleave for leave types 1 and 2 for the given user.(causal + annual)
 
+              //int? assignedLeaveQuota = context.UserLeavePolicyDetails
+              //    .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+              //    .Sum(lb => (int?)lb.Allowed ?? 0);
+
+              int? assignedLeaveQuota = user?.userLeavePolicyID != null
+                    ? context.UserLeavePolicyDetails
+                        .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID &&
+                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                        .Select(lb => (int?)lb.Allowed)
+                        .Sum() ?? 0
+                    : 0;
+
+
+              DateTime startOfCurrentMonth = new DateTime(year, month, 1);
+              // Filter leaves taken before the current month from attendanceData
+              int leavesTakenBeforeCurrentMonth = fullYearAttendanceData
+                  .Where(a => (a.IsLeave == true || a.IsAbsent == true) 
+                           && a.CreatedDate.Value < startOfCurrentMonth)
+                  .Count();
 
               // Get balance leave from LeaveBalance 
 
               int? balanceLeave = context.LeaveBalances
                             .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-                            .Select(lb => (int?)lb.Balance)
+                            .Select(lb => (int?)lb.Taken)
                             .DefaultIfEmpty(0)
                             .Sum();
+
+
+              var totalAbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true);
+
+              // Avalied Leave
+              //int absentCount = totalAbsentDays + (balanceLeave ?? 0);
+              int absentCount = totalAbsentDays;
+
+              int? openingBalanceLeave = assignedLeaveQuota - leavesTakenBeforeCurrentMonth;
+
+              int? totalBalanceLeave = openingBalanceLeave - absentCount;
+
 
               // Get available leave days from LeaveBalance 
               int? availableLeaveDays = context.LeaveBalances
@@ -203,9 +236,26 @@ namespace LeaveON.Services
                                        .FirstOrDefault();
 
               // Get public holidays from AnnualOffDays based on user's leave policy ID
-              string publicHolidays = context.AnnualOffDays
-                                   .Where(aod => aod.UserLeavePolicyId == user.userLeavePolicyID)
-                                   .Count().ToString();
+              //string publicHolidays = context.AnnualOffDays
+              //                     .Where(aod => aod.UserLeavePolicyId == user.userLeavePolicyID)
+              //                     .Count().ToString();
+
+              var daysInMonth = DateTime.DaysInMonth(year, month);
+              int? policyId = user.userLeavePolicyID;
+              int publicHolidays = 0;
+              if (policyId != null)
+              {
+
+                DateTime startOfMonth = new DateTime(year, month, 1);
+                DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+                // Query AnnualOffDays for public holidays for this policy in the given month/year
+                publicHolidays = context.AnnualOffDays
+                                    .Where(o => o.UserLeavePolicyId == policyId
+                                     && o.OffDay >= startOfMonth
+                                     && o.OffDay <= endOfMonth)
+                                    .Count();
+              }
 
               var reportData = new EmployeeReportData
               {
@@ -216,23 +266,24 @@ namespace LeaveON.Services
                 TotalBreakHours = attendanceData.Sum(x => x.BreakHours),
                 LateArrivals = attendanceData.Count(x => x.IsLateArrival == true),
                 EarlyDepartures = attendanceData.Count(x => x.IsEarlyDeparture == true),
-                AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
+                //AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
+                AbsentDays = absentCount,
                 LeaveDays = attendanceData.Count(x => x.IsLeave == true),
-                AverageTimeIn = averageTimeIn.ToString(@"hh\:mm\:ss"),
-                AverageTimeOut = averageTimeOut.ToString(@"hh\:mm\:ss"),
+                AverageTimeIn = averageTimeIn.ToString(@"hh\:mm"),
+                AverageTimeOut = averageTimeOut.ToString(@"hh\:mm"),
                 WorkFromHomeDays = attendanceData.Count(x => x.LeaveTypeID == 10),
                 OfficialDaysOff = attendanceData.Count(x => x.LeaveTypeID == 8 || x.LeaveTypeID == 9),
                 CountryName = attendanceData.First().CountryName,
                 ManagerEmail = managerEmail,
                 TotalDays = totalWorkDays,
-                AverageTimeInOffice = averageTimeInOffice.ToString(@"hh\:mm\:ss"),
+                AverageTimeInOffice = averageTimeInOffice.ToString(@"hh\:mm"),
                 AssignedLeaveQuota = assignedLeaveQuota.HasValue ? (assignedLeaveQuota.Value < 0 ? "0" : assignedLeaveQuota.Value.ToString()) : "0",
-                BalanceLeave = balanceLeave.HasValue ? (balanceLeave.Value < 0 ? "0" : balanceLeave.Value.ToString()) : "0",
-                AvailableLeave = availableLeaveDays.HasValue ? (availableLeaveDays.Value < 0 ? "0" : availableLeaveDays.Value.ToString()) : "0",
+                BalanceLeave = openingBalanceLeave.HasValue ? (openingBalanceLeave.Value < 0 ? "0" : openingBalanceLeave.Value.ToString()) : "0",
+                AvailableLeave = totalBalanceLeave.HasValue ? (totalBalanceLeave.Value < 0 ? "0" : totalBalanceLeave.Value.ToString()) : "0",
                 CompensatoryLeave = compensatoryLeaves.HasValue ? (compensatoryLeaves.Value < 0 ? "0" : compensatoryLeaves.Value.ToString()) : "0",
                 //ShortHoursInMonth = shortHoursInMonth,
                 ShortHoursInMonth = shortHoursInMonth.HasValue ? shortHoursInMonth.Value.ToString() : "0",
-                OffcialDaysOff = publicHolidays
+                OffcialDaysOff = publicHolidays.ToString()
 
               };
               managerReportOfUsersList.Add(reportData);
@@ -284,7 +335,7 @@ namespace LeaveON.Services
       }
 
       return null;
-    } 
+    }  
     public void GeneratePDFIndividuals(EmployeeReportData reportData, string userEmail, int totalWorkDays, string monthName)
     {
       MailMessage mail = new MailMessage();
@@ -458,13 +509,16 @@ namespace LeaveON.Services
       {
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
+        Console.WriteLine($"MangerName => {managerEmailName}");
         // Uncomment or adjust the following as needed
-         //mail.To.Add("laiba.khan@intechww.com");
+         mail.To.Add("laiba.khan@intechww.com");
+        // mail.To.Add("kixen33040@hedotu.com");
+
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
         mail.To.Add("saeed.dev125@gmail.com");
 
-        // mail.To.Add(managerEmailName);
+       // mail.To.Add(managerEmailName);
       }
 
       using (MemoryStream memoryStream = new MemoryStream())
@@ -476,12 +530,16 @@ namespace LeaveON.Services
         // *****************************************
         // New Table: Territory, Total days, Working days, Public Holidays
         // *****************************************
-        PdfPTable territoryTable = new PdfPTable(4); // 4 columns
+        PdfPTable territoryTable = new PdfPTable(3); // 4 columns
         territoryTable.WidthPercentage = 100;
 
         // Title row above attendance table
         Font headTitleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD, BaseColor.WHITE);
-        PdfPCell headTitleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {year}", headTitleFont))
+        int monthNo = DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture).Month;
+        var monthDays = DateTime.DaysInMonth(year, monthNo);
+        string shortYear = $"'{year % 100:D2}";
+
+        PdfPCell headTitleCell = new PdfPCell(new Phrase($"Attendance Report - {monthName} {shortYear} (Total Days - {monthDays})", headTitleFont))
         {
           Colspan = 9, // Spanning all 9 columns
           HorizontalAlignment = Element.ALIGN_CENTER,
@@ -491,7 +549,9 @@ namespace LeaveON.Services
         territoryTable.AddCell(headTitleCell);
 
         Font headHeaderFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
-        PdfPCell headHeaderCell2 = new PdfPCell(new Phrase($"Manager: {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
+        //PdfPCell headHeaderCell2 = new PdfPCell(new Phrase($"Manager - {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
+        PdfPCell headHeaderCell2 = new PdfPCell(new Phrase($"Country-wise Working Days & Official Holidays", headHeaderFont))
+
         {
           Colspan = 9,
           HorizontalAlignment = Element.ALIGN_CENTER,
@@ -501,7 +561,7 @@ namespace LeaveON.Services
         territoryTable.AddCell(headHeaderCell2);
 
         // Define header cells for the new table
-        string[] territoryHeaders = { "Territory", "Total days", "Working days", "Public Holidays" };
+        string[] territoryHeaders = { "Territory", "Working days", "Public / Official Holidays" };
         Font territoryHeaderFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
         foreach (var header in territoryHeaders)
         {
@@ -517,9 +577,44 @@ namespace LeaveON.Services
         // Query the CountryNames table from your database
         var countryData = context.CountryNames.ToList();
 
-        Font territoryDataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
-        foreach (var country in countryData)
+        // Filter out unwanted countries
+        var filteredCountries = countryData
+            .Where(c => c.Name != "United Kingdom" && c.Name != "Singapore" && c.Name != "Qatar")
+            .ToList();
+
+        // Find and move Pakistan to top
+        var pakistan = filteredCountries.FirstOrDefault(c => c.Name == "Pakistan");
+        if (pakistan != null)
         {
+          filteredCountries.Remove(pakistan);
+          filteredCountries.Insert(0, pakistan);
+        }
+
+        Font territoryDataFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+        foreach (var country in filteredCountries)
+        {
+          int monthNumber = DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture).Month;
+
+          var daysInMonth = DateTime.DaysInMonth(year, monthNumber);
+          var policyId = context.AspNetUsers
+            .Where(u => u.CntryName == country.Name)
+            .Select(u => u.UserLeavePolicyId)
+            .FirstOrDefault();
+                int publicHolidayCount = 0;
+
+                if (policyId != null)
+                {
+
+                  DateTime startOfMonth = new DateTime(year, monthNumber, 1);
+                  DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+                  // Query AnnualOffDays for public holidays for this policy in the given month/year
+                  publicHolidayCount = context.AnnualOffDays
+                                      .Where(o => o.UserLeavePolicyId == policyId
+                                       && o.OffDay >= startOfMonth
+                                       && o.OffDay <= endOfMonth)
+                                      .Count();
+                }
           // Adjust property names if they differ in your model
           PdfPCell cell = new PdfPCell(new Phrase(country.Name, territoryDataFont))
           {
@@ -527,46 +622,27 @@ namespace LeaveON.Services
           };
           territoryTable.AddCell(cell);
 
-          int monthNumber = DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture).Month;
+          //int monthNumber = DateTime.ParseExact(monthName, "MMMM", CultureInfo.InvariantCulture).Month;
 
-          var daysInMonth = DateTime.DaysInMonth(year, monthNumber);
+          //var daysInMonth = DateTime.DaysInMonth(year, monthNumber);
 
+           // Total days 
+          //cell = new PdfPCell(new Phrase(daysInMonth.ToString(), territoryDataFont))
+          //{
+          //  HorizontalAlignment = Element.ALIGN_CENTER
+          //};
 
-          cell = new PdfPCell(new Phrase(daysInMonth.ToString(), territoryDataFont))
+          //territoryTable.AddCell(cell);
+
+          int totalWorkingDaysInMonth = GetWorkingDaysByCountry(year, monthNumber, country.Name);
+
+          int wokringDays = totalWorkingDaysInMonth - publicHolidayCount;
+
+          cell = new PdfPCell(new Phrase(wokringDays.ToString(), territoryDataFont))
           {
             HorizontalAlignment = Element.ALIGN_CENTER
           };
-
           territoryTable.AddCell(cell);
-
-          cell = new PdfPCell(new Phrase(totalWorkDays.ToString(), territoryDataFont))
-          {
-            HorizontalAlignment = Element.ALIGN_CENTER
-          };
-          territoryTable.AddCell(cell);
-
-
-          // Column 4: Public Holidays
-          // Get a user's LeavePolicyId from AspNetUsers for this country
-          var policyId = context.AspNetUsers
-          .Where(u => u.CntryName == country.Name)
-          .Select(u => u.UserLeavePolicyId)
-          .FirstOrDefault();
-          int publicHolidayCount = 0;
-
-          if (policyId != null)
-          {
-
-            DateTime startOfMonth = new DateTime(year, monthNumber, 1);
-            DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
-
-            // Query AnnualOffDays for public holidays for this policy in the given month/year
-            publicHolidayCount = context.AnnualOffDays
-                                .Where(o => o.UserLeavePolicyId == policyId
-                                 && o.OffDay >= startOfMonth
-                                 && o.OffDay <= endOfMonth)
-                                .Count();
-          }
 
           cell = new PdfPCell(new Phrase(publicHolidayCount.ToString(), territoryDataFont))
           {
@@ -612,21 +688,78 @@ namespace LeaveON.Services
         // Column headers for attendance table
         //string[] headers = { "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total\n Days", "Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
         // Create a 12-column table; adjust the float array as needed for column widths
-        PdfPTable table = new PdfPTable(new float[] { 2.5f, 3, 2.7f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f });
+        PdfPTable table = new PdfPTable(new float[] { 3f, 8f, 4.8f, 4.3f, 4.3f, 4.7f, 4.9f, 5.3f, 5f, 5.2f });
         table.WidthPercentage = 100;
         table.SpacingBefore = 20f;
+        table.SplitLate = false;
+        string shortMonthName = monthName.Substring(0, 3);
+
+        PdfPCell managerHeaderCell = new PdfPCell(new Phrase($"Manager - {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
+        {
+          Colspan = 10, // Match your column count
+          HorizontalAlignment = Element.ALIGN_CENTER,
+          BackgroundColor = new BaseColor(0, 51, 102),
+          Padding = 9,
+          BorderWidthTop = 3f,
+          BorderWidthLeft = 3f,
+          BorderWidthRight = 3f,
+          BorderColorTop = BaseColor.BLACK,
+          BorderColorLeft = BaseColor.BLACK,
+          BorderColorRight = BaseColor.BLACK,
+        };
+        table.AddCell(managerHeaderCell);
+
 
         // Define header cells for the attendance table
-        string[] headers = { "Employee\n ID", "Employee\n Name", "Assigned\n Leave\n Quota", "Balance\n Leave", "Average Entry Time", "Average Exit Time", "Average\n Time\n In Office", "Absent/Leaves Days", "Available/Leaves Days", "Compensatory Leaves", "Official\n Days Off", "Short\n Hours\n In Month" };
+        string[] headers = { "\n ID", "\n Name", "Assigned\n Leave\n Quota", $"Opening \n Balance \n {shortMonthName}", $"Availed Leave \n {shortMonthName}", "Available\n Leave\n Balance", "Short\n Hours\n In Month", "\n Avg. Entry Time", "\n Avg. Exit Time", "\n Avg. Time\n In Office" };
         Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
-        foreach (var header in headers)
+        //foreach (var header in headers)
+        //{
+        //  PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
+        //  {
+        //    HorizontalAlignment = Element.ALIGN_CENTER,
+        //    BackgroundColor = BaseColor.GRAY,
+        //    Padding = 5,
+        //  };
+        //  table.AddCell(colHeaderCell);
+        //}
+
+        for (int i = 0; i < headers.Length; i++)
         {
-          PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
+          PdfPCell colHeaderCell = new PdfPCell(new Phrase(headers[i], headerFont2))
           {
             HorizontalAlignment = Element.ALIGN_CENTER,
             BackgroundColor = BaseColor.GRAY,
             Padding = 5,
+            PaddingTop = 10f,
+            BorderWidthTop = 3f,
+            UseAscender = true,
+            UseDescender = true
           };
+
+          // Apply bold border
+          
+          if(i == 0)
+          {
+              colHeaderCell.BorderWidthLeft = 3f;
+              colHeaderCell.BorderWidthTop = 0f;
+          } else if (i == 2 || i == 7)
+          {
+            colHeaderCell.BorderWidthLeft = 1.5f;
+            colHeaderCell.BorderWidthTop = 0f;
+          } else if (i == 1 || i == 6)
+          {
+            colHeaderCell.BorderWidthRight = 1.5f;
+            colHeaderCell.BorderWidthTop = 0f;
+          } else if (i == 9)
+          {
+              colHeaderCell.BorderWidthRight = 3f;
+              colHeaderCell.BorderWidthTop = 0f;
+          } else 
+          {
+            colHeaderCell.BorderWidthTop = 0f;
+          }
+
           table.AddCell(colHeaderCell);
         }
 
@@ -639,7 +772,11 @@ namespace LeaveON.Services
         BaseColor departmentRowColor = new BaseColor(200, 200, 200); // Light gray background for department rows
 
         // Iterate through sorted reportData (sorting logic remains unchanged)
-        foreach (var data in reportData.OrderBy(d => d.Department).ThenBy(d => d.EmployeeName))
+        var orderedData = reportData.OrderBy(d => d.Department).ThenBy(d => d.EmployeeName).ToList();
+        var firstEmployee = orderedData.First();
+        var lastEmployee = orderedData.Last();
+
+        foreach (var data in orderedData)
         {
           // Add a new row for department change if needed
           if (currentDepartment != data.Department)
@@ -650,8 +787,12 @@ namespace LeaveON.Services
               Colspan = 12, // Span across all 12 columns
               HorizontalAlignment = Element.ALIGN_LEFT,
               BackgroundColor = departmentRowColor,
-              PaddingLeft = 20,
-              Padding = 5
+              Padding = 5,
+              PaddingLeft = 10f,
+              BorderWidthLeft = 3f,
+              BorderWidthRight = 3f,
+              UseAscender = true,
+              UseDescender = true
             };
             table.AddCell(departmentCell);
           }
@@ -659,24 +800,37 @@ namespace LeaveON.Services
           PdfPCell cell;
 
           // Employee ID
-          cell = new PdfPCell(new Phrase(data.EmployeeID.ToString(), nameFont))
+          cell = new PdfPCell(new Phrase(data.EmployeeID.ToString(), dataFont))
           {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
+            BorderWidthLeft = 3f,
           };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee)
+          {
+            cell.BorderWidthBottom = 3f;
+            cell.PaddingBottom = 7f;  // adjust as needed
+          }
           table.AddCell(cell);
 
           // Employee Name
-          cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), nameFont))
+          cell = new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(data.EmployeeName.ToLower()), dataFont))
           {
-            HorizontalAlignment = PdfPCell.ALIGN_LEFT
+            HorizontalAlignment = PdfPCell.ALIGN_LEFT,
+            BorderWidthRight = 1.5f
           };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
           // Assigned Leave Quota (dummy data)
           cell = new PdfPCell(new Phrase(data.AssignedLeaveQuota, dataFont))
           {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
+            BorderWidthLeft = 1.5f,
           };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
           // Balance Leave (dummy data)
@@ -684,27 +838,8 @@ namespace LeaveON.Services
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
-          table.AddCell(cell);
-
-          // Average Entry Time (existing)
-          cell = new PdfPCell(new Phrase(data.AverageTimeIn, dataFont))
-          {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
-          };
-          table.AddCell(cell);
-
-          // Average Exit Time (existing)
-          cell = new PdfPCell(new Phrase(data.AverageTimeOut, dataFont))
-          {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
-          };
-          table.AddCell(cell);
-
-          // Average Time In Office (dummy data, update if you have actual data)
-          cell = new PdfPCell(new Phrase(data.AverageTimeInOffice, dataFont))
-          {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
-          };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
           // Absent/Leaves Days (existing)
@@ -712,6 +847,8 @@ namespace LeaveON.Services
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
           // Available/Leaves Days (dummy data)
@@ -719,27 +856,63 @@ namespace LeaveON.Services
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
           // Compensatory Leaves (dummy data)
-          cell = new PdfPCell(new Phrase(data.CompensatoryLeave, dataFont))
-          {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
-          };
-          table.AddCell(cell);
+          //cell = new PdfPCell(new Phrase(data.CompensatoryLeave, dataFont))
+          //{
+          //  HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          //};
+          ////if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          //if (data == lastEmployee) cell.BorderWidthBottom = 3f;
+          //table.AddCell(cell);
 
           // Official Days Off (existing)
-          cell = new PdfPCell(new Phrase(data.OfficialDaysOff.ToString(), dataFont))
-          {
-            HorizontalAlignment = PdfPCell.ALIGN_CENTER
-          };
-          table.AddCell(cell);
+          //cell = new PdfPCell(new Phrase(data.OffcialDaysOff.ToString(), dataFont))
+          //{
+          //  HorizontalAlignment = PdfPCell.ALIGN_CENTER
+          //};
+          //table.AddCell(cell);
 
           // Short Hours In Month (dummy data)
           cell = new PdfPCell(new Phrase(data.ShortHoursInMonth, dataFont))
           {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
+            BorderWidthRight = 1.5f
+          };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
+          table.AddCell(cell);
+
+          // Average Entry Time (existing)
+          cell = new PdfPCell(new Phrase(data.AverageTimeIn, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
+            BorderWidthLeft = 1.5f
+          };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
+          table.AddCell(cell);
+
+          // Average Exit Time (existing)
+          cell = new PdfPCell(new Phrase(data.AverageTimeOut, dataFont))
+          {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
+          table.AddCell(cell);
+
+          // Average Time In Office (dummy data, update if you have actual data)
+          cell = new PdfPCell(new Phrase(data.AverageTimeInOffice, dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
+            BorderWidthRight = 3f
+          };
+          //if (data == firstEmployee) cell.BorderWidthTop = 3f;
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
         }
 
@@ -760,6 +933,7 @@ namespace LeaveON.Services
         Console.WriteLine($"Failed to send email to {(legitimacyCheckForReports ? "legitimacy checkers" : "")}: {ex.Message}");
       }
     }
+
     
     public void GeneratePDFManager1p(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, int year, string managerEmail, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
     {
@@ -1875,6 +2049,54 @@ namespace LeaveON.Services
         }
 
         return managerEmails;
+      }
+    }
+
+
+    public static int GetWorkingDaysByCountry(int year, int month, string countryName)
+    {
+      DateTime startOfMonth = new DateTime(year, month, 1);
+      DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+      HashSet<DayOfWeek> weekendDays = GetWeekendDaysForCountry(countryName);
+
+      int workingDays = 0;
+      for (DateTime date = startOfMonth; date <= endOfMonth; date = date.AddDays(1))
+      {
+        if (!weekendDays.Contains(date.DayOfWeek))
+        {
+          workingDays++;
+        }
+      }
+
+      return workingDays;
+    }
+
+    private static HashSet<DayOfWeek> GetWeekendDaysForCountry(string countryName)
+    {
+      switch (countryName.Trim().ToLower())
+      {
+        case "egypt":
+        case "iraq":
+        case "oman":
+        case "qatar":
+        case "saudi arabia":
+          return new HashSet<DayOfWeek> { DayOfWeek.Friday, DayOfWeek.Saturday };
+
+        case "united arab emirates":
+          return new HashSet<DayOfWeek> { DayOfWeek.Saturday, DayOfWeek.Sunday }; // changed in Jan 2022
+
+        // All others follow standard Saturday–Sunday
+        case "angola":
+        case "germany":
+        case "kazakhstan":
+        case "nigeria":
+        case "pakistan":
+        case "singapore":
+        case "united kingdom":
+        case "united states":
+        default:
+          return new HashSet<DayOfWeek> { DayOfWeek.Saturday, DayOfWeek.Sunday };
       }
     }
 
