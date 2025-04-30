@@ -507,18 +507,20 @@ namespace LeaveON.Services
       }
       else
       {
+        string mangerEmail = managerEmailName.ToLower();
+
         Console.WriteLine($"Email Subject: {mail.Subject}");
         Console.WriteLine($"Email Body: {mail.Body}");
-        Console.WriteLine($"MangerName => {managerEmailName}");
+        Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
          mail.To.Add("laiba.khan@intechww.com");
         // mail.To.Add("kixen33040@hedotu.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-        mail.To.Add("saeed.dev125@gmail.com");
+       // mail.To.Add("saeed.dev125@gmail.com");
 
-       // mail.To.Add(managerEmailName);
+        mail.To.Add(mangerEmail);
       }
 
       using (MemoryStream memoryStream = new MemoryStream())
