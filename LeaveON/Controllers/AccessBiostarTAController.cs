@@ -1635,6 +1635,31 @@ namespace LeaveON.Controllers
             timeZone = "W. Central Africa Standard Time";
             countryName = "Nigeria Port Harcourt";
           }
+          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
+          {
+            timeZone = "Pakistan Standard Time";
+            countryName = "Pakistan";
+          }
+          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN03")
+          {
+            timeZone = "W. Central Africa Standard Time";
+            countryName = "Nigeria";
+          }
+          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN04")
+          {
+            timeZone = "W. Central Africa Standard Time";
+            countryName = "Angola";
+          }
+          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN05")
+          {
+            timeZone = "Arab Standard Time";
+            countryName = "Saudi Arabia";
+          }
+          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN08")
+          {
+            timeZone = "Arab Standard Time";
+            countryName = "United Arab Emirates";
+          }
           else
           {
             switch (shortCountryName)

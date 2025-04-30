@@ -84,6 +84,25 @@ namespace Intranet.Controllers
 
             }
         }
+         public ActionResult CheckDbConnection()
+        {
+            try
+            {
+                using (var connection = db.Database.Connection)
+                {
+                    connection.Open();
+                    if (connection.State == System.Data.ConnectionState.Open)
+                    {
+                        return Json(new { success = true, message = "Database connection is successful." }, JsonRequestBehavior.AllowGet);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Database connection failed: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
 
+            return Json(new { success = false, message = "Unknown error while connecting to the database." }, JsonRequestBehavior.AllowGet);
+        }
     }
 }
