@@ -42,8 +42,9 @@ namespace LeaveON.EmailSender
       {
 
         mail.From = new MailAddress(LeavON_Email);
-        mail.To.Add(new MailAddress(receiver.Email));
-        // mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
+        //mail.To.Add(new MailAddress(receiver.Email));
+        mail.To.Add(new MailAddress("soxego1324@idoidraw.com"));
+         mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
         //mail.CC.Add(new MailAddress("hrsupport@intechww.com"));
         //mail.CC.Add(new MailAddress("waqqasjavaid@gmail.com"));
         //-----------------
@@ -69,7 +70,7 @@ namespace LeaveON.EmailSender
             {
               mail.Subject = sender.UserName + " posted a Leave request";
              // emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
-               emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/EditCompensatoryQuotaResponse/" + userLeave.Id);
+               emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
               emailTemplate = emailTemplate.Replace("<%LineManager%>", receiver.UserName);
               break;
             } 
