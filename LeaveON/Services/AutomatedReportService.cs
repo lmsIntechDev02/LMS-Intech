@@ -72,6 +72,32 @@ namespace LeaveON.Services
       }
 
     }
+
+    public List<EmailAndIDs> GetUsersWithLeavePolicyByManager(string managerEmail)
+    {
+      using (var context = new LeaveONEntities())
+      {
+        var validPolicyIds = new[] { 1047, 1048 };
+
+        var users = context.AspNetUsers
+            .Where(user =>
+                (user.ManagerID.ToLower() == managerEmail.ToLower() ||
+                 user.Manager2ID.ToLower() == managerEmail.ToLower()) &&
+                user.UserLeavePolicyId.HasValue &&
+                validPolicyIds.Contains(user.UserLeavePolicyId.Value))
+            .Select(x => new EmailAndIDs
+            {
+              userId = x.BioStarEmpNum.Value,
+              email = x.Email,
+              userLeavePolicyID = x.UserLeavePolicyId,
+              UserID = x.Id,
+            })
+            .ToList();
+
+        return users;
+      }
+    }
+
     public List<EmailAndIDs> GetLegitemacyChckers()
     {
       using (var context = new LeaveONEntities())
@@ -102,11 +128,13 @@ namespace LeaveON.Services
     {
       string monthName = GetMonthName(month);
       var legitimacyCheckers = GetLegitemacyChckers();
-      var managerEmails = GetManagersIDs();
+    //  var managerEmails = GetManagersIDs();
+       var managerEmails = GetPolicyWiseManagerIDs();
 
       foreach (var managerEmail in managerEmails)
       {
         var usersAgainstManagers = GetUserEmailsAndIDs(managerEmail);
+       // var usersAgainstManagers = GetUsersWithLeavePolicyByManager(managerEmail);
 
         if (!usersAgainstManagers.Any())
         {
@@ -120,8 +148,9 @@ namespace LeaveON.Services
         foreach (var user in usersAgainstManagers)
         {
           totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
-          //using (var context = new LeaveONEntities())
-            using (var context = new LeaveONEntitiesTarget())
+          using (var context = new LeaveONEntities())
+          // test DB LeaveONEntitiesTarget
+         //  using (var context = new LeaveONEntitiesTarget())
           {
             DateTime invalidDate = new DateTime(0001, 01, 01);
 
@@ -472,8 +501,9 @@ namespace LeaveON.Services
         return; // Exit the method if no data to process
       }
 
-      //LeaveONEntities context = new LeaveONEntities();
-      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+      LeaveONEntities context = new LeaveONEntities();
+      // test DB LeaveONEntitiesTarget
+      // LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
 
       string managerEmailName = context.AspNetUsers
          .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
@@ -514,11 +544,11 @@ namespace LeaveON.Services
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
          mail.To.Add("laiba.khan@intechww.com");
-        // mail.To.Add("kixen33040@hedotu.com");
+        // mail.To.Add("togix93463@harinv.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-       // mail.To.Add("saeed.dev125@gmail.com");
+      //  mail.To.Add("saeed.dev125@gmail.com");
 
         mail.To.Add(mangerEmail);
       }
@@ -945,8 +975,9 @@ namespace LeaveON.Services
         return; // Exit the method if no data to process
       }
 
-      //LeaveONEntities context = new LeaveONEntities();
-      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+      LeaveONEntities context = new LeaveONEntities();
+      // test DB LeaveONEntitiesTarget
+     // LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
 
       string managerEmailName = context.AspNetUsers
          .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
@@ -1263,8 +1294,7 @@ namespace LeaveON.Services
         return; // Exit the method if no data to process
       }
 
-      //LeaveONEntities context = new LeaveONEntities();
-      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
+      LeaveONEntities context = new LeaveONEntities();
 
       string managerEmailName = context.AspNetUsers
          .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
@@ -1554,9 +1584,7 @@ namespace LeaveON.Services
         return; // Exit the method if no data to process
       }
 
-      //LeaveONEntities context = new LeaveONEntities();
-      LeaveONEntitiesTarget context = new LeaveONEntitiesTarget();
-
+      LeaveONEntities context = new LeaveONEntities();
 
       string managerEmailName = context.AspNetUsers
          .Where(user => user.Id == managerEmail) // Check if the user Id matches the provided managerId
@@ -1978,13 +2006,45 @@ namespace LeaveON.Services
 
       return $"{hours} hours, {minutes} minutes, {seconds} seconds";
     }
+    private List<string> GetPolicyWiseManagerIDs()
+    {
+      using (var context = new LeaveONEntities())
+      {
+        var targetPolicyIDs = new[] { 1047, 1048 };
+
+        // Step 1: Get all unique ManagerIDs and Manager2IDs from users
+        var referencedManagerIds = context.AspNetUsers
+            .SelectMany(user => new[] { user.ManagerID, user.Manager2ID })
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .ToList();
+
+        // Step 2: From those referenced managers, filter those who have the required UserLeavePolicyId
+        var validManagerIds = context.AspNetUsers
+            .Where(manager =>
+                referencedManagerIds.Contains(manager.Id) &&
+                manager.UserLeavePolicyId.HasValue &&
+                targetPolicyIDs.Contains(manager.UserLeavePolicyId.Value))
+            .Select(manager => manager.Id)
+            .Distinct()
+            .ToList();
+
+        // Optional: Debug output
+        foreach (var managerID in validManagerIds)
+        {
+          Console.WriteLine($"ManagerID => {managerID}");
+        }
+
+        return validManagerIds;
+      }
+    }
 
     private List<string> GetManagersIDs()
     {
-      //using (var context = new LeaveONEntities())
-        using (var context = new LeaveONEntitiesTarget())
+      using (var context = new LeaveONEntities())
+      // using (var context = new LeaveONEntitiesTarget())
       {
-          var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
+        var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
 
       //  var allowedDepartments = new[] { "IS&T" };
         //var managersIDs = context.AspNetUsers
@@ -2028,6 +2088,7 @@ namespace LeaveON.Services
         return filteredManagersIDs;
       }
     }
+   
     private List<string> GetManagerEmailByDepartment(string department)
     {
       using (var context = new LeaveONEntities())
