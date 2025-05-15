@@ -169,16 +169,7 @@ namespace LeaveON.Services
               // Calculate average time in office
               TimeSpan averageTimeInOffice = averageTimeOut - averageTimeIn;
 
-              //string assignedLeaveQuota = context.UserLeavePolicyDetails
-              //                           .Where(ulpd => ulpd.UserLeavePolicyId == user.userLeavePolicyID)
-              //                           .Select(ulpd => ulpd.Allowed)
-              //                           .FirstOrDefault().ToString();
-
               // getting assingledleave for leave types 1 and 2 for the given user.(causal + annual)
-
-              //int? assignedLeaveQuota = context.UserLeavePolicyDetails
-              //    .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-              //    .Sum(lb => (int?)lb.Allowed ?? 0);
 
               int? assignedLeaveQuota = user?.userLeavePolicyID != null
                     ? context.UserLeavePolicyDetails
@@ -235,11 +226,6 @@ namespace LeaveON.Services
                                        .Select(lb => (int?)lb.HoursTaken)
                                        .FirstOrDefault();
 
-              // Get public holidays from AnnualOffDays based on user's leave policy ID
-              //string publicHolidays = context.AnnualOffDays
-              //                     .Where(aod => aod.UserLeavePolicyId == user.userLeavePolicyID)
-              //                     .Count().ToString();
-
               var daysInMonth = DateTime.DaysInMonth(year, month);
               int? policyId = user.userLeavePolicyID;
               int publicHolidays = 0;
@@ -271,12 +257,12 @@ namespace LeaveON.Services
                 LeaveDays = attendanceData.Count(x => x.IsLeave == true),
                 AverageTimeIn = averageTimeIn.ToString(@"hh\:mm"),
                 AverageTimeOut = averageTimeOut.ToString(@"hh\:mm"),
+                AverageTimeInOffice = averageTimeInOffice.ToString(@"hh\:mm"),
                 WorkFromHomeDays = attendanceData.Count(x => x.LeaveTypeID == 10),
                 OfficialDaysOff = attendanceData.Count(x => x.LeaveTypeID == 8 || x.LeaveTypeID == 9),
                 CountryName = attendanceData.First().CountryName,
                 ManagerEmail = managerEmail,
                 TotalDays = totalWorkDays,
-                AverageTimeInOffice = averageTimeInOffice.ToString(@"hh\:mm"),
                 AssignedLeaveQuota = assignedLeaveQuota.HasValue ? (assignedLeaveQuota.Value < 0 ? "0" : assignedLeaveQuota.Value.ToString()) : "0",
                 BalanceLeave = openingBalanceLeave.HasValue ? (openingBalanceLeave.Value < 0 ? "0" : openingBalanceLeave.Value.ToString()) : "0",
                 AvailableLeave = totalBalanceLeave.HasValue ? (totalBalanceLeave.Value < 0 ? "0" : totalBalanceLeave.Value.ToString()) : "0",
@@ -513,12 +499,12 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Body: {mail.Body}");
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
-         mail.To.Add("laiba.khan@intechww.com");
-        // mail.To.Add("kixen33040@hedotu.com");
+        // mail.To.Add("laiba.khan@intechww.com");
+         mail.To.Add("kixen33040@hedotu.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-       // mail.To.Add("saeed.dev125@gmail.com");
+        mail.To.Add("saeed.dev125@gmail.com");
 
         mail.To.Add(mangerEmail);
       }
