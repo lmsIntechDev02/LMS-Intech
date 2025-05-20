@@ -85,8 +85,9 @@ namespace LeaveON.UtilityClasses
         {
             string filePath = Path.Combine(HttpRuntime.AppDomainAppPath, "SyncLog.txt");
             System.IO.File.AppendAllText(filePath, DateTime.Now.ToString() + Environment.NewLine);
-
-            using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
+            try
+            {
+                using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
             {
                 byte empFound = 0;
                 int counter = 0;
@@ -221,6 +222,7 @@ namespace LeaveON.UtilityClasses
                             db.DepartmentNames.Add(departmentName);
                         }
                     }
+                    
                     //-------------remove department name which does not exist in AD-------------
                     foreach (var itm in db.DepartmentNames.ToList())
                     {
@@ -281,6 +283,12 @@ namespace LeaveON.UtilityClasses
 
 
             }
+            }
+            catch (Exception ex)
+            {
+                // Log the error in the SyncLog.txt file
+                throw new Exception($"Error in SyncAppWithAD: {ex.Message}", ex);
+            }
 
         }
 
@@ -293,41 +301,43 @@ namespace LeaveON.UtilityClasses
             return !Convert.ToBoolean(flags & 0x0002);
         }
         private void InsertEmployee(DirectoryEntry de)
-        {
-            //return;
-            AspNetUser emp = new AspNetUser();
+            {
+                //return;
+                AspNetUser emp = new AspNetUser();
 
-            emp.UserName = Convert.ToString(de.Properties["userPrincipalName"].Value);
-            emp.Email = Convert.ToString(de.Properties["userPrincipalName"].Value);
-            emp.Id = Guid.NewGuid().ToString();
-            emp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);//null; //0000;
-            emp.EmailConfirmed = false;
-            emp.PasswordHash = "ABaTT1CcvSEzwTzDXHnXFm+9cJ3Zaa65Z6QMZ4ZygNVyX8TIvSevNuJGKX7k81VQVQ==";
-            emp.SecurityStamp = "e93564e2-08f0-47cd-a822-4b99ca4c08d2";
-            emp.PhoneNumberConfirmed = false;
-            emp.TwoFactorEnabled = false;
-            emp.LockoutEnabled = true;
-            emp.AccessFailedCount = 0;
-            emp.DateCreated = DateTime.Now;
+                emp.UserName = Convert.ToString(de.Properties["userPrincipalName"].Value);
+                emp.Email = Convert.ToString(de.Properties["userPrincipalName"].Value);
+                emp.Id = Guid.NewGuid().ToString();
+                emp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);//null; //0000;
+                emp.EmailConfirmed = false;
+                emp.PasswordHash = "ABaTT1CcvSEzwTzDXHnXFm+9cJ3Zaa65Z6QMZ4ZygNVyX8TIvSevNuJGKX7k81VQVQ==";
+                emp.SecurityStamp = "e93564e2-08f0-47cd-a822-4b99ca4c08d2";
+                emp.PhoneNumberConfirmed = false;
+                emp.TwoFactorEnabled = false;
+                emp.LockoutEnabled = true;
+                emp.AccessFailedCount = 0;
+                emp.DateCreated = DateTime.Now;
 
-            emp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
-            emp.CntryName = Convert.ToString(de.Properties["co"].Value);
-            emp.IsActive = IsActive(de);
-            emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
+                emp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
+                emp.CntryName = Convert.ToString(de.Properties["co"].Value);
+                emp.IsActive = IsActive(de);
+                emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
 
 
 
-            db.AspNetUsers.Add(emp);
+                db.AspNetUsers.Add(emp);
 
-            //----add user role
-            //if (String.IsNullOrEmpty( emp.CntryName ))
-            //{
-            //    var abc = 1;
-            //    return;
-            //}
-            //db.SaveChangesAsync();
-            db.SaveChanges();
-        }
+                //----add user role
+                //if (String.IsNullOrEmpty( emp.CntryName ))
+                //{
+                //    var abc = 1;
+                //    return;
+                //}
+                //db.SaveChangesAsync();
+                db.SaveChanges();
+            
+        
+            }
 
         private void UpdateEmployee(AspNetUser oldEmp, DirectoryEntry de)
         {

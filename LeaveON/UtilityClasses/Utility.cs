@@ -128,16 +128,23 @@ namespace LeaveON.UtilityClasses
       .Where(leave => !leaveBalance.Contains(leave.Id))
       .ToList();
 
-     var findCompensatoryLeave = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 0 && x.UserId == UserId && x.UserLeavePolicyId == policyId && x.Balance > 0);
-      if (findCompensatoryLeave != null)
+      /*  var findCompensatoryLeave = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 0 && x.UserId == UserId && x.UserLeavePolicyId == policyId && x.Balance > 0);
+         if (findCompensatoryLeave != null)
+         {
+           // Add compensatory leave to filteredLeaves if found
+           var compensatoryLeaveType = leaveTypes.FirstOrDefault(leaveType => leaveType.Id == findCompensatoryLeave.LeaveTypeId);
+           if (compensatoryLeaveType != null)
+           {
+             filteredLeaves.Add(compensatoryLeaveType);
+           }
+         }*/
+     
+      var compensatoryLeaveType = leaveTypes.FirstOrDefault(leaveType => leaveType.Id == 0);
+      if (compensatoryLeaveType != null)
       {
-        // Add compensatory leave to filteredLeaves if found
-        var compensatoryLeaveType = leaveTypes.FirstOrDefault(leaveType => leaveType.Id == findCompensatoryLeave.LeaveTypeId);
-        if (compensatoryLeaveType != null)
-        {
-          filteredLeaves.Add(compensatoryLeaveType);
-        }
+        filteredLeaves.Add(compensatoryLeaveType);
       }
+
 
       return filteredLeaves;
     }

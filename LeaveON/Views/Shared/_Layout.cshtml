@@ -319,7 +319,7 @@
                 </li>
 
               }
-              if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+              if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("User"))
               {
                 <li class="nav-item has-treeview">
                   <a href="#" class="nav-link">
@@ -430,14 +430,14 @@
       </a>
     </li>*@
 
-
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager")) {
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/UserData" class="nav-link">
                         &nbsp; &nbsp;  <i class="far fa fa-history"></i>
                         <p>User Data</p>
                       </a>
                     </li>
-                    <li class="nav-item">
+                     <li class="nav-item">
                       <a href="/AccessBiostarTA/Absenteesdata" class="nav-link">
                         &nbsp; &nbsp;  <i class="far fa fa-history"></i>
                         <p>Absentees Data</p>
@@ -449,6 +449,15 @@
                         <p>Countries Data</p>
                       </a>
                     </li>
+                    }
+                    <li class="nav-item">
+                      <a href="/AccessBiostarTA/UserReportData" class="nav-link">
+                        &nbsp; &nbsp; <i class="far fa fa-history"></i>
+                        <p>My Report</p>
+                      </a>
+                    </li>
+
+                   
                     @if (User.IsInRole("Admin"))
                     {
                       @*<li class="nav-item">

@@ -24,12 +24,12 @@
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         @*<div class="form-group">
-            @Html.LabelFor(model => model.UserId, htmlAttributes: new { @class = "control-label" })
-            <div class="col-md-10">
-              @Html.EditorFor(model => model.UserId, new { htmlAttributes = new { @class = "form-control" } })
-              @Html.ValidationMessageFor(model => model.UserId, "", new { @class = "text-danger" })
-            </div>
-          </div>*@
+        @Html.LabelFor(model => model.UserId, htmlAttributes: new { @class = "control-label" })
+        <div class="col-md-10">
+          @Html.EditorFor(model => model.UserId, new { htmlAttributes = new { @class = "form-control" } })
+          @Html.ValidationMessageFor(model => model.UserId, "", new { @class = "text-danger" })
+        </div>
+      </div>*@
 
         <div class="form-group">
           @Html.Label("User Name")
@@ -53,7 +53,7 @@
           <br>
           @*<textarea name="Reason" class="form-control " rows="3">
 
-            </textarea>*@
+        </textarea>*@
 
           @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
 
@@ -64,20 +64,20 @@
 
         @*<div class="form-group">
 
-            <label>Start Date:</label>
+        <label>Start Date:</label>
 
-            <div class="input-group">
-              <div class="input-group-prepend">
-                <span class="input-group-text">
-                  <i class="far fa-calendar-alt"></i>
-                </span>
-              </div>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text">
+              <i class="far fa-calendar-alt"></i>
+            </span>
+          </div>
 
-              <input type="text" class="form-control float-right" id="reservation">
+          <input type="text" class="form-control float-right" id="reservation">
 
-            </div>
+        </div>
 
-          </div>*@
+      </div>*@
 
         <div class="form-group">
           @Html.LabelFor(model => model.StartDate, "Start Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
@@ -141,10 +141,11 @@
 
         <div class="form-group">
           <div class="class=" card-footer">
-            <input type="submit" value="Apply" class="btn btn-primary" id="btnApply" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
+            <input type="submit" value="Apply Now" class="btn btn-primary" id="btnApply" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
 
           </div>
         </div>
+        <div id="loader" style="display:none; text-align:center; font-size:24px; color:#007bff;">Loading...</div>
 
         <div>
           @Html.ActionLink("Back to List", "Index")
@@ -193,15 +194,7 @@
       $(document).ready(function () {
 
         $('#btnApply').click(function () {
-          if (IsDatesCorrect() == false) {
-            //alert('false');
-            return false;
-          }
-          else {
-            //alert('true');
-            return true;
-          }
-          
+          handleFormSubmission(event, 'CompQuota', 'loader');          
         });
 
       //alert('@ViewBag.FiscalYearStart');
@@ -262,6 +255,24 @@
 
         }
       });
+        function handleFormSubmission(event, formId, loaderId) {
+          event.preventDefault();
+          var form = document.getElementById(formId);
+          var loader = document.getElementById(loaderId);
+
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return; // Exit if the form is not valid
+          }
+
+          loader.style.display = 'block'; // Show the loader
+
+          if (IsDatesCorrect()) {
+            form.submit(); // Submit the form if all checks pass
+          } else {
+            loader.style.display = 'none'; // Hide the loader if there are errors
+          }
+        }
 
       function IsDatesCorrect() {
         var start = $("#datepickerStart").datepicker("getDate");

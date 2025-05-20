@@ -82,6 +82,8 @@ namespace LeaveON.EmailSender
         mail.Body = emailTemplate;
         mail.IsBodyHtml = true;
         smtpServer.Send(mail);
+        // Log or console confirmation if email sends successfully
+        Console.WriteLine("Email sent successfully to " + receiver.Email);
       }
       catch (Exception ex)
       {

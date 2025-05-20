@@ -15,7 +15,7 @@ using LMS.Constants;
 namespace LeaveON.Controllers
 {
 
-  [Authorize(Roles = "Admin,Manager")]
+  [Authorize(Roles = "Admin,Manager, User")]
   public class LeavesResponseController : Controller
   {
     private LeaveONEntities db = new LeaveONEntities();
@@ -47,7 +47,7 @@ namespace LeaveON.Controllers
       {
         foreach (AspNetRole role in user.AspNetRoles.ToList<AspNetRole>())
         {
-          if (role.Name == "Admin" || role.Name == "Manager")
+          if (role.Name == "Admin" || role.Name == "Manager" || role.Name == "User")
           {
             AspNetUser userFound = Seniors.Find(x => x.Id == user.Id);
             if (userFound == null)
@@ -99,8 +99,7 @@ namespace LeaveON.Controllers
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
-      //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
-      ViewBag.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicy.Id;
+      ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       return View(leave);
     }
@@ -247,7 +246,7 @@ namespace LeaveON.Controllers
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
-      ViewBag.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+      ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       return View(leave);
     }
@@ -370,8 +369,34 @@ namespace LeaveON.Controllers
     }
     public void CalculateAndChangeLeaveBalance(ref Leave leave)
     {
-      ///////////////
+      // Calculate the leave balance
       LeaveBalance leaveBalance = CalculateLeaveBalance(ref leave);
+
+      if (leave.LeaveTypeId != 7 && leave.LeaveTypeId != 8)
+      {
+        // Update the attendance records to reflect the leave
+        // Extract necessary data into local variables
+        var empNum = leave.AspNetUser.BioStarEmpNum;
+        var startDate = leave.StartDate;
+        var endDate = leave.EndDate;
+        var leaveType = leave.LeaveType.Name;
+        var leaveTypeID = leave.LeaveTypeId;
+
+        //var attendanceRecordsToUpdate = db.AttendanceDatas
+        //    .Where(ad => ad.EmployeeID == empNum
+        //                 && ad.CreatedDate >= startDate
+        //                 && ad.CreatedDate <= endDate)
+        //    .ToList();
+
+        //foreach (var record in attendanceRecordsToUpdate)
+        //{
+        //  record.IsLeave = true;
+        //  record.LeaveType = leaveType;
+        //  record.LeaveTypeID = leaveTypeID;
+        //}
+
+        db.SaveChanges();
+      }
 
       if (leaveBalance == null)
       {
@@ -381,7 +406,7 @@ namespace LeaveON.Controllers
         leaveBalance.Balance -= leave.TotalDays;
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
-        leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+        leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
         if (leave.LeaveTypeId == 7)
         {
           leaveBalance.HoursTaken = (int)(leave.EndDate - leave.StartDate).TotalHours;
@@ -397,7 +422,7 @@ namespace LeaveON.Controllers
         {
           int hoursToAdd = (int)(leave.EndDate - leave.StartDate).TotalHours;
           var leaveUserID = leave.UserId;
-          var leavePolicyID = leave.AspNetUser.UserLeavePolicyId;
+          var leavePolicyID = leave.UserLeavePolicyID;
           leaveBalance.Balance = 0;
           if (leaveBalance.HoursTaken + hoursToAdd >= 8)
           {
@@ -422,7 +447,7 @@ namespace LeaveON.Controllers
                     leaveDetail.UserLeavePolicyId == leavePolicyID).Select(detail => detail.Allowed).FirstOrDefault()) - 1;
               leaveBalance.UserId = leaveUserID;
               leaveBalance.LeaveTypeId = 1;
-              leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+              leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
               db.LeaveBalances.Add(leaveBalance);
               db.SaveChanges();
             }
@@ -452,10 +477,9 @@ namespace LeaveON.Controllers
       {
         //new
         leaveBalance = new LeaveBalance(ref leave);
-        leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
-        //leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+        leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
         db.LeaveBalances.Add(leaveBalance);
       }
       else
@@ -468,7 +492,7 @@ namespace LeaveON.Controllers
     {
       string UserId = leave.UserId;
       int LeaveTypeId = leave.LeaveTypeId;
-      int userLeavePolicyId = leave.AspNetUser.UserLeavePolicy.Id;
+      int userLeavePolicyId = (int)leave.UserLeavePolicyID;
       LeaveBalance leaveBalance = leave.AspNetUser.LeaveBalances.FirstOrDefault(x => x.UserId == UserId && x.LeaveTypeId == LeaveTypeId && x.UserLeavePolicyId == userLeavePolicyId );
       return leaveBalance;
     }

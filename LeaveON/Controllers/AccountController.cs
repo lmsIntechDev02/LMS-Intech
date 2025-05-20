@@ -1,5 +1,3 @@
-using System;
-using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -11,9 +9,6 @@ using Microsoft.Owin.Security;
 using LeaveON.Models;
 using Repository.Models;
 using System.Collections.Generic;
-using System.DirectoryServices.AccountManagement;
-using System.DirectoryServices;
-using System.Web.Hosting;
 
 namespace LeaveON.Controllers
 {
@@ -59,7 +54,17 @@ namespace LeaveON.Controllers
 
     public ActionResult Index()
     {
-      ViewBag.Employees = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
+
+      var sortedEmployees = db.AspNetUsers
+         .AsEnumerable()
+         .Select(user => new
+              {
+                user.Id,
+                UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
+              })
+         .OrderBy(x => x.UserName)
+         .ToList();
+      ViewBag.Employees = new SelectList(sortedEmployees, "Id", "UserName");
       //ViewBag.LeaveTypes = new SelectList(db.LeaveTypes, "Id", "Name");
       ViewBag.Roles = new SelectList(db.AspNetRoles.OrderBy(x => x.Name), "Id", "Name");
       //var aspNetUserClaims = db.AspNetUserClaims.Include(a => a.AspNetUser);
@@ -74,7 +79,7 @@ namespace LeaveON.Controllers
           usersAndRoles.Add(new UserRoleModel
           {
             UserId = user.Id,
-            UserName = user.UserName,
+            UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " "),
             RoleId = role.Id,
             RoleName = role.Name
           });
@@ -139,10 +144,6 @@ namespace LeaveON.Controllers
           await UserManager.RemoveFromRoleAsync(UserId, "User");
           break;
       }
-
-      //AspNetUserClaim aspNetUserClaim = await db.AspNetUserClaims.FindAsync(UserIdRoleId);
-      //db.AspNetUserClaims.Remove(aspNetUserClaim);
-      //await db.SaveChangesAsync();
       return RedirectToAction("Index");
 
     }
@@ -166,86 +167,56 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult Login(string returnUrl, string ADUser)
     {
-#if DEBUG
       //ADUser = "bsserviceaccount@intechww.com";
       //ADUser = "Ahsan.Ahmad@intechww.com";
       //ADUser = "umar.nazir@intechww.com";
       //ADUser = "suha.alialmutlaq@intechww.com ";
-
       //ADUser = "Fatima.Khalil@intechww.com";
       //ADUser = "nouman.sial@intechww.com";
       //ADUser = "kashif.ijaz@intechww.com";
-
       //ADUser = "usama.abbas@intechww.com";
       //ADUser = "bilal.hussain@intechww.com";
-      //ADUser = "asrar.ahmed@intechww.com";
+
       //ADUser = "Khaleel.khan@intechww.com";
-      //ADUser = "Usman.Javed@intechww.com";
       //ADUser = "kashif.ali@intechww.com";
       //ADUser = "Hassan.masood@intechww.com";
-      //ADUser = "salman.saleem@intechww.com";
       //ADUser = "waqqasjavaid@gmail.com";
       //ADUser = "testing@intechww.com";
-      ADUser = "Muzammil.Riaz@intechww.com";
-      //ADUser = "laiba.khan@intechww.com";
+      //ADUser = "Usman.Javed@intechww.com";
+      //ADUser = "salman.saleem@intechww.com";
+
+      /*Admin*/
+      // ADUser = "asrar.ahmed@intechww.com";
+      /*Manager*/
+      // ADUser = "Muzammil.Riaz@intechww.com";
+      /*User*/
       //ADUser = "nouman.sial@intechww.com";
+
+      //ADUser = "laiba.khan@intechww.com";
+      // ADUser = "nouman.sial@intechww.com";
       //ADUser = "lms.dev02@intechww.com";
+      //ADUser = "Usman.Ghani @intechww.com";
+      //ADUser = "Haseeb.hayat@intechww.com";
+      //ADUser = "haseeb.aslam@intechww.com";
+      //ADUser = "Khawaja.jawad@intechww.com";
+      //ADUser = "abdullah.abusalah@intechww.com";
+      //   ADUser = "lms.dev02@intechww.com";
       //ali.raza@intechww.com
-#endif
-      //var path = System.Web.HttpContext.Current.Server.MapPath(@"~/myLog.txt");
-      //var identityName = HttpContext.User.Identity.Name;
-      //using (HostingEnvironment.Impersonate())
-      //{
-      //  using (var context = new PrincipalContext(ContextType.Domain, "intechww.com", null, ContextOptions.Negotiate | ContextOptions.SecureSocketLayer))
-      //  using (var userPrincipal = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, @"NT AUTHORITY\IUSR"))
-      //  {
-      //    var emailAddress = userPrincipal.EmailAddress;
-      //    var lastname = userPrincipal.Surname;
-      //    var firstname = userPrincipal.GivenName;
-      //  }
-      //}
-      //string ab= User.Identity.Name;
-      //var identityName = HttpContext.User.Identity.Name;
 
-      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { identityName}));
-
-      //UserPrincipal currentUser = UserPrincipal.Current;
-
-      //string Name1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { Name1 }));
-
-      //PrincipalContext ctx = new PrincipalContext(ContextType.Domain, "intechww.com");
-      //UserPrincipal user = UserPrincipal.FindByIdentity(ctx, HttpContext.Request.LogonUserIdentity.Name);
-      //string assdf = HttpContext.User.Identity.Name;
-      //System.IO.File.AppendAllLines(path, new List<string>(new string[] { user.Name.ToString(), assdf }));
-
-      //List<string> loginsList = new List<string>();
-      ////string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-      ////string id4 = Request.LogonUserIdentity.Name;
-      ////PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-      ////UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
-      //loginsList.Add(currentUser.Name);
-      //loginsList.Add(currentUser.DisplayName);
-      //loginsList.Add(currentUser.GivenName);
-      //loginsList.Add(currentUser.SamAccountName);
-      //loginsList.Add(currentUser.UserPrincipalName);
-
-      //System.IO.File.AppendAllLines(path, loginsList);
+      // test user
+      ADUser = "Bilal.Yasin@intechww.com";
+     // ADUser = "laiba.khan@intechww.com";
 
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
-      //if (user != null)
-      //{
-      //  UserManager.AddToRoleAsync(user.Id, "User");
-      //}
 
       if (user != null && !UserManager.IsInRole(user.Id, "User"))
       {
-        UserManager.AddToRole(user.Id, "User");
-        UserManager.AddToRole(user.Id, "Manager");
+       // UserManager.AddToRole(user.Id, "User");
+       // UserManager.AddToRole(user.Id, "Manager");
       }
 
-      if (user.UserLeavePolicyId == null)
+      if (user?.UserLeavePolicyId == null)
       {
         TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
         return RedirectToAction("General", "Error");
@@ -254,7 +225,6 @@ namespace LeaveON.Controllers
 
       ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
       ViewBag.ReturnUrl = returnUrl;
-      //ViewBag.ReturnUrl = @"\LeavesRequest\Index";
 
       return View();
     }
@@ -264,53 +234,18 @@ namespace LeaveON.Controllers
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    //public async Task<ActionResult> Login(LoginViewModel model, string returnUrl, FormCollection formCollection)
     public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
     {
-      //string abc =User.Identity.Name;
-      //List<string> loginsList = new List<string>();
-      //string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-      //string id4 = Request.LogonUserIdentity.Name;
-
-      //PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-      //UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
-      //loginsList.Add(currentUser.Name);
-      //loginsList.Add(currentUser.DisplayName);
-      //loginsList.Add(currentUser.GivenName);
-      //loginsList.Add(currentUser.SamAccountName);
-      //loginsList.Add(currentUser.UserPrincipalName);
-
-
-
-      //var path = Server.MapPath(@"~/myLog.txt");
-      //System.IO.File.AppendAllLines(path, loginsList);
-
-
       if (!ModelState.IsValid)
       {
-        //return View(model);
         return RedirectToAction("Error404", "Error");
       }
-    
-      // This doesn't count login failures towards account lockout
-      // To enable password failures to trigger account lockout, change to shouldLockout: true
-
-      //string userName = formCollection.Get("UserName");//"Cash"; //cash//other
-      //string IsAuthenticated = formCollection.Get("IsAuthenticated");
 
       var result = await SignInManager.PasswordSignInAsync(model.Email, "Leaves12*", model.RememberMe, shouldLockout: false);
-      //Mubashar.ali@intechww.com
-      //var result = await SignInManager.PasswordSignInAsync("Mubashar.ali@intechww.com", "Leaves12*", model.RememberMe, shouldLockout: false);
-      //var result = await SignInManager.PasswordSignInAsync("umer@tenf.loc", "Leaves12*", model.RememberMe, shouldLockout: false);
-
-     
-
-      //-----------------------
       switch (result)
       {
         case SignInStatus.Success:
           return Redirect(returnUrl);
-        //return RedirectToAction("Index", "LeavesRequest");
         case SignInStatus.LockedOut:
           return View("Lockout");
         case SignInStatus.RequiresVerification:
@@ -318,7 +253,6 @@ namespace LeaveON.Controllers
         case SignInStatus.Failure:
         default:
           ModelState.AddModelError("", "Invalid login attempt.");
-          //return View(model);
           return RedirectToAction("Error404", "Error");
       }
     }
@@ -742,8 +676,8 @@ namespace LeaveON.Controllers
     {
       //return Redirect("http://lms-stage.intechww.com/");
 
-      return Redirect("https://lms.intechww.com:1001/");
-      //return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
+      //return Redirect("https://lms.intechww.com:1001/");
+      return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
     }
     //
     // GET: /Account/ExternalLoginFailure

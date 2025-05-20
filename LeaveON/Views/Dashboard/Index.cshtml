@@ -40,6 +40,8 @@
   <!-- ./col -->
   <div class="col-lg-3 col-6">
     <!-- small box -->
+
+
     <div class="small-box bg-warning">
       <div class="inner">
         <h3>@Model.MyTakenLeaves</h3>
@@ -103,6 +105,34 @@
         <h3>@Model.MyLeavesApproved</h3>
 
         <p>My Leaves Approved</p>
+      </div>
+      <div class="icon">
+        <i class="ion ion-pie-graph"></i>
+      </div>
+      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <!-- small box -->
+    <div class="small-box bg-blue">
+      <div class="inner">
+        <h3>@Model.TotalAnnualLeaves</h3>
+
+        <p>Annaul Leaves</p>
+      </div>
+      <div class="icon">
+        <i class="ion ion-pie-graph"></i>
+      </div>
+      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <!-- small box -->
+    <div class="small-box bg-indigo">
+      <div class="inner">
+        <h3>@Model.BalanceAnnualLeaves</h3>
+
+        <p>Balance Annaul Leaves</p>
       </div>
       <div class="icon">
         <i class="ion ion-pie-graph"></i>
