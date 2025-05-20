@@ -300,17 +300,34 @@
   var addData = 0;
   $(document).ready(function () {
     var idxId = 0;
-    $('#CreatePolicy').click(function () {
-      //alert($('#allowedLeaves tr').length);
-      //return false;
+    $('#CreatePolicy').click(function (e) {
       if ($('#allowedLeaves tr').length == 1) {
-        alert("Please Add atleast one leave type");
+        alert("Please add at least one leave type.");
+        e.preventDefault();
         return false;
       }
+
+      var selectedPolicy = $('input[name="PolicyFor"]:checked').val();
+
+      if (selectedPolicy === "1") { // Departments
+        var selectedDepartments = $('#listDepartments').val();
+        if (!selectedDepartments || selectedDepartments.length === 0) {
+          alert("Please select at least one Country.");
+          e.preventDefault();
+          return false;
+        }
+      } else if (selectedPolicy === "0") { // Employees
+        var selectedEmployees = $('#listEmployees').val();
+        if (!selectedEmployees || selectedEmployees.length === 0) {
+          alert("Please select at least one employee.");
+          e.preventDefault();
+          return false;
+        }
+      }
+
+      // Let form submit continue if all is well
     });
-    //$('#multiSelectOffDays').multiselect({
-    //      includeSelectAllOption: true
-    //  });
+
 
     //displayAlert
      $("#displayAlert").on("click", function () {
