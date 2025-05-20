@@ -427,8 +427,8 @@ namespace LeaveON.Controllers
             //Get from AnnualLeaveManager table
             admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
               db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-          // admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 1179);
-           // leave.LineManager1Id = admin1.Id;
+              leave.LineManager1Id = admin1.Id;
+            // admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 1179);
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
           }
           else

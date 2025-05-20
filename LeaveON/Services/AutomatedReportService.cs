@@ -197,10 +197,10 @@ namespace LeaveON.Services
 
               // Calculate average time in office
               TimeSpan averageTimeInOffice = averageTimeOut - averageTimeIn;
-              
+
               // getting assingledleave for leave types 1 and 2 for the given user.(causal + annual)
 
-              int ? assignedLeaveQuota = user?.userLeavePolicyID != null
+              int? assignedLeaveQuota = user?.userLeavePolicyID != null
                     ? context.UserLeavePolicyDetails
                         .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID &&
                                      (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
@@ -509,7 +509,7 @@ namespace LeaveON.Services
       MailMessage mail = new MailMessage
       {
         From = new MailAddress(LeavON_Email),
-        Subject = $"Monthly Attendance Summary Report",
+        Subject = $"Monthly Attendance Summary Report - {monthName}",
         Body = $"Dear {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerEmailName.Split('@')[0].Replace('.', ' '))},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n"
       };
 
@@ -529,12 +529,12 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Body: {mail.Body}");
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
-        //  mail.To.Add("laiba.khan@intechww.com");
-         mail.To.Add("bagayik644@inkight.com");
+        // mail.To.Add("laiba.khan@intechww.com");
+         mail.To.Add("kixen33040@hedotu.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-          mail.To.Add("saeed.dev125@gmail.com");
+        mail.To.Add("saeed.dev125@gmail.com");
 
         //  mail.To.Add(mangerEmail);
       }
@@ -951,7 +951,6 @@ namespace LeaveON.Services
         Console.WriteLine($"Failed to send email to {(legitimacyCheckForReports ? "legitimacy checkers" : "")}: {ex.Message}");
       }
     }
-
     public void GeneratePDFManager(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers, HashSet<string> sentEmails)
     {
 
@@ -1318,144 +1317,6 @@ namespace LeaveON.Services
       }
     }
 
-    //public void GeneratePDFManager(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, bool legetimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers)
-    //{
-    //  SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
-    //  {
-    //    UseDefaultCredentials = false,
-    //    Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password),
-    //    Port = 587,
-    //    EnableSsl = true
-    //  };
-
-    //  var groupedByDepartment = reportData.GroupBy(emp => emp.Department.Trim()).ToList();
-    //  foreach (var group in groupedByDepartment)
-    //  {
-    //    List<string> managerEmails = GetManagerEmailByDepartment(group.Key);  // Get manager emails for the department
-    //    foreach (string managerEmail in managerEmails)
-    //    {
-    //      MailMessage mail = new MailMessage
-    //      {
-    //        From = new MailAddress(LeavON_Email),
-    //        Subject = $"Monthly Report for {group.Key} Department",
-    //        Body = $"Attached is the monthly report for {group.Key} Department."
-    //      };
-    //      if (legetimacyCheckForReports)
-    //      {
-    //        foreach (EmailAndIDs legitChecker in legitimacyCheckers)
-    //        {
-    //          mail.To.Add(new MailAddress(legitChecker.email));
-    //        }
-    //      }
-    //      else
-    //      {
-    //        mail.To.Add(new MailAddress("haiderali98.ha61@gmail.com"));  // Send to each manager
-    //      }
-
-    //      using (MemoryStream memoryStream = new MemoryStream())
-    //      {
-    //        Document document = new Document(PageSize.A3, 50, 50, 25, 25);
-    //        PdfWriter.GetInstance(document, memoryStream);
-    //        document.Open();
-
-    //        PdfPTable table = new PdfPTable(new float[] { 3, 2, 2, 2, 2, 2, 2, 2 });
-    //        table.WidthPercentage = 100;
-
-    //        // Header
-    //        Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
-    //        PdfPCell headerCell = new PdfPCell(new Phrase($"Number of working days in {monthName}: {totalWorkDays}", headerFont))
-    //        {
-    //          Colspan = 7,
-    //          HorizontalAlignment = Element.ALIGN_CENTER,
-    //          BackgroundColor = new BaseColor(0, 51, 102),
-    //          Padding = 8
-    //        };
-    //        table.AddCell(headerCell);
-    //        PdfPCell headerCell2 = new PdfPCell(new Phrase($"Department: {group.Key}", headerFont))
-    //        {
-    //          Colspan = 7,
-    //          HorizontalAlignment = Element.ALIGN_CENTER,
-    //          BackgroundColor = new BaseColor(0, 51, 102),
-    //          Padding = 8
-    //        };
-    //        table.AddCell(headerCell2);
-    //        // Column headers
-    //        float[] columnWidths = new float[] { 3f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
-    //        table.SetWidths(columnWidths);
-    //        Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
-    //        string[] headers = { "Elements", "Average Entry Time", "Average Exit Time", "Working days of Employee", "Absents (Casual/  Annual)", "Work from home", "Official Days off", "Country" };
-    //        foreach (string header in headers)
-    //        {
-    //          PdfPCell colHeaderCell = new PdfPCell(new Phrase(header, headerFont2))
-    //          {
-    //            BackgroundColor = new BaseColor(0, 76, 153),
-    //            HorizontalAlignment = Element.ALIGN_CENTER,
-    //            Padding = 5
-    //          };
-    //          table.AddCell(colHeaderCell);
-    //        }
-    //        // Data cells
-    //        Font dataFont = new Font(Font.FontFamily.HELVETICA, 15, Font.NORMAL);
-    //        Font nameFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD);
-    //        BaseColor yellowColor = new BaseColor(255, 255, 0); // RGB for yellow
-    //        foreach (EmployeeReportData data in group)
-    //        {
-    //          PdfPCell cell;
-    //          bool hasAbsentDays = data.AbsentDays >= 3;
-    //          // Create a new PdfPCell, set its Phrase and Font, then align it to center
-    //          cell = new PdfPCell(new Phrase(data.EmployeeName.ToUpper() + " (" + data.EmployeeID + ")", nameFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase(data.AverageTimeIn, dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase(data.AverageTimeOut, dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase((totalWorkDays - data.AbsentDays).ToString(), dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          if (hasAbsentDays) cell.BackgroundColor = yellowColor;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase(data.WorkFromHomeDays.ToString(), dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase(data.OfficialDaysOff.ToString(), dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-
-    //          cell = new PdfPCell(new Phrase(data.CountryName.ToString(), dataFont));
-    //          cell.HorizontalAlignment = PdfPCell.ALIGN_CENTER;
-    //          table.AddCell(cell);
-    //        }
-    //        document.Add(table);
-    //        document.Close();
-
-    //        // Convert the memory stream to an array of bytes
-    //        byte[] bytes = memoryStream.ToArray();
-
-    //        // Attach the PDF as an email attachment
-    //        mail.Attachments.Add(new Attachment(new MemoryStream(bytes), $"MonthlyReport_{group.Key}.pdf", "application/pdf"));
-    //      }
-    //      try
-    //      {
-    //        smtpServer.Send(mail);
-    //      }
-    //      catch (Exception ex)
-    //      {
-    //        Console.WriteLine($"Failed to send email to {managerEmail}: {ex.Message}");
-    //      }
-    //    }
-    //  }
-    //}
   }
 }
 
