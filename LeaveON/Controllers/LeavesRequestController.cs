@@ -187,10 +187,54 @@ namespace LeaveON.Controllers
 
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
       var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId); 
-//      ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+   // ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
       ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
              ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
              : "Joining date not available";
+
+      // Prorated Leaves
+      DateTime today = DateTime.Today;
+      int currentYear = today.Year;
+
+      int workedMonths = 12;
+
+      if(currentUser.JoiningDate.HasValue)
+      {
+        DateTime joiningDate = currentUser.JoiningDate.Value;
+
+        if(joiningDate.Year == currentYear)
+        {
+          workedMonths = 12 - joiningDate.Month + 1;
+        }
+      }
+
+
+      int? assignedLeaveQuota = policyId != null
+                    ? db.UserLeavePolicyDetails
+                        .Where(lb => lb.UserLeavePolicyId == policyId &&
+                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                        .Select(lb => (int?)lb.Allowed)
+                        .Sum() ?? 0
+                    : 0;
+      // Prorated Leave Calculation
+      double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+      int proratedLeave;
+
+
+      // Round to nearest whole number or keep decimal
+      //proratedLeaves = Math.Round(proratedLeaves, 2); 
+      // Custom rounding logic
+      if (proratedLeaves % 1 >= 0.5)
+      {
+        proratedLeave = (int)Math.Ceiling(proratedLeaves);
+      }
+      else
+      {
+        proratedLeave = (int)Math.Floor(proratedLeaves);
+      }
+
+
+      ViewBag.proratedLeave = proratedLeave;
 
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
         .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
