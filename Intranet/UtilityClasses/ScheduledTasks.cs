@@ -199,17 +199,27 @@ namespace LeaveON.UtilityClasses
                             }
                             else
                             {//Update
-                                if (aspNetUser.IsActive != IsActive(de) || string.IsNullOrEmpty(aspNetUser.DepartmentName) ||
-                                    aspNetUser.DepartmentName != Convert.ToString(de.Properties["department"].Value) ||
-                                    aspNetUser.CntryName != Convert.ToString(de.Properties["co"].Value) || aspNetUser.BioStarEmpNum == 0)
+                                try
                                 {
-                                    UpdateEmployee(aspNetUser, de);
+                                    if (aspNetUser.IsActive != IsActive(de) || string.IsNullOrEmpty(aspNetUser.DepartmentName) ||
+                                        aspNetUser.DepartmentName != Convert.ToString(de.Properties["department"].Value) ||
+                                        aspNetUser.CntryName != Convert.ToString(de.Properties["co"].Value))
+                                    {
+                                        UpdateEmployee(aspNetUser, de);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Skip this record and move to next
+                                    Console.WriteLine($"Skipping record due to exception: {ex.Message}");
+                                    throw new Exception($"Error in SyncAppWithAD: {ex.Message}", ex);
+                                    continue;
                                 }
                             }
-                        //}
+                            //}
 
-                        ////////////////////////////
-                    }
+                            ////////////////////////////
+                        }
 
                     //-----------add department name which does not exist in LMS-DB------------
                     List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
@@ -305,6 +315,22 @@ namespace LeaveON.UtilityClasses
                 //return;
                 AspNetUser emp = new AspNetUser();
 
+                int? bioStarValue = 0;
+                var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
+
+                if (rawValue != null && long.TryParse(rawValue.ToString(), out long val))
+                {
+                    if (val >= int.MinValue && val <= int.MaxValue)
+                    {
+                        bioStarValue = (int)val;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Out of range value: {val}");
+                    }
+                }
+
+
                 DateTime? whenCreated = de.Properties["whenCreated"].Value != null
                     ? (DateTime?)de.Properties["whenCreated"].Value
                    : null;
@@ -312,7 +338,8 @@ namespace LeaveON.UtilityClasses
                 emp.UserName = Convert.ToString(de.Properties["userPrincipalName"].Value);
                 emp.Email = Convert.ToString(de.Properties["userPrincipalName"].Value);
                 emp.Id = Guid.NewGuid().ToString();
-                emp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);//null; //0000;
+                //emp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);//null; //0000;
+                emp.BioStarEmpNum = bioStarValue;
                 emp.EmailConfirmed = false;
                 emp.PasswordHash = "ABaTT1CcvSEzwTzDXHnXFm+9cJ3Zaa65Z6QMZ4ZygNVyX8TIvSevNuJGKX7k81VQVQ==";
                 emp.SecurityStamp = "e93564e2-08f0-47cd-a822-4b99ca4c08d2";

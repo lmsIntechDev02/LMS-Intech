@@ -2182,6 +2182,7 @@ namespace LeaveON.Controllers
     }
     public async Task<ActionResult> ConnectToDBandReturnOffHours(string reqDate, string UserId)
     {
+      try { 
 
       DateTime from_Date = DateTime.ParseExact(reqDate, "dd-MM-yyyy", CultureInfo.InvariantCulture);
       DateTime to_Date = from_Date.AddDays(1);
@@ -2254,6 +2255,18 @@ namespace LeaveON.Controllers
 
       con.Close();
       return View("OffTimeDetail", await Task.FromResult(LstOffTimeDetial));
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("Error: " + ex.ToString());
+        // Check for inner exception
+        if (ex.InnerException != null)
+        {
+          Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+        }
+
+        throw (ex);
+      }
     }
     // GET: AccessBiostarAC
 
