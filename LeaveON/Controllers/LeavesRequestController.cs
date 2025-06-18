@@ -198,15 +198,37 @@ namespace LeaveON.Controllers
 
       int workedMonths = 12;
 
-      if(currentUser.JoiningDate.HasValue)
-      {
-        DateTime joiningDate = currentUser.JoiningDate.Value;
 
-        if(joiningDate.Year == currentYear)
-        {
-          workedMonths = 12 - joiningDate.Month + 1;
-        }
+      var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId);
+
+
+      DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
+      DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
+
+      // If joining date not exists then used ficalStart
+      DateTime joiningDate = currentUser.JoiningDate ?? fiscalStart;
+
+      if (joiningDate > fiscalEnd)
+      {
+        workedMonths = 0;
       }
+      else
+      {
+        DateTime effectiveStart = (joiningDate > fiscalStart) ? joiningDate : fiscalStart;
+
+        // Total months
+        workedMonths = ((fiscalEnd.Year - effectiveStart.Year) * 12 + fiscalEnd.Month - effectiveStart.Month + 1);
+      }
+
+      //if (currentUser.JoiningDate.HasValue)
+      //{
+      //  //DateTime joiningDate = currentUser.JoiningDate.Value;
+
+      //  if(joiningDate.Year == currentYear)
+      //  {
+      //    workedMonths = 12 - joiningDate.Month + 1;
+      //  }
+      //}
 
 
       int? assignedLeaveQuota = policyId != null
@@ -444,8 +466,45 @@ namespace LeaveON.Controllers
 
         if (balanceCheck == null)
         {
-          balanceCheck = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
+          var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == leave.AspNetUser.UserLeavePolicyId);
+          DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
+          DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
+          int workedMonths = 12;
+          if (leave.AspNetUser.JoiningDate.HasValue && leave.AspNetUser.JoiningDate > fiscalStart)
+          {
+            int joiningYear = leave.AspNetUser.JoiningDate?.Year ?? 0;
+            int joiningMonth = leave.AspNetUser.JoiningDate?.Month ?? 0;
+
+            workedMonths = ((fiscalEnd.Year - joiningYear) * 12) + fiscalEnd.Month - joiningMonth + 1;
+            int? assignedLeaveQuota = leave.AspNetUser.UserLeavePolicyId != null
+              ? db.UserLeavePolicyDetails
+                  .Where(lb => lb.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
+                               (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                  .Select(lb => (int?)lb.Allowed)
+                  .Sum() ?? 0
+              : 0;
+            // Prorated Leave Calculation
+            double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+            // Round to nearest whole number or keep decimal
+            //proratedLeaves = Math.Round(proratedLeaves, 2); 
+            // Custom rounding logic
+            if (proratedLeaves % 1 >= 0.5)
+            {
+              balanceCheck = (int)Math.Ceiling(proratedLeaves);
+            }
+            else
+            {
+              balanceCheck = (int)Math.Floor(proratedLeaves);
+            }
+
+
+          }
+          else
+          {
+            balanceCheck = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
             leaveDetail.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId).Select(detail => detail.Allowed).FirstOrDefault();
+          }
         }
         var daysForFinalCompare = 0;
         AspNetUser admin1 = null;
@@ -469,10 +528,10 @@ namespace LeaveON.Controllers
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
           {
             //Get from AnnualLeaveManager table
-            admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
-              db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-              leave.LineManager1Id = admin1.Id;
-            // admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 1179);
+            //admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+            //  db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+            //  leave.LineManager1Id = admin1.Id;
+             admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 1179);
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
           }
           else

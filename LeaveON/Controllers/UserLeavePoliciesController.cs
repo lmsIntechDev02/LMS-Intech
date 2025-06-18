@@ -168,93 +168,148 @@ namespace LeaveON.Controllers
     [Authorize(Roles = "Admin,Manager,User")]
     public async Task<ActionResult> Edit(decimal id, string Caller, string leaveUserId = "UserLeavePolicy")
     {
-      ViewBag.Employees = new SelectList(db.AspNetUsers.OrderBy(i => i.UserName), "Id", "UserName");
-      ViewBag.Departments = new SelectList(db.CountryNames, "Name", "Name");
-      //always remember viewbag name should not be as model name. other wise probelm. if same multilist will not show selected values
-
-      UserLeavePolicyViewModel userLeavePolicyViewModel = new UserLeavePolicyViewModel();
-      UserLeavePolicy userLeavePolicy = await db.UserLeavePolicies.FindAsync(id);
-      List<LeaveType> custLeaveTypes; 
-
-      if (leaveUserId == "UserLeavePolicy")
+      try
       {
-        custLeaveTypes = db.LeaveTypes.Where(x => x.Id != Consts.CompensatoryLeaveTypeId).ToList();
-      }
-      else
-      {
-        custLeaveTypes = Utility.LeaveTypesBasedOnGender(leaveUserId).Where(x => x.Id != Consts.CompensatoryLeaveTypeId).ToList();
-      }
+        ViewBag.Employees = new SelectList(db.AspNetUsers.OrderBy(i => i.UserName), "Id", "UserName");
+        ViewBag.Departments = new SelectList(db.CountryNames, "Name", "Name");
+        //always remember viewbag name should not be as model name. other wise probelm. if same multilist will not show selected values
 
-      ViewBag.LeaveTypes = new SelectList(custLeaveTypes, "Id", "Name");
-      var userLeavePolicyDetailsForCasualLeave = db.UserLeavePolicyDetails.FirstOrDefault(x => x.UserLeavePolicyId == userLeavePolicy.Id && x.LeaveTypeId == 1);
-      userLeavePolicyViewModel.userLeavePolicy = userLeavePolicy;
-      var leaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == leaveUserId && x.UserLeavePolicyId == userLeavePolicy.Id);
-      if (leaveBalance == null)
-      {
-        // If the leave balance doesn't exist, create a new entry
-        leaveBalance = new LeaveBalance
+        UserLeavePolicyViewModel userLeavePolicyViewModel = new UserLeavePolicyViewModel();
+        UserLeavePolicy userLeavePolicy = await db.UserLeavePolicies.FindAsync(id);
+        List<LeaveType> custLeaveTypes;
+
+        if (leaveUserId == "UserLeavePolicy")
         {
-          LeaveTypeId = 1,
-          UserId = leaveUserId,
-          Taken = 0, 
-          Balance = userLeavePolicyDetailsForCasualLeave.Allowed,
-          UserLeavePolicyId = userLeavePolicyViewModel.userLeavePolicy.Id,
-        };
-        db.LeaveBalances.Add(leaveBalance);
-      }
+          custLeaveTypes = db.LeaveTypes.Where(x => x.Id != Consts.CompensatoryLeaveTypeId).ToList();
+        }
+        else
+        {
+          custLeaveTypes = Utility.LeaveTypesBasedOnGender(leaveUserId).Where(x => x.Id != Consts.CompensatoryLeaveTypeId).ToList();
+        }
 
-      var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+        ViewBag.LeaveTypes = new SelectList(custLeaveTypes, "Id", "Name");
+        var userLeavePolicyDetailsForCasualLeave = db.UserLeavePolicyDetails.FirstOrDefault(x => x.UserLeavePolicyId == userLeavePolicy.Id && x.LeaveTypeId == 1);
+        userLeavePolicyViewModel.userLeavePolicy = userLeavePolicy;
+        var leaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == leaveUserId && x.UserLeavePolicyId == userLeavePolicy.Id);
+        if (leaveBalance == null)
+        {
+          // If the leave balance doesn't exist, create a new entry
+          leaveBalance = new LeaveBalance
+          {
+            LeaveTypeId = 1,
+            UserId = leaveUserId,
+            Taken = 0,
+            Balance = userLeavePolicyDetailsForCasualLeave.Allowed,
+            UserLeavePolicyId = userLeavePolicyViewModel.userLeavePolicy.Id,
+          };
+          db.LeaveBalances.Add(leaveBalance);
+        }
 
-      //// Now proceed with your logic for calculating additional days taken
-      //int existingTaken = (int)leaveBalance.Taken;
-      //int additionalDaysTaken = Utility.GetAdditionalCasualLeaveCountFromShortLeave(leaveUserId, existingTaken);
+        var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
 
-      //// Adjust the balance accordingly
-      //if (additionalDaysTaken > 0)
-      //{
-      //  leaveBalance.Taken += additionalDaysTaken;
-      //  leaveBalance.Balance -= additionalDaysTaken;
+        //// Now proceed with your logic for calculating additional days taken
+        //int existingTaken = (int)leaveBalance.Taken;
+        //int additionalDaysTaken = Utility.GetAdditionalCasualLeaveCountFromShortLeave(leaveUserId, existingTaken);
 
-      //  // Save changes to the database
-      //  await db.SaveChangesAsync();
-      //}
+        //// Adjust the balance accordingly
+        //if (additionalDaysTaken > 0)
+        //{
+        //  leaveBalance.Taken += additionalDaysTaken;
+        //  leaveBalance.Balance -= additionalDaysTaken;
 
-      //userLeavePolicy.LeaveBalances.Add(new LeaveBalance { Taken = Utility.GetCasualLeaveCountFromShortLeave(leaveUserId), UserId = leaveUserId, LeaveTypeId = Consts.CasualShortLeaveTypeId });
+        //  // Save changes to the database
+        //  await db.SaveChangesAsync();
+        //}
 
-      userLeavePolicyViewModel.userLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.AsQueryable<UserLeavePolicyDetail>();
-      userLeavePolicyViewModel.countries = db.CountryNames;//.Where(x => x.CountryId == 1).AsQueryable<Department>();//TODO Convert 1 to current user country variable
-                                                           //userLeavePolicyViewModel.departments= depFilterd;
-      userLeavePolicyViewModel.annualOffDays = db.AnnualOffDays.Where(x => x.UserLeavePolicyId == userLeavePolicy.Id).AsQueryable();
+        //userLeavePolicy.LeaveBalances.Add(new LeaveBalance { Taken = Utility.GetCasualLeaveCountFromShortLeave(leaveUserId), UserId = leaveUserId, LeaveTypeId = Consts.CasualShortLeaveTypeId });
 
-      IQueryable<AspNetUser> usersFilterd = db.AspNetUsers.Where(x => x.UserLeavePolicyId == id);
-
-
-      //foreach (AspNetUser usr in usersFilterd)
-      //{
-      //  //depFilterd = db.Departments.Where(x => x.Id == usr.DepartmentId).Distinct<Department>().ToList<Department>();
-      //}
-      //List<int> SelectedDeps = new List<int>(new int[] { 1,2 });
-      List<string> SelectedDeps = new List<string>();
-      List<string> SelectedEmps = new List<string>();
-      SelectedDeps = usersFilterd.Select(p => p.CntryName).Distinct<string>().ToList<string>();
-      SelectedEmps = usersFilterd.Select(p => p.Id).Distinct<string>().ToList<string>();
-
-      ViewBag.SelectedDepartments = SelectedDeps;
-      ViewBag.SelectedEmployees = SelectedEmps;
-
-      if (userLeavePolicy.DepartmentPolicy == true)
-      {
-        ViewBag.DepStatus = true;
-        ViewBag.EmpStatus = false;
-      }
-      else
-      {
-        ViewBag.DepStatus = false;
-        ViewBag.EmpStatus = true;
-      }
+        userLeavePolicyViewModel.userLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.AsQueryable<UserLeavePolicyDetail>();
+        AspNetUser currentUser = await db.AspNetUsers.FindAsync(leaveUserId);
+        var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicy.Id);
+        var joiningDate = currentUser.JoiningDate;
 
 
-      List<SelectListItem> WeekSelectList = new List<SelectListItem>()
+        if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart)
+        {
+          int joiningYear = joiningDate.Value.Year;
+          int joiningMonth = joiningDate.Value.Month;
+          int workedMonths = ((userPolicy.FiscalYearEnd.Value.Year - joiningYear) * 12)
+                             + userPolicy.FiscalYearEnd.Value.Month - joiningMonth + 1;
+
+
+          // Update for each leave type (casual = 1, annual = 2)
+          foreach (var detail in userLeavePolicyViewModel.userLeavePolicyDetail
+                               .Where(x => x.LeaveTypeId == 1 || x.LeaveTypeId == 2))
+          {
+
+            int? assignedLeaveQuota = currentUser.UserLeavePolicyId != null
+           ? db.UserLeavePolicyDetails
+               .Where(lb => lb.UserLeavePolicyId == currentUser.UserLeavePolicyId &&
+                            (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+               .Select(lb => (int?)lb.Allowed)
+               .Sum() ?? 0
+           : 0;
+
+            double prorated = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+
+            int finalProrated = prorated % 1 >= 0.5
+                ? (int)Math.Ceiling(prorated)
+                : (int)Math.Floor(prorated);
+
+            detail.Allowed = finalProrated;
+            var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
+            if(leaveBalanceExist.Taken != 0)
+            {
+              continue;
+            } else
+            {
+            var balance = userLeavePolicy.LeaveBalances.FirstOrDefault(x =>
+            x.UserId == currentUser.Id && x.LeaveTypeId == detail.LeaveTypeId);
+
+            if (balance != null)
+              balance.Balance = finalProrated;
+
+            }
+
+          }
+        }
+
+
+
+        userLeavePolicyViewModel.countries = db.CountryNames;//.Where(x => x.CountryId == 1).AsQueryable<Department>();//TODO Convert 1 to current user country variable
+                                                             //userLeavePolicyViewModel.departments= depFilterd;
+        userLeavePolicyViewModel.annualOffDays = db.AnnualOffDays.Where(x => x.UserLeavePolicyId == userLeavePolicy.Id).AsQueryable();
+
+        IQueryable<AspNetUser> usersFilterd = db.AspNetUsers.Where(x => x.UserLeavePolicyId == id);
+
+
+        //foreach (AspNetUser usr in usersFilterd)
+        //{
+        //  //depFilterd = db.Departments.Where(x => x.Id == usr.DepartmentId).Distinct<Department>().ToList<Department>();
+        //}
+        //List<int> SelectedDeps = new List<int>(new int[] { 1,2 });
+        List<string> SelectedDeps = new List<string>();
+        List<string> SelectedEmps = new List<string>();
+        SelectedDeps = usersFilterd.Select(p => p.CntryName).Distinct<string>().ToList<string>();
+        SelectedEmps = usersFilterd.Select(p => p.Id).Distinct<string>().ToList<string>();
+
+        ViewBag.SelectedDepartments = SelectedDeps;
+        ViewBag.SelectedEmployees = SelectedEmps;
+
+        if (userLeavePolicy.DepartmentPolicy == true)
+        {
+          ViewBag.DepStatus = true;
+          ViewBag.EmpStatus = false;
+        }
+        else
+        {
+          ViewBag.DepStatus = false;
+          ViewBag.EmpStatus = true;
+        }
+
+
+        List<SelectListItem> WeekSelectList = new List<SelectListItem>()
       {
 
           new SelectListItem{Text = "Saturday", Value = "6"},
@@ -266,87 +321,94 @@ namespace LeaveON.Controllers
           new SelectListItem{Text = "Friday", Value = "5"}
       };
 
-      ViewBag.WeeklyOffDays = WeekSelectList;
+        ViewBag.WeeklyOffDays = WeekSelectList;
 
-      List<SelectListItem> AgreementTypes = new List<SelectListItem>()
+        List<SelectListItem> AgreementTypes = new List<SelectListItem>()
       {
           new SelectListItem{Text = "Fiscal year", Value = "1"},
           new SelectListItem{Text = "Calender year", Value = "2"},
           new SelectListItem{Text = "Contract year", Value = "3"},
       };
 
-      ViewBag.AgreementTypes = AgreementTypes;
+        ViewBag.AgreementTypes = AgreementTypes;
 
 
-      List<string> DaysSelected = new List<string>();
-      if (userLeavePolicy.WeeklyOffDays != null)
-      {
-        foreach (string day in userLeavePolicy.WeeklyOffDays.Split(','))
+        List<string> DaysSelected = new List<string>();
+        if (userLeavePolicy.WeeklyOffDays != null)
         {
-          //int intDay = int.Parse(day);
-          DaysSelected.Add(day);
-          //DaysSelected.Add()
+          foreach (string day in userLeavePolicy.WeeklyOffDays.Split(','))
+          {
+            //int intDay = int.Parse(day);
+            DaysSelected.Add(day);
+            //DaysSelected.Add()
+          }
         }
+        ViewBag.DaysSelected = DaysSelected;
+        //List<AnnualOffDay> AnnualOffDaysList = new List<AnnualOffDay>();
+        //int cntr = 0;
+
+        //foreach (string day in userLeavePolicy.AnnualOffDays.Split(','))
+        //{
+        //  cntr += 1;
+        //  AnnualOffDaysList.Add(new AnnualOffDay { Id = cntr, OffDay = day, Description = "" });
+        //}
+
+        //ViewBag.AnnualLeaves = userLeavePolicy.AnnualOffDays;//AnnualOffDaysList;
+
+        if (userLeavePolicy == null)
+        {
+          return HttpNotFound();
+        }
+        //ViewBag.UserId = new SelectList(db.AspNetUsers, "Id", "Hometown", userLeavePolicy.UserId);
+        //return View(userLeavePolicy);
+
+
+
+        //return PartialView("_newRow", IndexId); //for ref only
+
+        if (Caller == "UserLeavePolicy")
+        {
+          ViewBag.Caller = "Policy";
+          return View(userLeavePolicyViewModel); //orginal
+        }
+        else
+        {
+          //string CurrentLoginUserId = User.Identity.GetUserId();
+          ViewBag.LeaveUserId = leaveUserId;
+          ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+
+          ViewBag.Caller = "Leave";
+
+          return PartialView("_Summary", userLeavePolicyViewModel);
+        }
+
+        //switch (Caller)
+        //{
+        //  case "LeaveRequest"://Logged In User Id will be sent
+        //    ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+        //    ViewBag.Caller = "True";
+        //    return PartialView("_Edit", userLeavePolicyViewModel);
+        //    //break;
+        //  case "LeaveResponse"://Id of Leave Requested user will be sent
+        //    string CurrentLoginUserId = User.Identity.GetUserId();
+        //    ViewBag.CurrentLoginUserId = CurrentLoginUserId;
+        //    ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == CurrentLoginUserId);
+        //    ViewBag.Caller = "True";
+        //    return PartialView("_Edit", userLeavePolicyViewModel);
+        //    break;
+        //  default://user leave policy screen
+        //    ViewBag.Caller = "False";
+        //    return View(userLeavePolicyViewModel); //orginal
+        //    //break;
+        //}
       }
-      ViewBag.DaysSelected = DaysSelected;
-      //List<AnnualOffDay> AnnualOffDaysList = new List<AnnualOffDay>();
-      //int cntr = 0;
-
-      //foreach (string day in userLeavePolicy.AnnualOffDays.Split(','))
-      //{
-      //  cntr += 1;
-      //  AnnualOffDaysList.Add(new AnnualOffDay { Id = cntr, OffDay = day, Description = "" });
-      //}
-
-      //ViewBag.AnnualLeaves = userLeavePolicy.AnnualOffDays;//AnnualOffDaysList;
-
-      if (userLeavePolicy == null)
+      catch (Exception ex)
       {
-        return HttpNotFound();
+        Console.WriteLine("exception occured", ex);
+        throw (ex);
       }
-      //ViewBag.UserId = new SelectList(db.AspNetUsers, "Id", "Hometown", userLeavePolicy.UserId);
-      //return View(userLeavePolicy);
-
-
-
-      //return PartialView("_newRow", IndexId); //for ref only
-
-      if (Caller == "UserLeavePolicy")
-      {
-        ViewBag.Caller = "Policy";
-        return View(userLeavePolicyViewModel); //orginal
-      }
-      else
-      {
-        //string CurrentLoginUserId = User.Identity.GetUserId();
-        ViewBag.LeaveUserId = leaveUserId;
-        ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
-
-        ViewBag.Caller = "Leave";
-
-        return PartialView("_Summary", userLeavePolicyViewModel);
-      }
-
-      //switch (Caller)
-      //{
-      //  case "LeaveRequest"://Logged In User Id will be sent
-      //    ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
-      //    ViewBag.Caller = "True";
-      //    return PartialView("_Edit", userLeavePolicyViewModel);
-      //    //break;
-      //  case "LeaveResponse"://Id of Leave Requested user will be sent
-      //    string CurrentLoginUserId = User.Identity.GetUserId();
-      //    ViewBag.CurrentLoginUserId = CurrentLoginUserId;
-      //    ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == CurrentLoginUserId);
-      //    ViewBag.Caller = "True";
-      //    return PartialView("_Edit", userLeavePolicyViewModel);
-      //    break;
-      //  default://user leave policy screen
-      //    ViewBag.Caller = "False";
-      //    return View(userLeavePolicyViewModel); //orginal
-      //    //break;
-      //}
     }
+      
 
     // POST: UserLeavePolicies/Edit/5
     // To protect from overposting attacks, please enable the specific properties you want to bind to, for 

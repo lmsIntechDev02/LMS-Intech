@@ -399,9 +399,37 @@ namespace LeaveON.Controllers
       if (leaveBalance == null)
       {
         //new
+        int userLeavePolicyId = (int)leave.UserLeavePolicyID;
         leaveBalance = new LeaveBalance(ref leave);
         leaveBalance.Taken = leave.TotalDays;
-        leaveBalance.Balance -= leave.TotalDays;
+        //leaveBalance.Balance -= leave.TotalDays;
+
+        var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicyId);
+        if (leave.AspNetUser.JoiningDate.HasValue && leave.AspNetUser.JoiningDate > userPolicy.FiscalYearStart)
+        {
+          int joiningYear = leave.AspNetUser.JoiningDate.Value.Year;
+          int joiningMonth = leave.AspNetUser.JoiningDate.Value.Month;
+          int workedMonths = ((userPolicy.FiscalYearEnd.Value.Year - joiningYear) * 12) + userPolicy.FiscalYearEnd.Value.Month - joiningMonth + 1;
+
+          int? assignedLeaveQuota = db.UserLeavePolicyDetails
+              .Where(lb => lb.UserLeavePolicyId == userLeavePolicyId &&
+                           (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+              .Select(lb => (int?)lb.Allowed)
+              .Sum() ?? 0;
+
+          double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+          int finalProrated = proratedLeaves % 1 >= 0.5
+              ? (int)Math.Ceiling(proratedLeaves)
+              : (int)Math.Floor(proratedLeaves);
+
+          leaveBalance.Balance = finalProrated - leave.TotalDays;
+        }
+        else
+        {
+          leaveBalance.Balance -= leave.TotalDays;
+        }
+
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
         leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
@@ -467,6 +495,7 @@ namespace LeaveON.Controllers
       }
       ///////////////
     }
+  
     public void CalculateAndChangeLeaveBalanceQuota(ref Leave leave)
     {
       LeaveBalance leaveBalance = CalculateLeaveBalanceQuota(ref leave);
