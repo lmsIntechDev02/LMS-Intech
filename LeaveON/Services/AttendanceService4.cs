@@ -151,6 +151,11 @@ namespace LeaveON.Services
             timeZone = "Arab Standard Time";
             countryName = "Saudi Arabia";
           }
+          else if (records[j].DevNm.ToString().Substring(0, 4) == "IN07")
+          {
+            timeZone = "Arab Standard Time";
+            countryName = "Iraq";
+          }
           else if (records[j].DevNm.ToString().Substring(0, 4) == "IN08")
           {
             timeZone = "Arab Standard Time";

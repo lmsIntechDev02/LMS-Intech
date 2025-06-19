@@ -1655,6 +1655,11 @@ namespace LeaveON.Controllers
             timeZone = "Arab Standard Time";
             countryName = "Saudi Arabia";
           }
+          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN07")
+          {
+            timeZone = "Arab Standard Time";
+            countryName = "Iraq";
+          }
           else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN08")
           {
             timeZone = "Arab Standard Time";
