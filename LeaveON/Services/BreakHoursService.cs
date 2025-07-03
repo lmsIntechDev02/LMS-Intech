@@ -16,7 +16,8 @@ namespace LeaveON.Services
 {
   public class BreakHoursService
   {
-    List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042 };
+    List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
+                                                 543734917, 538205733};
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
     LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
@@ -31,7 +32,7 @@ namespace LeaveON.Services
       SqlCommand cmd;
       SqlDataReader dr;
       List<string> logg = new List<string>();
-       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
+      List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "kashif.ijaz@intechww.com").ToList();
 
       List<BreakHour> LstBreakHours = new List<BreakHour>();
@@ -171,9 +172,29 @@ namespace LeaveON.Services
             b.PunchIn == breakEntry.PunchIn &&
             b.PunchOut == breakEntry.PunchOut);
 
-        if (!dbExists)
-        {
+        // Find existing record matching UserId & Date
+        var existingRecord = dbLeaveOn.BreakHours
+            .FirstOrDefault(b =>
+                b.UserId == breakEntry.UserId &&
+                DbFunctions.TruncateTime(b.Date) == breakEntry.Date.Date);
 
+        //if (!dbExists)
+        //{
+
+        //  Console.WriteLine($"BreakHours for user: {breakEntry.UserId}, {breakEntry.BioStarEmpNum}, Date: {breakEntry.Date}, PunchIn: {breakEntry.PunchIn}, PunchOut: {breakEntry.PunchOut}");
+        //  dbLeaveOn.BreakHours.Add(breakEntry);
+        //}
+
+        if (existingRecord != null)
+        {
+          // Update existing record with new punch times
+          existingRecord.PunchIn = breakEntry.PunchIn;
+          existingRecord.PunchOut = breakEntry.PunchOut;
+          Console.WriteLine($"Updated BreakHours for user: {breakEntry.UserId}, Date: {breakEntry.Date}");
+        }
+        else
+        {
+          // Add new record
           Console.WriteLine($"BreakHours for user: {breakEntry.UserId}, {breakEntry.BioStarEmpNum}, Date: {breakEntry.Date}, PunchIn: {breakEntry.PunchIn}, PunchOut: {breakEntry.PunchOut}");
           dbLeaveOn.BreakHours.Add(breakEntry);
         }

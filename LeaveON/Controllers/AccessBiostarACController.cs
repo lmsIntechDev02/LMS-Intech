@@ -24,7 +24,8 @@ namespace LeaveON.Controllers
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
     //enum ReadersIn {538600343, 38677, 538595648, 35816,540093375,540093369,540093374 , 547241993  ,540133115 , 538848767 }
 
-    List<int> LstCardReadersIn = new List<int> { 538600343, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692 };
+    List<int> LstCardReadersIn = new List<int> { 538600343, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042, 
+                                                 543734917, 538205733 };
 
     private Task<List<TimeData>> ConnectToDBandReturnWorkingHours(string ReqMonthYear, List<int> UserIds)
     {
