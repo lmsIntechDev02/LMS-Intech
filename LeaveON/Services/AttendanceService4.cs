@@ -16,7 +16,8 @@ namespace LeaveON.Services
 {
   public class AttendanceService4
   {
-    List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042 };
+    List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042, 
+                                                543734917, 538205733 };
     private BioStarEntities dbBioStar = new BioStarEntities();
      LeaveONEntities dbLeaveOn = new LeaveONEntities(); 
      LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
@@ -38,11 +39,17 @@ namespace LeaveON.Services
       TimeSpan TotalTime = new TimeSpan();
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
+
+    //  List<AspNetUser> users = dbLeaveOn.AspNetUsers
+    //.Where(u => u.CntryName != null &&
+    //    (u.CntryName.ToLower() == "pakistan" || u.CntryName.ToLower() == "iraq"))
+    //.ToList();
+
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       //mohsin.ali@intechww.com
       //Emmanuel.Dakore@intechww.com
       // Osaid.Hafeez@intechww.com
-      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "waqar.ahmad@intechww.com").ToList();
+      //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "sadia.iqbal@intechww.com").ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       con.Open();
@@ -498,12 +505,51 @@ namespace LeaveON.Services
         bool exists = dbLeaveOn.AttendanceDatas
             .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
                         DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
+        // find existing record
+        var existingRecord = dbLeaveOn.AttendanceDatas
+            .FirstOrDefault(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
+                                  DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
 
-        if (!exists)
+        //if (!exists)
+        if (existingRecord != null)
         {
+          // Update existing record 
           try
           {
+            existingRecord.UserName = item.EmployeeName;
+            existingRecord.DepartmentName = item.Department;
+            existingRecord.UserLeavePolicyID = item.Policy;
+            existingRecord.FirstPunchIn = item.TimeIn;
+            existingRecord.LastPunchOut = item.TimeOut;
+            existingRecord.TotalWorkHours = (long)item.WorkingHours.TotalSeconds;
+            existingRecord.BreakHours = (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds);
+            existingRecord.IsLateArrival = item.isLateArrival;
+            existingRecord.IsEarlyDeparture = item.isEarlyDeparture;
+            existingRecord.IsAbsent = item.isAbsent;
+            existingRecord.IsLeave = item.leaveTypeID != 0 ? true : false;
+            existingRecord.LeaveTypeID = item.leaveTypeID;
+            existingRecord.LeaveType = item.leaveType;
+            existingRecord.CountryName = item.CountryName;
+            existingRecord.TimeZone = item.TimeZone;
+            existingRecord.ManagerEmail = item.ManagerEmail;
+            existingRecord.Manager2Email = item.Manager2Email;
+            existingRecord.ManagerId = item.ManagerID;
+            existingRecord.Manager2Id = item.Manager2ID;
+            existingRecord.UserID = item.UserID;
 
+
+            Console.WriteLine("Updated existing attendance for user: " + existingRecord.UserName + " date: " + existingRecord.CreatedDate);
+          }
+          catch (Exception ex)
+          {
+            Console.WriteLine("Error updating AttendanceData: " + ex.Message);
+          }
+        }
+        else
+        {
+          // Add new record
+          try
+          {
             AttendanceData attendanceDataToFill = new AttendanceData
             {
               BioStarEmpNum = item.EmployeeNumber,
