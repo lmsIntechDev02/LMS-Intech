@@ -224,58 +224,56 @@ namespace LeaveON.Controllers
         //userLeavePolicy.LeaveBalances.Add(new LeaveBalance { Taken = Utility.GetCasualLeaveCountFromShortLeave(leaveUserId), UserId = leaveUserId, LeaveTypeId = Consts.CasualShortLeaveTypeId });
 
         userLeavePolicyViewModel.userLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.AsQueryable<UserLeavePolicyDetail>();
-        AspNetUser currentUser = await db.AspNetUsers.FindAsync(leaveUserId);
+        string userId = User.Identity.GetUserId();
+        AspNetUser currentUser = await db.AspNetUsers.FindAsync(userId);
         var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicy.Id);
         var joiningDate = currentUser.JoiningDate;
 
-
-        if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart)
-        {
-          int joiningYear = joiningDate.Value.Year;
-          int joiningMonth = joiningDate.Value.Month;
-          int workedMonths = ((userPolicy.FiscalYearEnd.Value.Year - joiningYear) * 12)
-                             + userPolicy.FiscalYearEnd.Value.Month - joiningMonth + 1;
-
-
-          // Update for each leave type (casual = 1, annual = 2)
-          foreach (var detail in userLeavePolicyViewModel.userLeavePolicyDetail
-                               .Where(x => x.LeaveTypeId == 1 || x.LeaveTypeId == 2))
+          if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart)
           {
-
-            int? assignedLeaveQuota = currentUser.UserLeavePolicyId != null
-           ? db.UserLeavePolicyDetails
-               .Where(lb => lb.UserLeavePolicyId == currentUser.UserLeavePolicyId &&
-                            (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-               .Select(lb => (int?)lb.Allowed)
-               .Sum() ?? 0
-           : 0;
-
-            double prorated = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+            int joiningYear = joiningDate.Value.Year;
+            int joiningMonth = joiningDate.Value.Month;
+            int workedMonths = ((userPolicy.FiscalYearEnd.Value.Year - joiningYear) * 12)
+                               + userPolicy.FiscalYearEnd.Value.Month - joiningMonth + 1;
 
 
-            int finalProrated = prorated % 1 >= 0.5
-                ? (int)Math.Ceiling(prorated)
-                : (int)Math.Floor(prorated);
-
-            detail.Allowed = finalProrated;
-            var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
-            if(leaveBalanceExist.Taken != 0)
+            // Update for each leave type (casual = 1, annual = 2)
+            foreach (var detail in userLeavePolicyViewModel.userLeavePolicyDetail
+                                 .Where(x => x.LeaveTypeId == 1 || x.LeaveTypeId == 2))
             {
-              continue;
-            } else
-            {
-            var balance = userLeavePolicy.LeaveBalances.FirstOrDefault(x =>
-            x.UserId == currentUser.Id && x.LeaveTypeId == detail.LeaveTypeId);
 
-            if (balance != null)
-              balance.Balance = finalProrated;
+              int? assignedLeaveQuota = currentUser.UserLeavePolicyId != null
+             ? db.UserLeavePolicyDetails
+                 .Where(lb => lb.UserLeavePolicyId == currentUser.UserLeavePolicyId &&
+                              (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                 .Select(lb => (int?)lb.Allowed)
+                 .Sum() ?? 0
+             : 0;
+
+              double prorated = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+
+              int finalProrated = prorated % 1 >= 0.5
+                  ? (int)Math.Ceiling(prorated)
+                  : (int)Math.Floor(prorated);
+
+              detail.Allowed = finalProrated;
+              var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
+              if(leaveBalanceExist.Taken != 0)
+              {
+                continue;
+              } else
+              {
+                var balance = userLeavePolicy.LeaveBalances.FirstOrDefault(x =>
+                x.UserId == currentUser.Id && x.LeaveTypeId == detail.LeaveTypeId);
+
+                if (balance != null)
+                  balance.Balance = finalProrated;
+
+              }
 
             }
-
           }
-        }
-
-
 
         userLeavePolicyViewModel.countries = db.CountryNames;//.Where(x => x.CountryId == 1).AsQueryable<Department>();//TODO Convert 1 to current user country variable
                                                              //userLeavePolicyViewModel.departments= depFilterd;
