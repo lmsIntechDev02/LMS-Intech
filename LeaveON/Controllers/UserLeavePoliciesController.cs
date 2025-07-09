@@ -199,7 +199,7 @@ namespace LeaveON.Controllers
             LeaveTypeId = 1,
             UserId = leaveUserId,
             Taken = 0,
-            Balance = userLeavePolicyDetailsForCasualLeave.Allowed,
+            Balance = userLeavePolicyDetailsForCasualLeave !=null ? userLeavePolicyDetailsForCasualLeave.Allowed : 0,
             UserLeavePolicyId = userLeavePolicyViewModel.userLeavePolicy.Id,
           };
           db.LeaveBalances.Add(leaveBalance);
