@@ -100,7 +100,7 @@ namespace LeaveON.Controllers
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
       var currentEditUser = aspNetUser.UserName.Split('@')[0].Replace('.', ' ').ToLower();
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName.ToLower() != currentEditUser)
-        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+        .OrderBy(x => x.UserName), "Id", "UserName", null);
       ViewBag.Departments = new SelectList(db.DepartmentNames.OrderBy(x => x.Name), "Name", "Name");
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
    //   ViewBag.Role = new SelectList(db.AspNetRoles.ToHashSet(), "Id", "Name", aspNetUser.RoleId);
