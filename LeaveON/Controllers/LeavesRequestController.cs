@@ -259,7 +259,7 @@ namespace LeaveON.Controllers
       ViewBag.proratedLeave = proratedLeave;
 
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
-        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+        .OrderBy(x => x.UserName), "Id", "UserName", null);
 
       ViewBag.LeaveUserId = userId;
       ViewBag.FiscalYearStart = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearStart;

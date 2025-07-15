@@ -130,9 +130,10 @@
         <div class="form-group">
           @Html.LabelFor(model => model.LineManager1Id, "Line Manager", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-
           @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-          @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", required = "required " })
+          @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", required = "required " })*@
+          @Html.DropDownList("LineManager1Id",(IEnumerable<SelectListItem>)ViewBag.LineManagers,"Please select manager",new { @class = "form-control", required = "required " })
+
           @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
 
           @*@Html.EditorFor(model => model.LineManager1Id, new { htmlAttributes = new { @class = "form-control" } })*@
@@ -144,7 +145,7 @@
 
 
           @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-          @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })
+          @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control", required = "required" })
           @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
 
           @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
