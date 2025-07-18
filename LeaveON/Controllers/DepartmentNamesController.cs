@@ -75,17 +75,9 @@ namespace LeaveON.Controllers
             }
 
           // Fetch available HRBP emails from AspNetUsers
-          //var hrbpEmails = db.AspNetUsers
-          //                   .Select(u => new SelectListItem
-          //                   {
-          //                     Value = u.Email,
-          //                     //Text = u.Email
-          //                      Text = System.Globalization.CultureInfo.CurrentCulture.TextInfo
-          //                        .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
-          //                                   }).ToList();
             var hrbpEmails = db.AspNetUsers
           .Where(u => u.Email != null)
-          .AsEnumerable() // switch to LINQ to Objects so .NET methods can be used
+          .AsEnumerable()
           .Select(u => new SelectListItem
           {
             Value = u.Email,
