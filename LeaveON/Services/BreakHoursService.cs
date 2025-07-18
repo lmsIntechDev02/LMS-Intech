@@ -176,7 +176,7 @@ namespace LeaveON.Services
         var existingRecord = dbLeaveOn.BreakHours
             .FirstOrDefault(b =>
                 b.UserId == breakEntry.UserId &&
-                DbFunctions.TruncateTime(b.Date) == breakEntry.Date.Date);
+                DbFunctions.TruncateTime(b.Date) == breakEntry.Date);
 
         //if (!dbExists)
         //{

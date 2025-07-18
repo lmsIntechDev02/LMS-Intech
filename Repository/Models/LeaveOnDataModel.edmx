@@ -141,7 +141,7 @@
           <Property Name="BreakHoursID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="UserId" Type="nvarchar" MaxLength="128" />
           <Property Name="BioStarEmpNum" Type="int" />
-          <Property Name="Date" Type="date" Nullable="false" />
+          <Property Name="Date" Type="date" />
           <Property Name="PunchIn" Type="datetime" Nullable="false" />
           <Property Name="PunchOut" Type="datetime" Nullable="false" />
         </EntityType>
@@ -159,6 +159,8 @@
           </Key>
           <Property Name="Id" Type="decimal" Precision="10" Scale="0" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="500" />
+          <Property Name="HRBPEmail" Type="nvarchar(max)" />
+          <Property Name="HRBPBioStarEmpNum" Type="int" />
         </EntityType>
         <EntityType Name="Leave">
           <Key>
@@ -710,6 +712,8 @@
           </Key>
           <Property Name="Id" Type="Decimal" Nullable="false" Precision="10" Scale="0" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="HRBPEmail" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HRBPBioStarEmpNum" Type="Int32" />
         </EntityType>
         <EntityType Name="Leave">
           <Key>
@@ -1053,7 +1057,7 @@
           <Property Name="BreakHoursID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="BioStarEmpNum" Type="Int32" />
-          <Property Name="Date" Type="DateTime" Precision="0" Nullable="false" />
+          <Property Name="Date" Type="DateTime" Precision="0" />
           <Property Name="PunchIn" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="PunchOut" Type="DateTime" Precision="3" Nullable="false" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_BreakHours_UserId" FromRole="BreakHour" ToRole="AspNetUser" />
@@ -1172,6 +1176,8 @@
           <EntitySetMapping Name="DepartmentNames">
             <EntityTypeMapping TypeName="LeaveONModels.DepartmentName">
               <MappingFragment StoreEntitySet="DepartmentNames">
+                <ScalarProperty Name="HRBPBioStarEmpNum" ColumnName="HRBPBioStarEmpNum" />
+                <ScalarProperty Name="HRBPEmail" ColumnName="HRBPEmail" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
