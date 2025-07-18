@@ -1,4 +1,4 @@
-﻿// T4 code generation is enabled for model 'C:\Users\lms.dev02\source\repos\lmsIntechDev02\LMS-Intech\Repository\Models\LeaveOnDataModel.edmx'. 
+﻿// T4 code generation is enabled for model 'C:\Users\lms.dev02\Desktop\Intech\New folder\LMS-Intech\Repository\Models\LeaveOnDataModel.edmx'. 
 // To enable legacy code generation, change the value of the 'Code Generation Strategy' designer
 // property to 'Legacy ObjectContext'. This property is available in the Properties Window when the model
 // is open in the designer.

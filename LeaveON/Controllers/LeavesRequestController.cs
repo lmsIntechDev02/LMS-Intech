@@ -527,12 +527,38 @@ namespace LeaveON.Controllers
           }
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
           {
-            //Get from AnnualLeaveManager table
-            //admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
-            //  db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-            //  leave.LineManager1Id = admin1.Id;
-             admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 1179);
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
+
+            var userDepartment = leave.AspNetUser.DepartmentName;
+
+            var department = db.DepartmentNames.FirstOrDefault(d => d.Name == userDepartment);
+
+            if (department != null && !string.IsNullOrEmpty(department.HRBPEmail))
+            {
+              // HRBP Email found, get user with that email
+              admin1 = db.AspNetUsers.FirstOrDefault(u => u.Email == department.HRBPEmail);
+
+              if (admin1 != null)
+              {
+                leave.LineManager1Id = admin1.Id;
+              }
+              else
+              {
+                // fallback to annual leave manager if HRBPEmail not matching any user
+                admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+                    db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+                leave.LineManager1Id = admin1?.Id;
+              }
+            }
+            else
+            {
+              // fallback if no HRBPEmail
+              admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+                  db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+              leave.LineManager1Id = admin1?.Id;
+            }
+
+
           }
           else
           {
