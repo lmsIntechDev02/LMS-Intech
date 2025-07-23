@@ -237,40 +237,72 @@ namespace LeaveON.Controllers
                                + userPolicy.FiscalYearEnd.Value.Month - joiningMonth + 1;
 
 
-            // Update for each leave type (casual = 1, annual = 2)
-            foreach (var detail in userLeavePolicyViewModel.userLeavePolicyDetail
+          int? assignedLeaveQuota = currentUser.UserLeavePolicyId != null
+         ? db.UserLeavePolicyDetails
+             .Where(lb => lb.UserLeavePolicyId == currentUser.UserLeavePolicyId &&
+                          (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+             .Select(lb => (int?)lb.Allowed)
+             .Sum() ?? 0
+         : 0;
+
+          double prorated = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+          int finalProrated = prorated % 1 >= 0.5
+              ? (int)Math.Ceiling(prorated)
+              : (int)Math.Floor(prorated);
+
+          // Split the prorated value into casual and annual
+          int half = finalProrated / 2;
+          int casualLeave = half;
+          int annualLeave = half;
+          // If it's an odd number, give the extra leave to Casual
+          if (finalProrated % 2 != 0)
+          {
+            casualLeave = half + 1;
+            annualLeave = half;
+          }
+
+
+          // Update for each leave type (casual = 1, annual = 2)
+          foreach (var detail in userLeavePolicyViewModel.userLeavePolicyDetail
                                  .Where(x => x.LeaveTypeId == 1 || x.LeaveTypeId == 2))
             {
 
-              int? assignedLeaveQuota = currentUser.UserLeavePolicyId != null
-             ? db.UserLeavePolicyDetails
-                 .Where(lb => lb.UserLeavePolicyId == currentUser.UserLeavePolicyId &&
-                              (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-                 .Select(lb => (int?)lb.Allowed)
-                 .Sum() ?? 0
-             : 0;
 
-              double prorated = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+            // Assign prorated values to Casual and Annual leaves
+            if (detail.LeaveTypeId == 1) 
+            {
+              detail.Allowed = casualLeave;
+            }
+            else if (detail.LeaveTypeId == 2) 
+            {
+              detail.Allowed = annualLeave;
+            }
 
-
-              int finalProrated = prorated % 1 >= 0.5
-                  ? (int)Math.Ceiling(prorated)
-                  : (int)Math.Floor(prorated);
-
-              detail.Allowed = finalProrated;
-              var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
-              if(leaveBalanceExist.Taken != 0)
-              {
-                continue;
-              } else
-              {
-                var balance = userLeavePolicy.LeaveBalances.FirstOrDefault(x =>
+            var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
+            if(leaveBalanceExist.Taken != 0)
+            {
+              continue;
+            } else 
+            {
+              var balance = userLeavePolicy.LeaveBalances.FirstOrDefault(x =>
                 x.UserId == currentUser.Id && x.LeaveTypeId == detail.LeaveTypeId);
 
-                if (balance != null)
-                  balance.Balance = finalProrated;
-
+              //if (balance != null)
+              //  balance.Balance = finalProrated;
+              if (balance != null && (balance.Taken == 0 || balance.Taken == null))
+              {
+                if (detail.LeaveTypeId == 1)
+                {
+                  balance.Balance = casualLeave;
+                }
+                else if (detail.LeaveTypeId == 2)
+                {
+                  balance.Balance = annualLeave;
+                }
               }
+
+            }
 
             }
           }
