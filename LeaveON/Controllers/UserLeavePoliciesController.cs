@@ -253,14 +253,8 @@ namespace LeaveON.Controllers
 
           // Split the prorated value into casual and annual
           int half = finalProrated / 2;
-          int casualLeave = half;
+          int casualLeave = half + (finalProrated % 2 != 0 ? 1 : 0);
           int annualLeave = half;
-          // If it's an odd number, give the extra leave to Casual
-          if (finalProrated % 2 != 0)
-          {
-            casualLeave = half + 1;
-            annualLeave = half;
-          }
 
 
           // Update for each leave type (casual = 1, annual = 2)
@@ -279,27 +273,39 @@ namespace LeaveON.Controllers
               detail.Allowed = annualLeave;
             }
 
-            var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
-            if(leaveBalanceExist.Taken != 0)
-            {
-              continue;
-            } else 
+            //var leaveBalanceExist = userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == currentUser.Id);
+            //if(leaveBalanceExist.Taken != 0)
+            //{
+            //  continue;
+            //} else 
             {
               var balance = userLeavePolicy.LeaveBalances.FirstOrDefault(x =>
                 x.UserId == currentUser.Id && x.LeaveTypeId == detail.LeaveTypeId);
 
               //if (balance != null)
               //  balance.Balance = finalProrated;
-              if (balance != null && (balance.Taken == 0 || balance.Taken == null))
+              //if (balance != null && (balance.Taken == 0 || balance.Taken == null))
+              if (balance != null)
               {
-                if (detail.LeaveTypeId == 1)
+                // Update balance as Allowed - Taken
+                decimal taken = balance.Taken ?? 0;
+                balance.Balance = detail.Allowed - taken;
+
+                // In case Allowed was never updated in DB
+                balance.UserLeavePolicyId = userLeavePolicy.Id;
+              }
+              else
+              {
+                // Create new balance entry if it doesn't exist
+                int taken = 0;
+                userLeavePolicy.LeaveBalances.Add(new LeaveBalance
                 {
-                  balance.Balance = casualLeave;
-                }
-                else if (detail.LeaveTypeId == 2)
-                {
-                  balance.Balance = annualLeave;
-                }
+                  UserId = currentUser.Id,
+                  LeaveTypeId = detail.LeaveTypeId,
+                  Taken = taken,
+                  Balance = detail.Allowed - taken,
+                  UserLeavePolicyId = userLeavePolicy.Id
+                });
               }
 
             }

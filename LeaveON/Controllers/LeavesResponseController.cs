@@ -422,8 +422,21 @@ namespace LeaveON.Controllers
           int finalProrated = proratedLeaves % 1 >= 0.5
               ? (int)Math.Ceiling(proratedLeaves)
               : (int)Math.Floor(proratedLeaves);
+          // Split the prorated value into casual and annual
+          int half = finalProrated / 2;
+          int casualLeave = half + (finalProrated % 2 != 0 ? 1 : 0);
+          int annualLeave = half;
 
-          leaveBalance.Balance = finalProrated - leave.TotalDays;
+          if (leave.LeaveType.Id == 2)
+          {
+            leaveBalance.Balance = annualLeave;
+            leaveBalance.Balance -= leave.TotalDays;
+          }
+          if (leave.LeaveType.Id == 1)
+          {
+            leaveBalance.Balance = casualLeave;
+            leaveBalance.Balance -= leave.TotalDays;
+          }
         }
         else
         {
