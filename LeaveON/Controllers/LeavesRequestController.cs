@@ -255,6 +255,22 @@ namespace LeaveON.Controllers
         proratedLeave = (int)Math.Floor(proratedLeaves);
       }
 
+      //HRBP Email 
+      var hrbpEmail = db.DepartmentNames
+            .Where(d => d.Name == currentUser.DepartmentName)
+            .Select(d => d.HRBPEmail)
+            .FirstOrDefault();
+
+      if (string.IsNullOrWhiteSpace(hrbpEmail))
+      {
+        hrbpEmail = db.AnnualLeaveManagers
+                .Select(m => m.ManagerEmail)
+                .FirstOrDefault();
+      }
+
+      ViewBag.HRBPEmail = !string.IsNullOrWhiteSpace(hrbpEmail)
+                          ? hrbpEmail
+                          : "HRBP email not available";
 
       ViewBag.proratedLeave = proratedLeave;
 
@@ -486,19 +502,26 @@ namespace LeaveON.Controllers
             // Prorated Leave Calculation
             double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
 
-            // Round to nearest whole number or keep decimal
-            //proratedLeaves = Math.Round(proratedLeaves, 2); 
+            int finalProrated = proratedLeaves % 1 >= 0.5
+                     ? (int)Math.Ceiling(proratedLeaves)
+                     : (int)Math.Floor(proratedLeaves);
+
+            // Split the prorated value into casual and annual
+            int half = finalProrated / 2;
+            int casualLeave = half + (finalProrated % 2 != 0 ? 1 : 0);
+            int annualLeave = half;
             // Custom rounding logic
-            if (proratedLeaves % 1 >= 0.5)
+
+            if (leave.LeaveType.Id == 2)
             {
-              balanceCheck = (int)Math.Ceiling(proratedLeaves);
-            }
-            else
+              balanceCheck = annualLeave;
+            } 
+            if (leave.LeaveType.Id == 1)
             {
-              balanceCheck = (int)Math.Floor(proratedLeaves);
+              balanceCheck = casualLeave;
             }
 
-
+            
           }
           else
           {
@@ -526,7 +549,7 @@ namespace LeaveON.Controllers
             leave.TotalDays = daysForFinalCompare;
           }
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
-          {
+          { 
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
 
             var userDepartment = leave.AspNetUser.DepartmentName;

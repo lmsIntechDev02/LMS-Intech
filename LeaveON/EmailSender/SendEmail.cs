@@ -44,7 +44,7 @@ namespace LeaveON.EmailSender
 
         mail.From = new MailAddress(LeavON_Email);
         Console.WriteLine("Email sent successfully to " + receiver.Email);
-        mail.To.Add(new MailAddress(receiver.Email));
+         mail.To.Add(new MailAddress(receiver.Email));
        // mail.To.Add(new MailAddress("bilan16401@calorpg.com"));
         //mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
         //mail.CC.Add(new MailAddress("hrsupport@intechww.com"));

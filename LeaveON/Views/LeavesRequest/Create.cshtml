@@ -25,147 +25,152 @@
 
 
 
-    <div class="card-body">
-      @if (TempData["ErrorMessage"] != null)
-      {
-        <div class="alert alert-danger" role="alert">
-          @TempData["ErrorMessage"]
-        </div>
-      }
-      @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "Create", id = "Create" }))
-      {
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+          <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+              <div class="alert alert-danger" role="alert">
+                @TempData["ErrorMessage"]
+              </div>
+            }
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "Create", id = "Create" }))
+            {
+              @Html.AntiForgeryToken()
+              @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
 
-        <div class="form-group">
-          @Html.Label("User Name")
+                  <div class="form-group">
+                    @Html.Label("User Name")
 
-          @Html.Editor("UserName", new { htmlAttributes = new { @class = "form-control", @Value = ViewBag.UserName, @readonly = "readonly" } })
-          @*@Html.Editor((string)ViewBag.UserName)*@
-        </div>
-       <div class="form-group">
-         @Html.Label("Joining Date")
-         <input type="text" class="form-control" value="@ViewBag.JoiningDate" readonly />
-        </div>
-        <div class="form-group">
-         @Html.Label("Prorated Leave")
-         <input type="text" class="form-control" value="@ViewBag.proratedLeave" readonly />
-        </div>
-        <div class="form-group">
-          @{
-            var leaveTypes = (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd;
-          }
-          @Html.LabelFor(model => model.LeaveTypeId, "Leave Type", htmlAttributes: new { @class = "" })
+                    @Html.Editor("UserName", new { htmlAttributes = new { @class = "form-control", @Value = ViewBag.UserName, @readonly = "readonly" } })
+                    @*@Html.Editor((string)ViewBag.UserName)*@
+                  </div>
+                  <div class="form-group">
+                    @Html.Label("Joining Date")
+                    <input type="text" class="form-control" value="@ViewBag.JoiningDate" readonly />
+                  </div>
+                  <div class="form-group">
+                    @Html.Label("Prorated Leave")
+                    <input type="text" class="form-control" value="@ViewBag.proratedLeave" readonly />
+                  </div>
+                  <div class="form-group">
+                    @{
+                      var leaveTypes = (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd;
+                    }
+                    @Html.LabelFor(model => model.LeaveTypeId, "Leave Type", htmlAttributes: new { @class = "" })
 
-          @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
-          @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })*@
-          @Html.ValidationMessageFor(model => model.LeaveTypeId, "", new { @class = "text-danger" })
+                    @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
+                    @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control" })*@
+                    @Html.ValidationMessageFor(model => model.LeaveTypeId, "", new { @class = "text-danger" })
 
-        </div>
+                  </div>
 
-        <div class="form-group">
-          @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+                  <div class="form-group" id="hrbpEmailField" style="display: none;">
+                    <label for="HrbpEmail">HRBP Email</label>
+                    <input type="email" id="HrbpEmail" class="form-control" value="@ViewBag.HRBPEmail" disabled />
+                  </div>
 
-          <br>
+                  <div class="form-group">
+                    @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-
-          @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
-
-
-          @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
-
-        </div>
+                    <br>
 
 
-        <div id="leaveDate">
-
-          <div class="form-group">
-            @Html.LabelFor(model => model.StartDate, "Start Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-
-            @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", @id = "datepickerStart", required = "required " } })
-            @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
-
-          </div>
-
-          <div class="form-group">
-            @Html.LabelFor(model => model.EndDate, "End Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-
-            @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", @id = "datepickerEnd", required = "required " } })
-            @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
-
-          </div>
-
-        </div>
-        <div id="timeDiv" class="form-group">
-          <div class="form-group">
-            <label>Remaining Balance</label>
-            <div class="form-control" readonly>
-              @ViewBag.ShortLeaveMessage
-            </div>
-          </div>
-          <b style="color:black">Start time</b> <b style="color:red">*</b> <input id="startTime" type="text" class="time" /> <br />
-          <b style="color:black">End time</b> <b style="color:red">*&nbsp;&nbsp;</b> <input id="endTime" type="text" class="time" />
-        </div>
+                    @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
 
 
+                    @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
+
+                  </div>
 
 
+                <div id="leaveDate">
 
-        <div class="form-group">
-          @*@Html.LabelFor(model => model.TotalDays, "Total Days", htmlAttributes: new { @class = " " })*@
+                  <div class="form-group">
+                    @Html.LabelFor(model => model.StartDate, "Start Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-          @Html.HiddenFor(model => model.TotalDays, new { htmlAttributes = new { @class = "form-control", id = "diff", @readonly = "readonly" } })
-          @Html.ValidationMessageFor(model => model.TotalDays, "", new { @class = "text-danger" })
+                    @Html.EditorFor(model => model.StartDate, new { htmlAttributes = new { @class = "form-control", @id = "datepickerStart", required = "required " } })
+                    @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
 
-        </div>
+                  </div>
 
-        <div class="form-group">
-          @Html.LabelFor(model => model.EmergencyContact, "Emergency Contact", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+                  <div class="form-group">
+                    @Html.LabelFor(model => model.EndDate, "End Date", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-          @Html.EditorFor(model => model.EmergencyContact, new { htmlAttributes = new { @class = "form-control", required = "required " } })
-          @Html.ValidationMessageFor(model => model.EmergencyContact, "", new { @class = "text-danger" })
+                    @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control", @id = "datepickerEnd", required = "required " } })
+                    @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
 
-        </div>
-        <div class="form-group">
-          @Html.LabelFor(model => model.LineManager1Id, "Line Manager", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+                  </div>
 
-          @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-          @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", required = "required " })*@
-          @Html.DropDownList("LineManager1Id",(IEnumerable<SelectListItem>)ViewBag.LineManagers,"Please select manager",new { @class = "form-control", required = "required" })
-
-          @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
-
-          @*@Html.EditorFor(model => model.LineManager1Id, new { htmlAttributes = new { @class = "form-control" } })*@
-
-        </div>
-
-        <div class="form-group" id="LineManager2IdParent">
-          @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
-
-
-          @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-          @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control" })
-          @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
-
-          @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
-
-        </div>
+                </div>
+                <div id="timeDiv" class="form-group">
+                  <div class="form-group">
+                    <label>Remaining Balance</label>
+                    <div class="form-control" readonly>
+                      @ViewBag.ShortLeaveMessage
+                    </div>
+                  </div>
+                  <b style="color:black">Start time</b> <b style="color:red">*</b> <input id="startTime" type="text" class="time" /> <br />
+                  <b style="color:black">End time</b> <b style="color:red">*&nbsp;&nbsp;</b> <input id="endTime" type="text" class="time" />
+                </div>
 
 
 
-        <div class="form-group">
-          <div class="class=" card-footer">
-            <input type="submit" value="Apply" id="btnApply" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
 
-          </div>
-        </div>
-        <div id="loader" style="display:none; text-align:center; font-size:24px; color:#007bff;">Loading...</div>
-        <div>
-          @Html.ActionLink("Back to List", "Index")
-        </div>
 
-      }
+                <div class="form-group">
+                  @*@Html.LabelFor(model => model.TotalDays, "Total Days", htmlAttributes: new { @class = " " })*@
+
+                  @Html.HiddenFor(model => model.TotalDays, new { htmlAttributes = new { @class = "form-control", id = "diff", @readonly = "readonly" } })
+                  @Html.ValidationMessageFor(model => model.TotalDays, "", new { @class = "text-danger" })
+
+                </div>
+
+                <div class="form-group">
+                  @Html.LabelFor(model => model.EmergencyContact, "Emergency Contact", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+                  @Html.EditorFor(model => model.EmergencyContact, new { htmlAttributes = new { @class = "form-control", required = "required " } })
+                  @Html.ValidationMessageFor(model => model.EmergencyContact, "", new { @class = "text-danger" })
+
+                </div>
+                <div class="form-group">
+                  @Html.LabelFor(model => model.LineManager1Id, "Line Manager", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+
+                  @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
+                  @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", required = "required " })*@
+                  @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control", required = "required" })
+
+                  @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
+
+                  @*@Html.EditorFor(model => model.LineManager1Id, new { htmlAttributes = new { @class = "form-control" } })*@
+
+                </div>
+
+                <div class="form-group" id="LineManager2IdParent">
+                  @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
+
+
+                  @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
+                  @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control" })
+                  @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
+
+                  @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
+
+                </div>
+
+
+
+                <div class="form-group">
+                  <div class="class=" card-footer">
+                    <input type="submit" value="Apply" id="btnApply" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
+
+                  </div>
+                </div>
+                <div id="loader" style="display:none; text-align:center; font-size:24px; color:#007bff;">Loading...</div>
+                <div>
+                  @Html.ActionLink("Back to List", "Index")
+                </div>
+
+              }
     </div>
 
 
@@ -239,8 +244,10 @@
           var selectedLeaveTypeId = $(this).val();
           if (selectedLeaveTypeId === '2') { // Assuming '2' represents Annual Leave
             $('#LineManager2Id').parent().hide(); // Hide the Line Manager 2 div
+            $('#hrbpEmailField').show();
           } else {
             $('#LineManager2Id').parent().show(); // Show the Line Manager 2 div
+            $('#hrbpEmailField').hide();
           }
         });
       });
