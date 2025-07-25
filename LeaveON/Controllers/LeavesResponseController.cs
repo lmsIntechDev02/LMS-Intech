@@ -15,7 +15,7 @@ using LMS.Constants;
 namespace LeaveON.Controllers
 {
 
-  [Authorize(Roles = "Admin,Manager")]
+  [Authorize(Roles = "Admin,Manager, User")]
   public class LeavesResponseController : Controller
   {
     private LeaveONEntities db = new LeaveONEntities();
@@ -37,9 +37,6 @@ namespace LeaveON.Controllers
       var leaves = db.Leaves.Where(x => x.IsQuotaRequest == true && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
       return View(await leaves.ToListAsync());
     }
-
-  
-
     public List<AspNetUser> GetSeniorStaff()
     {
       List<AspNetUser> Seniors = new List<AspNetUser>();
@@ -47,7 +44,7 @@ namespace LeaveON.Controllers
       {
         foreach (AspNetRole role in user.AspNetRoles.ToList<AspNetRole>())
         {
-          if (role.Name == "Admin" || role.Name == "Manager")
+          if (role.Name == "Admin" || role.Name == "Manager" || role.Name == "User")
           {
             AspNetUser userFound = Seniors.Find(x => x.Id == user.Id);
             if (userFound == null)
@@ -99,8 +96,7 @@ namespace LeaveON.Controllers
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
-      //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
-      ViewBag.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicy.Id;
+      ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       return View(leave);
     }
@@ -176,7 +172,8 @@ namespace LeaveON.Controllers
         await db.SaveChangesAsync();
         if (IsLineManager1 == "True")
         {
-          if (leave.IsAccepted1 > Consts.Rejected && leave.LineManager1Id != leave.LineManager2Id)
+          // Sending email to LineManager2 only if LineManager1Id is not equal to LineManager2Id
+          if (leave.LineManager1Id != leave.LineManager2Id)
           {
             //sending email to 2nd admin for request of second acceptance
             AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
@@ -247,7 +244,7 @@ namespace LeaveON.Controllers
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
-      ViewBag.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+      ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       return View(leave);
     }
@@ -370,18 +367,85 @@ namespace LeaveON.Controllers
     }
     public void CalculateAndChangeLeaveBalance(ref Leave leave)
     {
-      ///////////////
+      // Calculate the leave balance
       LeaveBalance leaveBalance = CalculateLeaveBalance(ref leave);
+
+      if (leave.LeaveTypeId != 7 && leave.LeaveTypeId != 8)
+      {
+        // Update the attendance records to reflect the leave
+        // Extract necessary data into local variables
+        var empNum = leave.AspNetUser.BioStarEmpNum;
+        var startDate = leave.StartDate;
+        var endDate = leave.EndDate;
+        var leaveType = leave.LeaveType.Name;
+        var leaveTypeID = leave.LeaveTypeId;
+
+        //var attendanceRecordsToUpdate = db.AttendanceDatas
+        //    .Where(ad => ad.EmployeeID == empNum
+        //                 && ad.CreatedDate >= startDate
+        //                 && ad.CreatedDate <= endDate)
+        //    .ToList();
+
+        //foreach (var record in attendanceRecordsToUpdate)
+        //{
+        //  record.IsLeave = true;
+        //  record.LeaveType = leaveType;
+        //  record.LeaveTypeID = leaveTypeID;
+        //}
+
+        db.SaveChanges();
+      }
 
       if (leaveBalance == null)
       {
         //new
+        int userLeavePolicyId = (int)leave.UserLeavePolicyID;
         leaveBalance = new LeaveBalance(ref leave);
         leaveBalance.Taken = leave.TotalDays;
-        leaveBalance.Balance -= leave.TotalDays;
+        //leaveBalance.Balance -= leave.TotalDays;
+
+        var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicyId);
+        if (leave.AspNetUser.JoiningDate.HasValue && leave.AspNetUser.JoiningDate > userPolicy.FiscalYearStart)
+        {
+          int joiningYear = leave.AspNetUser.JoiningDate.Value.Year;
+          int joiningMonth = leave.AspNetUser.JoiningDate.Value.Month;
+          int workedMonths = ((userPolicy.FiscalYearEnd.Value.Year - joiningYear) * 12) + userPolicy.FiscalYearEnd.Value.Month - joiningMonth + 1;
+
+          int? assignedLeaveQuota = db.UserLeavePolicyDetails
+              .Where(lb => lb.UserLeavePolicyId == userLeavePolicyId &&
+                           (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+              .Select(lb => (int?)lb.Allowed)
+              .Sum() ?? 0;
+
+          double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+          int finalProrated = proratedLeaves % 1 >= 0.5
+              ? (int)Math.Ceiling(proratedLeaves)
+              : (int)Math.Floor(proratedLeaves);
+          // Split the prorated value into casual and annual
+          int half = finalProrated / 2;
+          int casualLeave = half + (finalProrated % 2 != 0 ? 1 : 0);
+          int annualLeave = half;
+
+          if (leave.LeaveType.Id == 2)
+          {
+            leaveBalance.Balance = annualLeave;
+            leaveBalance.Balance -= leave.TotalDays;
+          }
+          if (leave.LeaveType.Id == 1)
+          {
+            leaveBalance.Balance = casualLeave;
+            leaveBalance.Balance -= leave.TotalDays;
+          }
+        }
+        else
+        {
+          leaveBalance.Balance -= leave.TotalDays;
+        }
+
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
-        leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+        leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
         if (leave.LeaveTypeId == 7)
         {
           leaveBalance.HoursTaken = (int)(leave.EndDate - leave.StartDate).TotalHours;
@@ -397,7 +461,7 @@ namespace LeaveON.Controllers
         {
           int hoursToAdd = (int)(leave.EndDate - leave.StartDate).TotalHours;
           var leaveUserID = leave.UserId;
-          var leavePolicyID = leave.AspNetUser.UserLeavePolicyId;
+          var leavePolicyID = leave.UserLeavePolicyID;
           leaveBalance.Balance = 0;
           if (leaveBalance.HoursTaken + hoursToAdd >= 8)
           {
@@ -422,7 +486,7 @@ namespace LeaveON.Controllers
                     leaveDetail.UserLeavePolicyId == leavePolicyID).Select(detail => detail.Allowed).FirstOrDefault()) - 1;
               leaveBalance.UserId = leaveUserID;
               leaveBalance.LeaveTypeId = 1;
-              leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+              leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
               db.LeaveBalances.Add(leaveBalance);
               db.SaveChanges();
             }
@@ -444,6 +508,7 @@ namespace LeaveON.Controllers
       }
       ///////////////
     }
+  
     public void CalculateAndChangeLeaveBalanceQuota(ref Leave leave)
     {
       LeaveBalance leaveBalance = CalculateLeaveBalanceQuota(ref leave);
@@ -452,10 +517,9 @@ namespace LeaveON.Controllers
       {
         //new
         leaveBalance = new LeaveBalance(ref leave);
-        leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
-        //leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+        leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
         db.LeaveBalances.Add(leaveBalance);
       }
       else
@@ -468,7 +532,7 @@ namespace LeaveON.Controllers
     {
       string UserId = leave.UserId;
       int LeaveTypeId = leave.LeaveTypeId;
-      int userLeavePolicyId = leave.AspNetUser.UserLeavePolicy.Id;
+      int userLeavePolicyId = (int)leave.UserLeavePolicyID;
       LeaveBalance leaveBalance = leave.AspNetUser.LeaveBalances.FirstOrDefault(x => x.UserId == UserId && x.LeaveTypeId == LeaveTypeId && x.UserLeavePolicyId == userLeavePolicyId );
       return leaveBalance;
     }
@@ -542,6 +606,167 @@ namespace LeaveON.Controllers
         db.Dispose();
       }
       base.Dispose(disposing);
+    }
+
+    private Task<List<Leave>> GetLeavesReport(string formattedStartDate, string formattedEndDate, List<string> UserIds)
+    {
+      DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      List<Leave> LstLeavesData = new List<Leave>();
+      TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
+      TimeSpan totalTimeAllUsers = TimeSpan.Zero;
+
+      // Fetch Leave data for each user
+      foreach (string UserId in UserIds)
+      {
+        // Fetch leaves records for this user within the provided date range
+        var leaveRecords = db.Leaves
+        .Where(a => a.UserId == UserId && a.StartDate >= startDate && a.StartDate <= endDate)
+        .OrderBy(a => a.StartDate)
+        .ToList();
+
+
+        if (!leaveRecords.Any()) continue; // If no records found, skip to the next user
+
+        // Process each leave record
+        foreach (var record in leaveRecords)
+        {
+          var user = db.AspNetUsers.Find(record.UserId);
+          string username = user != null
+              ? user.UserName.Split('@')[0].Replace(".", " ")
+              : "N/A";
+          // Map the data directly from leave table
+          LstLeavesData.Add(new Leave()
+          {
+            DateCreated = record.DateCreated ?? DateTime.MinValue,
+            StartDate = record.StartDate,
+            EndDate = record.EndDate,
+            UserId = username,
+            LeaveTypeName = record.LeaveTypeId != 0 ? db.LeaveTypes.Find(record.LeaveTypeId)?.Name : "N/A",
+            TotalDays = record.TotalDays ?? 0,
+            Reason = record.Reason ?? null,
+            IsAccepted1 = record.IsAccepted1,
+            IsAccepted2 = record.IsAccepted2,
+            Remarks1 = record.Remarks1,
+            Remarks2 = record.Remarks2,
+            IsShortLeave = record.IsShortLeave,
+            LineManager1Id = record.LineManager1Id != null ? db.AspNetUsers.Find(record.LineManager1Id).UserName : "N/A",
+            LineManager2Id = record.LineManager2Id != null ? db.AspNetUsers.Find(record.LineManager2Id).UserName : "N/A",
+          });
+        }
+      }
+
+
+
+      return Task.FromResult(LstLeavesData);
+    }
+
+
+    public async Task<ActionResult> LeaveReport(string StartDate, string EndDate, List<string> UserIds)
+    {
+      try
+      {
+        //ViewBag.MonthSelectList = GetMonthSelectList();
+        DateTime startDate, endDate;
+
+        string userId = User.Identity.GetUserId();
+        //IQueryable<Leave> LstAttendances = new IQueryable<Leave>();
+
+        List<Leave> LstLeaves = new List<Leave>();
+
+        // Set default date if ReqMonthYear is empty
+        if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        {
+
+          startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+          endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+          // In case of empty parameters or first time
+          startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+          endDate = DateTime.Now;
+
+          ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
+
+        }
+
+        //StartDate and EndDate for display
+        ViewBag.StartDate = startDate.ToString("dd-MMM-yyyy");
+        ViewBag.EndDate = endDate.ToString("dd-MMM-yyyy");
+
+        // Role-based data population
+        if (User.IsInRole("Admin"))
+        {
+          var departments = db.AspNetUsers
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Select(u => u.DepartmentName)
+                 .Distinct()
+                 .Select(d => new SelectListItem { Value = d, Text = d })
+                 .ToList();
+          ViewBag.Departments = departments;
+          ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = UserIds;
+        }
+        //else if (User.IsInRole("Manager") || User.IsInRole("User"))
+        else if (User.IsInRole("Manager") || User.IsInRole("User"))
+        {
+
+          var managerDepartment = db.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
+          ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
+
+          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
+          ViewBag.Employees = new SelectList(employeesUnderManager, "Id", "UserName");
+          //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = UserIds;
+        }
+        if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        {
+          // Format the date range for querying
+          string formattedStartDate = startDate.ToString("dd-MM-yyyy");
+          string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+          //var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+          var User_Ids = UserIds.Select(id => id).ToList();
+
+          LstLeaves = await GetLeavesReport(formattedStartDate, formattedEndDate, User_Ids);
+
+
+        }
+        //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
+        if (string.IsNullOrEmpty(StartDate) && string.IsNullOrEmpty(EndDate))
+        {
+          return View();
+        }
+        else
+        {
+          return PartialView("_LeaveReport", LstLeaves.OrderBy(i => i.DateCreated).ToList());
+        }
+      }
+      catch (Exception ex)
+      {
+        throw (ex);
+      }
+
+    }
+
+    public ActionResult GetUsersByDepartments(List<string> departmentNames)
+    {
+      if (departmentNames == null || !departmentNames.Any())
+      {
+        return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
+      }
+
+      var users = db.AspNetUsers
+          .Where(u => departmentNames.Contains(u.DepartmentName))
+          .AsEnumerable()
+          .Select(u => new SelectListItem
+          {
+            Value = u.Id,
+            /* Text = u.UserName*/
+            Text = u.UserName.Split('@')[0].Replace('.', ' ')
+          }).OrderBy(i => i.Text).ToList();
+      //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
+      return Json(users, JsonRequestBehavior.AllowGet);
     }
   }
 }

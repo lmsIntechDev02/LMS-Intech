@@ -1,0 +1,266 @@
+@model IEnumerable<LeaveON.UtilityClasses.TimeData>
+
+@{
+  ViewBag.Title = "Index";
+  Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+  <!-- Display the logged-in user's department -->
+  <div id="listDepartments" class="dropdown-check-list">
+    <span class="anchor">@ViewBag.DepartmentName</span>
+  </div>
+
+  <!-- Display the logged-in user's name -->
+  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+    <span class="anchor"> @ViewBag.UserName</span>
+  </div>
+
+  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+
+  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+
+  @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+
+
+
+  <button id="load" style="position: relative;">
+    <span class="button-text">Go</span>
+    <span class="loader" style="display: none;">Loading...</span>
+  </button>
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
+  @{ Html.RenderPartial("_UserData", Model); }
+</div>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    $('#datepickerStart').val('@ViewBag.StartDate');
+    $('#datepickerEnd').val('@ViewBag.EndDate');
+
+    // Initialize start date picker
+    $('#datepickerStart').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1,
+      maxDate: new Date(),
+      onSelect: function (selectedDate) {
+        // Set minDate for the end date based on the selected start date
+        $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
+        $('#datepickerEnd').prop('disabled', false);
+      },
+      onChangeMonthYear: function (year, month, inst) {
+        // Keep the calendar open and update month/year selection
+        var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+        currentDate.setFullYear(year);
+        currentDate.setMonth(month - 1);
+        $(this).datepicker("setDate", currentDate);
+        var startDateValue = $('#datepickerStart').val();
+        if (startDateValue) {
+          $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+          $('#datepickerEnd').prop('disabled', false);
+        }
+      }
+    });
+
+    // Initialize end date picker (disabled initially)
+    $('#datepickerEnd').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1,
+      maxDate: new Date(),
+      beforeShow: function (input, inst) {
+        // Check if start date is selected
+        var startDate = $('#datepickerStart').datepicker('getDate');
+        if (startDate) {
+          $(this).datepicker("option", "minDate", startDate);
+        }
+      },
+      onSelect: function (selectedDate) {
+        $(this).datepicker("hide"); // Close only when a date is selected
+      },
+      onChangeMonthYear: function (year, month, inst) {
+        // Keep the calendar open on month/year change
+        var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+        currentDate.setFullYear(year);
+        currentDate.setMonth(month - 1);
+        $(this).datepicker("setDate", currentDate);
+      }
+    }).prop('disabled', true);
+
+
+    // Check if the start date is set and set the minDate for the end date
+    var startDateValue = $('#datepickerStart').val();
+    if (startDateValue) {
+      $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+      $('#datepickerEnd').prop('disabled', false);
+    }
+
+    // Function to disable or enable inputs
+    function disableInputs(isDisabled) {
+      $('#load').prop('disabled', isDisabled);
+      $('#listDepartments input[type="checkbox"]').prop('disabled', isDisabled);
+      $('#listEmployees input[type="checkbox"]').prop('disabled', isDisabled);
+      $('#datepickerStart').prop('disabled', isDisabled);
+      $('#datepickerEnd').prop('disabled', isDisabled);
+    }
+
+
+        // Handle Go button click
+    $('#load').click(function () {
+      // Show the loader and hide the button text
+      $('.loader').show();
+      $('.button-text').hide();
+      $("#wait").css("display", "block");
+      disableInputs(true);
+
+          var userId = '@ViewBag.UserId'; // Get the user ID from the ViewBag
+          var startDate = $('#datepickerStart').val();
+          var endDate = $('#datepickerEnd').val();
+
+          // Check if both dates are selected
+          if (!startDate) {
+            alert('Please select a start date.');
+            $('.loader').hide();
+            $('.button-text').show();
+            $("#wait").css("display", "none");
+            disableInputs(false);
+            return;
+          }
+          if (!endDate) {
+            alert('Please select an end date.');
+            $('.loader').hide();
+            $('.button-text').show();
+            $("#wait").css("display", "none");
+            disableInputs(false);
+            return;
+          }
+
+
+      var requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': userId };
+
+
+            $.ajax({
+                url: "@Url.Action("MyReportData", "AccessBiostarTA")",
+                data: requestData,
+                type: "POST",
+                success: function (data) {
+                    $("#NewData").html(data);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert('Data provided was not valid');
+              },
+              complete: function () {
+                // Hide the loader when the request is complete (success or error)
+                $('.loader').hide();
+                $('.button-text').show();
+                  $("#wait").css("display", "none");
+                disableInputs(false);
+              }
+            });
+        });
+    });
+</script>
+
+<style>
+  .dropdown-check-list {
+    display: inline-block;
+    position: relative;
+    background-color: #ffffff;
+    width: 250px;
+    height: 45px;
+    margin: 10px 5px;
+  }
+
+    .dropdown-check-list .anchor {
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      color: #333;
+      font-weight: normal;
+      font-size: 14.8px;
+      opacity: 0.6;
+      width: 250px;
+      height: 45px;
+      text-overflow: ellipsis;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+    .dropdown-check-list ul.items {
+      display: flex;
+      padding: 2px;
+      display: none;
+      margin: 0;
+      border: 1px solid #ccc;
+      background-color: white;
+      position: absolute;
+      z-index: 1;
+    }
+
+      .dropdown-check-list ul.items li {
+        list-style: none;
+        padding: 5px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: baseline;
+        font-weight: normal;
+      }
+
+    .dropdown-check-list.visible .items {
+      display: block;
+    }
+
+    .dropdown-check-list input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+  #load {
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .selectpicker {
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .datepicker {
+    width: 250px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .ui-datepicker {
+    width: 250px;
+  }
+</style>

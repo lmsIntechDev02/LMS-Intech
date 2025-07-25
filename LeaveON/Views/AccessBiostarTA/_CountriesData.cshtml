@@ -1,4 +1,6 @@
 @model IEnumerable<LeaveON.UtilityClasses.TimeData>
+@using System.Globalization
+
 @{
 
   <div id="NewData">
@@ -75,7 +77,7 @@
                           {
                             <tr>
                               <td>
-                                @Html.DisplayFor(modelItem => item.EmployeeName)
+                                @CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower())
                               </td>
                               <td>
                                 @Html.DisplayFor(modelItem => item.EmployeeNumber)
@@ -133,14 +135,17 @@
                               <td>
 
                                 @{
-                                  if (String.IsNullOrEmpty(item.Status))
+                                  //if (String.IsNullOrEmpty(item.Status))
+                                  if (item.WorkingHours != offDayTime)
                                   {
-                                    @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })
-                                  }
-                                  else
-                                  {
-                                    @Html.DisplayFor(modelItem => item.Status)
-                                  }
+                                    @* @Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
+                                                @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
+                                                            @Html.DisplayFor(modelItem => item.Status)
+                                                          }
+                                                          else
+                                                          {
+                                                            @Html.DisplayFor(modelItem => item.Status)
+                                                          }
                                 }
 
 
@@ -194,8 +199,11 @@
 <script src="https://cdn.datatables.net/buttons/2.1.0/js/buttons.print.min.js"></script>
 
 <script>
+  $.fn.dataTable.ext.type.order['date-uk-pre'] = function (date) {
+    var parts = date.split('-');
+    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+  };
   $(function () {
-
     $('#example2').DataTable({
       "paging": false,
       "lengthChange": false,
@@ -204,7 +212,10 @@
       "info": true,
       "autoWidth": true,
       "responsive": true,
-      "order": [[4, "asc"]],
+      "order": [[6, "asc"]],
+      "columnDefs": [
+        { "type": "date-uk", "targets": 6 }
+      ],
       dom: 'Bfrtip',
       buttons: [
         'copy', 'csv', 'excel', 'pdf', 'print'

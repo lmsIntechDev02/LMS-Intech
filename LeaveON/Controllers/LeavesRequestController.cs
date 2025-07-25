@@ -27,7 +27,7 @@ namespace LeaveON.Controllers
 
     // GET: Leaves
     //public async Task<ActionResult> Index(string country)
-   
+
     public async Task<ActionResult> Index()
     {
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
@@ -43,6 +43,106 @@ namespace LeaveON.Controllers
       return View(await leaves.ToListAsync());
     }
 
+    public async Task<ActionResult> LeaveReport(string StartDate, string EndDate, List<string> UserIds)
+    {
+      try
+      {
+        //ViewBag.MonthSelectList = GetMonthSelectList();
+        DateTime startDate, endDate;
+
+        string userId = User.Identity.GetUserId();  
+
+        List<TimeData> LstAttendances = new List<TimeData>();
+
+        // Set default date if ReqMonthYear is empty
+        if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        {
+
+          startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+          endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        else
+        {
+          // In case of empty parameters or first time
+          startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+          endDate = DateTime.Now;
+
+          ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
+
+        }
+
+        //StartDate and EndDate for display
+        ViewBag.StartDate = startDate.ToString("dd-MMM-yyyy");
+        ViewBag.EndDate = endDate.ToString("dd-MMM-yyyy");
+
+        // Role-based data population
+        if (User.IsInRole("Admin"))
+        {
+          var departments = db.AspNetUsers
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Select(u => u.DepartmentName)
+                 .Distinct()
+                 .Select(d => new SelectListItem { Value = d, Text = d })
+                 .ToList();
+          ViewBag.Departments = departments;
+          ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = UserIds;
+        }
+        //else if (User.IsInRole("Manager") || User.IsInRole("User"))
+        else if (User.IsInRole("Manager"))
+        {
+
+          var managerDepartment = db.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
+          ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
+
+          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
+          ViewBag.Employees = new SelectList(employeesUnderManager, "BioStarEmpNum", "UserName");
+          //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = UserIds;
+        }
+        else if (User.IsInRole("User"))
+        {
+          var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+          ViewBag.Departments = new SelectList(new List<string> { currentUser.DepartmentName });
+          ViewBag.Employees = new SelectList(new List<AspNetUser> { currentUser }, "BioStarEmpNum", "UserName");
+          ViewBag.SelectedEmployees = new List<string> { currentUser.BioStarEmpNum.ToString() }; // Populate selected employee for User
+        }
+
+        if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        {
+          // Format the date range for querying
+          string formattedStartDate = startDate.ToString("dd-MM-yyyy");
+          string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+          var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+          //   LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
+        //  LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
+
+        }
+        //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
+        if (string.IsNullOrEmpty(StartDate) && string.IsNullOrEmpty(EndDate))
+        {
+          //in case of null param or first time
+          if (!(LstAttendances is null))
+          {
+            return View(LstAttendances.OrderBy(i => i.Date).ToList());
+
+          }
+          else
+          {
+            return View();
+          }
+        }
+        else
+        {
+          return PartialView("_LeaveReport", LstAttendances.OrderBy(i => i.Date).ToList());
+        }
+      }
+      catch (Exception ex)
+      {
+        throw (ex);
+      }
+
+    }
 
 
     // GET: Leaves/Create
@@ -58,6 +158,7 @@ namespace LeaveON.Controllers
 
       //ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes.Where(x => x.UserLeavePolicyDetails.Where(y => y.UserLeavePolicyId == policyId)), "Id", "Name");
       var filtereLeaves = new SelectList(Utility.FilteredLeavesTaken(userId, policyId), "Id", "Name", "1");
+
 
       ViewBag.LeaveTypeIdd = filtereLeaves;
       //ViewBag.Leave1TypeId = new SelectList(db.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId).ToList <UserLeavePolicyDetail>(), "Id", "Name");
@@ -84,15 +185,104 @@ namespace LeaveON.Controllers
 
       //LstAspNetUser.Select(m => m.UserName.Substring(0, m.UserName.IndexOf('@')).Replace(".", " ")).ToList();
 
-      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
-
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId); 
+   // ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+      ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
+             ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+             : "Joining date not available";
+
+      // Prorated Leaves
+      DateTime today = DateTime.Today;
+      int currentYear = today.Year;
+
+      int workedMonths = 12;
+
+
+      var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId);
+
+
+      DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
+      DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
+
+      // If joining date not exists then used ficalStart
+      DateTime joiningDate = currentUser.JoiningDate ?? fiscalStart;
+
+      if (joiningDate > fiscalEnd)
+      {
+        workedMonths = 0;
+      }
+      else
+      {
+        DateTime effectiveStart = (joiningDate > fiscalStart) ? joiningDate : fiscalStart;
+
+        // Total months
+        workedMonths = ((fiscalEnd.Year - effectiveStart.Year) * 12 + fiscalEnd.Month - effectiveStart.Month + 1);
+      }
+
+      //if (currentUser.JoiningDate.HasValue)
+      //{
+      //  //DateTime joiningDate = currentUser.JoiningDate.Value;
+
+      //  if(joiningDate.Year == currentYear)
+      //  {
+      //    workedMonths = 12 - joiningDate.Month + 1;
+      //  }
+      //}
+
+
+      int? assignedLeaveQuota = policyId != null
+                    ? db.UserLeavePolicyDetails
+                        .Where(lb => lb.UserLeavePolicyId == policyId &&
+                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                        .Select(lb => (int?)lb.Allowed)
+                        .Sum() ?? 0
+                    : 0;
+      // Prorated Leave Calculation
+      double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+      int proratedLeave;
+
+
+      // Round to nearest whole number or keep decimal
+      //proratedLeaves = Math.Round(proratedLeaves, 2); 
+      // Custom rounding logic
+      if (proratedLeaves % 1 >= 0.5)
+      {
+        proratedLeave = (int)Math.Ceiling(proratedLeaves);
+      }
+      else
+      {
+        proratedLeave = (int)Math.Floor(proratedLeaves);
+      }
+
+      //HRBP Email 
+      var hrbpEmail = db.DepartmentNames
+            .Where(d => d.Name == currentUser.DepartmentName)
+            .Select(d => d.HRBPEmail)
+            .FirstOrDefault();
+
+      if (string.IsNullOrWhiteSpace(hrbpEmail))
+      {
+        hrbpEmail = db.AnnualLeaveManagers
+                .Select(m => m.ManagerEmail)
+                .FirstOrDefault();
+      }
+
+      ViewBag.HRBPEmail = !string.IsNullOrWhiteSpace(hrbpEmail)
+                          ? hrbpEmail
+                          : "HRBP email not available";
+
+      ViewBag.proratedLeave = proratedLeave;
+
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", null);
+
       ViewBag.LeaveUserId = userId;
       ViewBag.FiscalYearStart = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearStart;
       ViewBag.FiscalYearEnd = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearEnd;
-      //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");
-      //var result= UserLeavePolicies.Edit(7);
-      //ViewBag.UserLeavePolicy= UserLeavePolicies.Edit(7);
+     
+      ViewBag.ShortLeaveMessage = "test message";
+
       return View();
     }
 
@@ -127,8 +317,16 @@ namespace LeaveON.Controllers
       }
       //List<AspNetUser> Seniors = GetSeniorStaff();
       //ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
-      ViewBag.UserName = User.Identity.Name;//"LoggedIn User";
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+      //ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+      ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
+            ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+            : "Joining date not available";
+
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+
       ViewBag.LeaveUserId = userId;
       //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");
       //var result= UserLeavePolicies.Edit(7);
@@ -222,14 +420,15 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id")] Leave leave, string StartDate)
+    public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id, UserLeavePolicyID")] Leave leave, string StartDate)
     {
       leave.UserId = User.Identity.GetUserId();
       leave.AspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.DateCreated = DateTime.Now;
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
-
+      var shortLeaveMessage = "";
+      leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
         leave.IsShortLeave = true;
@@ -239,6 +438,9 @@ namespace LeaveON.Controllers
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == 1)//sick casual leave
           .Select(detail => detail.Balance).FirstOrDefault();
+
+        shortLeaveMessage = "Your Remannig Sick/Casual Leave Balance is" + balanceCheck;
+
 
         if (balanceCheck <= 0)
         {
@@ -273,15 +475,59 @@ namespace LeaveON.Controllers
         int daysCount = duration.Days + 1; //total days including weekends
         var balanceCheck = db.LeaveBalances
           .Where(leaveBalance =>
-            leaveBalance.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
+            leaveBalance.UserLeavePolicyId == leave.UserLeavePolicyID &&
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == leave.LeaveTypeId)
           .Select(detail => detail.Balance).FirstOrDefault();
 
         if (balanceCheck == null)
         {
-          balanceCheck = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
+          var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == leave.AspNetUser.UserLeavePolicyId);
+          DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
+          DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
+          int workedMonths = 12;
+          if (leave.AspNetUser.JoiningDate.HasValue && leave.AspNetUser.JoiningDate > fiscalStart)
+          {
+            int joiningYear = leave.AspNetUser.JoiningDate?.Year ?? 0;
+            int joiningMonth = leave.AspNetUser.JoiningDate?.Month ?? 0;
+
+            workedMonths = ((fiscalEnd.Year - joiningYear) * 12) + fiscalEnd.Month - joiningMonth + 1;
+            int? assignedLeaveQuota = leave.AspNetUser.UserLeavePolicyId != null
+              ? db.UserLeavePolicyDetails
+                  .Where(lb => lb.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
+                               (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                  .Select(lb => (int?)lb.Allowed)
+                  .Sum() ?? 0
+              : 0;
+            // Prorated Leave Calculation
+            double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+
+            int finalProrated = proratedLeaves % 1 >= 0.5
+                     ? (int)Math.Ceiling(proratedLeaves)
+                     : (int)Math.Floor(proratedLeaves);
+
+            // Split the prorated value into casual and annual
+            int half = finalProrated / 2;
+            int casualLeave = half + (finalProrated % 2 != 0 ? 1 : 0);
+            int annualLeave = half;
+            // Custom rounding logic
+
+            if (leave.LeaveType.Id == 2)
+            {
+              balanceCheck = annualLeave;
+            } 
+            if (leave.LeaveType.Id == 1)
+            {
+              balanceCheck = casualLeave;
+            }
+
+            
+          }
+          else
+          {
+            balanceCheck = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
             leaveDetail.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId).Select(detail => detail.Allowed).FirstOrDefault();
+          }
         }
         var daysForFinalCompare = 0;
         AspNetUser admin1 = null;
@@ -303,13 +549,39 @@ namespace LeaveON.Controllers
             leave.TotalDays = daysForFinalCompare;
           }
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
-          {
-            //Get from AnnualLeaveManager table
-            admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
-              db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-            //admin1 = db.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == 2205);
-            leave.LineManager1Id = admin1.Id;
+          { 
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
+
+            var userDepartment = leave.AspNetUser.DepartmentName;
+
+            var department = db.DepartmentNames.FirstOrDefault(d => d.Name == userDepartment);
+
+            if (department != null && !string.IsNullOrEmpty(department.HRBPEmail))
+            {
+              // HRBP Email found, get user with that email
+              admin1 = db.AspNetUsers.FirstOrDefault(u => u.Email == department.HRBPEmail);
+
+              if (admin1 != null)
+              {
+                leave.LineManager1Id = admin1.Id;
+              }
+              else
+              {
+                // fallback to annual leave manager if HRBPEmail not matching any user
+                admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+                    db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+                leave.LineManager1Id = admin1?.Id;
+              }
+            }
+            else
+            {
+              // fallback if no HRBPEmail
+              admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+                  db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+              leave.LineManager1Id = admin1?.Id;
+            }
+
+
           }
           else
           {
@@ -321,7 +593,23 @@ namespace LeaveON.Controllers
         {
           if (leave.LeaveType.Id != 10 && leave.LeaveType.Id != 9 && leave.LeaveType.Id != 7 && leave.LeaveType.Id != 8) // Casual Short Day, Official Short Day, Official Full Day, and Work From Home
           {
-            if (daysCount <= balanceCheck)
+            if (leave.LeaveType.Id == 5) // Marriage Leave
+            {
+              int validDaysCount = Enumerable.Range(0, daysCount)
+                  .Select(offset => leave.StartDate.AddDays(offset))
+                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
+            }
+           else if (leave.LeaveType.Id == 1) // Sick Leave
+            {
+              int validDaysCount = Enumerable.Range(0, daysCount)
+                  .Select(offset => leave.StartDate.AddDays(offset))
+                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              leave.TotalDays = validDaysCount; // Set TotalDays for Sick leave
+            }
+            else if (daysCount <= balanceCheck)
             {
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
               leave.TotalDays = daysCount;
@@ -361,6 +649,8 @@ namespace LeaveON.Controllers
       var itmes = db.AspNetUsers.Include(x => x.AspNetRoles.Select(rl => rl.Name)).ToList();
 
       ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
+      
+      
       return View(leave);
     }
     // POST: Leaves/Create
@@ -375,6 +665,7 @@ namespace LeaveON.Controllers
       leave.DateCreated = DateTime.Now;
       leave.LeaveTypeId = CompensatoryLeaveTypeId;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == CompensatoryLeaveTypeId);
+      leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       TimeSpan duration = leave.EndDate - leave.StartDate;
       leave.TotalDays = duration.Days + 1; //total days including weekends
 
@@ -416,7 +707,10 @@ namespace LeaveON.Controllers
 
       var itmes = db.AspNetUsers.Include(x => x.AspNetRoles.Select(rl => rl.Name)).ToList();
 
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+
       return View(leave);
     }
 
@@ -441,9 +735,9 @@ namespace LeaveON.Controllers
       }
       List<AspNetUser> Seniors = GetSeniorStaff();
 
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
-      ViewBag.UserName = User.Identity.Name;//"LoggedIn User";
-      //ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
 
       string userId = User.Identity.GetUserId();
       int policyId = db.AspNetUsers.FirstOrDefault(x => x.Id == userId).UserLeavePolicyId.GetValueOrDefault();
@@ -480,8 +774,9 @@ namespace LeaveON.Controllers
         return RedirectToAction("Index");
       }
       List<AspNetUser> Seniors = GetSeniorStaff();
-      ViewBag.LineManagers = new SelectList(db.AspNetUsers.OrderBy(x => x.UserName), "Id", "UserName");
-      ViewBag.UserName = User.Identity.Name;//"LoggedIn User";
+      ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
+      ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
+        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
       string userId = User.Identity.GetUserId();
@@ -617,6 +912,6 @@ namespace LeaveON.Controllers
         db.Dispose();
       }
       base.Dispose(disposing);
-    }
+      }
   }
 }

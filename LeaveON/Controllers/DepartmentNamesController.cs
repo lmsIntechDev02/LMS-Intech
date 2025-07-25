@@ -63,6 +63,7 @@ namespace LeaveON.Controllers
         // GET: DepartmentNames/Edit/5
         public async Task<ActionResult> Edit(decimal id)
         {
+
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -72,7 +73,24 @@ namespace LeaveON.Controllers
             {
                 return HttpNotFound();
             }
-            return View(departmentName);
+
+          // Fetch available HRBP emails from AspNetUsers
+            var hrbpEmails = db.AspNetUsers
+          .Where(u => u.Email != null)
+          .AsEnumerable()
+          .Select(u => new SelectListItem
+          {
+            Value = u.Email,
+            Text = System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                        .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+          })
+          .ToList();
+
+
+      // Pass list to ViewBag
+      ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", departmentName.HRBPEmail);
+
+          return View(departmentName);
         }
 
         // POST: DepartmentNames/Edit/5
@@ -80,16 +98,25 @@ namespace LeaveON.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "Id,Name")] DepartmentName departmentName)
+        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail")] DepartmentName departmentName)
         {
             if (ModelState.IsValid)
             {
+                var user = await db.AspNetUsers.FirstOrDefaultAsync(u => u.Email == departmentName.HRBPEmail);
+
+                if (user != null)
+                {
+                  // Assuming HRBPBiostarEmpID is a column in DepartmentName table
+                  departmentName.HRBPBioStarEmpNum = user.BioStarEmpNum; 
+                }
+
+
                 db.Entry(departmentName).State = EntityState.Modified;
-                await db.SaveChangesAsync();
-                return RedirectToAction("Index");
-            }
-            return View(departmentName);
-        }
+                        await db.SaveChangesAsync();
+                        return RedirectToAction("Index");
+                    }
+                    return View(departmentName);
+                }
 
         // GET: DepartmentNames/Delete/5
         public async Task<ActionResult> Delete(decimal id)

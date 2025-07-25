@@ -5,57 +5,75 @@
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@*<h2>Index</h2>
-
-  <p>
-    @Html.ActionLink("Create New", "Create")
-  </p>*@
 <div>
+  @*Department Dropdown*@
   @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
 
-  @*<select class="selectpicker" id="selectMonth" data-live-search="false" data-done-button="true">
-    <option value="07-2020">July 2020</option>
-    <option value="08-2020">August 2020</option>
-    <option value="09-2020">September 2020</option>
-    <option value="10-2020">October 2020</option>
-    <option value="11-2020">November 2020</option>
-    <option value="12-2020">December 2020</option>
-    <option value="01-2021">January 2021</option>
-    <option value="02-2021">February 2021</option>
-    <option value="03-2021">March 2021</option>
-    <option value="04-2021">April 2021</option>
-    <option value="05-2021">May 2021</option>
-    <option value="06-2021">June 2021</option>
-  </select>*@
+  @*Month Dropdown*@
   @Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
-  <button id="load">go</button>
 
+  <button id="load" style="position: relative;">
+    <span class="button-text">Go</span>
+    <span class="loader" style="display: none;">Loading...</span>
+  </button>
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
   @{Html.RenderPartial("_UserData", Model); }
 </div>
 <script type="text/javascript">
 
-        $(document).ready(function () {
+  $(document).ready(function () {
+
+    // Show alert if no employees exist
+    //$('#listDepartments').click(function () {
+    //  if ($('#listDepartments option').length <= 1) {
+    //    alert("Department Does Not Exists");
+    //    $('#listEmployees ul.items').css('display', 'none');
+    //  }
+    //});
+
+          // Function to disable or enable inputs
+          function disableInputs(isDisabled) {
+            $('#load').prop('disabled', isDisabled);
+            $('#listDepartments').prop('disabled', isDisabled);
+            $('#selectMonth').prop('disabled', isDisabled);
+          }
 
           $('#load').click(function () {
             var ReqMonthYear = $('#selectMonth').val();
             var DepartmentName = $('#listDepartments').val();
+        
+            $('.loader').show();
+            $('.button-text').hide();
+            $("#wait").css("display", "block");
+            disableInputs(true);
 
+            if (DepartmentName === "") {
+              alert("Department does not exist");
+              $('.loader').hide();
+              $('.button-text').show();
+              $("#wait").css("display", "none");
+              disableInputs(false);
+              return;
+            }
+           
              $.ajax({
                     url: "@Url.Action("DepartmentData","AccessBiostarTA")",
                data: { 'ReqMonthYear': ReqMonthYear, 'DepartmentName': DepartmentName },
                     type: "GET",
                     cache: false,
                     success: function (data) {
-                        //alert(data);
                         $("#NewData").html(data);
-
-                        //$("#hdnOrigComments").val($('#txtComments').val());
-                        //$('#lblCommentsNotification').text(savingStatus);
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
-                        //$('#lblCommentsNotification').text("Error encountered while saving the comments.");
                         alert('Data provided was not valid');
-                    }
+                    },
+               complete: function () {
+                     // When request complete 
+                     $('.loader').hide();
+                 $('.button-text').show();
+                 $("#wait").css("display", "none");
+                 disableInputs(false);
+               }
              });
           });
         });
@@ -63,3 +81,27 @@
 
 </script>
 
+
+<style>
+  .selectpicker {
+    width: 250px;
+    height: 40px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+    padding-left: 10px;
+  }
+
+  #load {
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+</style>

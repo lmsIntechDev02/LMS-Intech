@@ -18,6 +18,7 @@ namespace Repository.Models
         public string UserId { get; set; }
         public int LeaveTypeId { get; set; }
         public string Reason { get; set; }
+        public string LeaveTypeName { get; set; }
         public System.DateTime StartDate { get; set; }
         public System.DateTime EndDate { get; set; }
         public Nullable<bool> IsShortLeave { get; set; }
@@ -38,6 +39,7 @@ namespace Repository.Models
         public string Remarks2 { get; set; }
         public Nullable<System.DateTime> DateCreated { get; set; }
         public Nullable<System.DateTime> DateModified { get; set; }
+        public Nullable<int> UserLeavePolicyID { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }
         public virtual LeaveType LeaveType { get; set; }

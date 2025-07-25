@@ -16,6 +16,7 @@ namespace LeaveON.UtilityClasses
     [DisplayName("Emp.No.")]
     public int EmployeeNumber { get; set; }
     public string TimeZone { get; set; }
+    public string CountryName { get; set; }
     public string Policy { get; set; }
     public string Department { get; set; }
     [DisplayFormat(DataFormatString = "{0: dd/MM/yyyy}")]
@@ -33,7 +34,16 @@ namespace LeaveON.UtilityClasses
     public TimeSpan WorkingHours { get; set; }
     public TimeSpan TotalTime { get; set; }
     public string Status { get; set; }
-
+    public bool isLateArrival { get; set; }
+    public bool isEarlyDeparture { get; set; }
+    public bool isAbsent { get; set; }
+    public string leaveType { get; set; }
+    public int leaveTypeID { get; set; }
+    public string UserID { get; set; }
+    public string ManagerEmail { get; set; }
+    public string Manager2Email { get; set; }
+    public string ManagerID { get; set; }
+    public string Manager2ID { get; set; }
   }
   public class OffTimeDetial
   {

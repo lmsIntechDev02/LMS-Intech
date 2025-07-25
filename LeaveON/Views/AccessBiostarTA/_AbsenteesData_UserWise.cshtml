@@ -1,4 +1,7 @@
 @model IEnumerable<LeaveON.UtilityClasses.TimeData>
+@using System.Globalization
+
+
 @{
 
   <div id="NewData">
@@ -30,10 +33,6 @@
                 </div>
                 <div class="row">
                   <div class="col-sm-12">
-                    @if (!(Model is null))
-                    {
-                      TimeSpan AllWorkingHours = new TimeSpan();
-                      TimeSpan AllTotalTime = new TimeSpan();
                       <table id="example2" class="table table-bordered table-hover dataTable dtr-inline" role="grid" aria-describedby="example2_info">
                         <thead>
                           <tr>
@@ -77,82 +76,86 @@
                           </tr>
                         </thead>
                         <tbody>
-                          @foreach (var item in Model)
+                          @if (!(Model is null))
                           {
-                          <tr>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.EmployeeName)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.EmployeeNumber)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Department)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.TimeZone)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Policy)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Date)
-                            </td>
-                            <td>
-                              @Html.DisplayFor(modelItem => item.Day)
-                            </td>
-                            @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
+                            foreach (var item in Model)
+                            {
+                              <tr>
+                                <td>
+                                  @CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower())
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.EmployeeNumber)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.Department)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.TimeZone)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.Policy)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.Date)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.Day)
+                                </td>
+                                @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
 
-                              if (item.WorkingHours != offDayTime)
-                              {
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.TimeIn)
-                                </td>
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.TimeOut)
-                                </td>
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.WorkingHours)
-                                </td>
-                                <td>
-                                  @Html.DisplayFor(modelItem => item.TotalTime)
-                                </td>
-                              }
-                              else
-                              {
-                                <td>
-                                  <text>-</text>
-                                </td>
-                                <td>
-                                  <text>-</text>
-                                </td>
-                                <td>
-                                  <text>-</text>
-                                </td>
-                                <td>
-                                  <text>-</text>
-                                </td>
-                              }
+                                  if (item.WorkingHours != offDayTime)
+                                  {
+                                    <td>
+                                      @Html.DisplayFor(modelItem => item.TimeIn)
+                                    </td>
+                                    <td>
+                                      @Html.DisplayFor(modelItem => item.TimeOut)
+                                    </td>
+                                    <td>
+                                      @Html.DisplayFor(modelItem => item.WorkingHours)
+                                    </td>
+                                    <td>
+                                      @Html.DisplayFor(modelItem => item.TotalTime)
+                                    </td>
+                                  }
+                                  else
+                                  {
+                                    <td>
+                                      <text>-</text>
+                                    </td>
+                                    <td>
+                                      <text>-</text>
+                                    </td>
+                                    <td>
+                                      <text>-</text>
+                                    </td>
+                                    <td>
+                                      <text>-</text>
+                                    </td>
+                                  }
 
+                                }
+
+                                <td>
+
+                                  @{
+                                    if (String.IsNullOrEmpty(item.Status))
+                                    {
+                                      @Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })
+                                    }
+                                    else
+                                    {
+                                      @Html.DisplayFor(modelItem => item.Status)
+                                    }
+                                  }
+
+
+                                </td>
+                              </tr>
                             }
-
-                            <td>
-
-                              @{
-                                if (String.IsNullOrEmpty(item.Status))
-                                {
-                                  @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })
-                                }
-                                else
-                                {
-                                  @Html.DisplayFor(modelItem => item.Status)
-                                }
-                              }
-
-
-                            </td>
-                          </tr>
                           }
+
                         </tbody>
                         <tfoot>
                           <tr>
@@ -171,11 +174,6 @@
                           </tr>
                         </tfoot>
                       </table>
-
-                    }
-
-
-
                   </div>
                 </div>
               </div>
@@ -188,6 +186,12 @@
   </div>
 }
 <script>
+  $.fn.dataTable.ext.type.order['date-uk-pre'] = function (date) {
+    var parts = date.split('-');
+    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+  };
+
+
   $(function () {
     $("#example1").DataTable({
       "responsive": true,
@@ -201,7 +205,10 @@
       "info": false,
       "autoWidth": false,
       "responsive": true,
-      "order": [[5, "asc"]]
+      "order": [[6, "asc"]], 
+      "columnDefs": [
+        { "type": "date-uk", "targets": 6 } 
+      ]
     });
   });
 </script>

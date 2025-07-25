@@ -38,6 +38,7 @@ namespace LeaveON.UtilityClasses
     public int MyLeavesRefused { get; set; }
     public int MyLeavesPending { get; set; }
     public int MyLeavesApproved { get; set; }
-
+    public int TotalAnnualLeaves { get; set; }
+    public int BalanceAnnualLeaves { get; set; }
   }
 }

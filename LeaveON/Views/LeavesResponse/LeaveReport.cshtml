@@ -1,0 +1,503 @@
+@model IEnumerable<LeaveON.UtilityClasses.TimeData>
+
+
+@{ ViewBag.Title = "Index";
+  Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<div>
+
+
+
+  @if (User.IsInRole("Admin"))
+  {
+    // Department Dropdown for Admin (Multi-select)
+    //@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments),
+    //    htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Admin (Multi-select)
+    <div id="listDepartments" class="dropdown-check-list">
+      <span class="anchor">Select Departments</span>
+      <ul class="items">
+        @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
+        {
+          <li>
+            <label for="dept_@department.Value">
+              <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
+            </label>
+          </li>
+        }
+      </ul>
+    </div> @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
+      htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+
+    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+      <span class="anchor">Select Employees</span>
+      <ul class="items">
+        @*<li>
+            <label for="selectAllEmployees">
+              <input type="checkbox" id="selectAllEmployees" /> Select All Employees
+            </label>
+          </li>
+          @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+          {
+            var username = employee.Text.Split('@')[0];
+            username = username.Replace(".", " ");
+            <li>
+              <label for="emp_@employee.Value">
+                <input type="checkbox" class="employeeCheckbox" value="@employee.Value" id="emp_@employee.Value"  /> @username
+              </label>
+            </li>
+          }*@
+      </ul>
+    </div> }
+  else
+  {
+    // Department Dropdown for Manager (Single department, disabled)
+    @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
+                         htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
+    // Employee List with Checkboxes for Manager (multi-select)
+    <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+      <span class="anchor">Select Employees</span>
+      <ul class="items">
+        <li>
+          <label for="selectAllEmployees">
+            <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
+          </label>
+        </li>
+        @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+        {
+          var username = employee.Text.Split('@')[0];
+          username = username.Replace(".", " ");
+          <li>
+            <label for="emp_@employee.Value">
+              <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked /> @username
+            </label>
+          </li>
+        }
+      </ul>
+    </div>}
+
+
+  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+
+
+  @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+
+  @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+
+
+  <button id="load" style="position: relative;">
+    <span class="button-text">Go</span>
+    <span class="loader" style="display: none;">Loading...</span>
+  </button>
+  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
+  @{Html.RenderPartial("_LeaveReport", Model); }
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    $('#datepickerStart').val('@ViewBag.StartDate');
+    $('#datepickerEnd').val('@ViewBag.EndDate');
+    $(".dropdown-check-list .anchor").click(function (e) {
+      var checkList = $(this).parent();
+      checkList.toggleClass('visible');
+      e.stopPropagation();
+    });
+
+    // Initialize start date picker
+    $('#datepickerStart').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1,
+      maxDate: new Date(),
+      onSelect: function (selectedDate) {
+        // Set minDate for the end date based on the selected start date
+        $('#datepickerEnd').datepicker("option", "minDate", selectedDate);
+        $('#datepickerEnd').prop('disabled', false);
+      },
+      onChangeMonthYear: function (year, month, inst) {
+        // Keep the calendar open and update month/year selection
+        var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+        currentDate.setFullYear(year);
+        currentDate.setMonth(month - 1);
+        $(this).datepicker("setDate", currentDate);
+        var startDateValue = $('#datepickerStart').val();
+        if (startDateValue) {
+          $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+          $('#datepickerEnd').prop('disabled', false);
+        }
+      }
+    });
+
+    // Initialize end date picker (disabled initially)
+    $('#datepickerEnd').datepicker({
+      dateFormat: 'dd-M-yy',
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1,
+      maxDate: new Date(),
+      beforeShow: function (input, inst) {
+        // Check if start date is selected
+        var startDate = $('#datepickerStart').datepicker('getDate');
+        if (startDate) {
+          $(this).datepicker("option", "minDate", startDate);
+        }
+      },
+      onSelect: function (selectedDate) {
+        $(this).datepicker("hide"); // Close only when a date is selected
+      },
+      onChangeMonthYear: function (year, month, inst) {
+        // Keep the calendar open on month/year change
+        var currentDate = $(this).datepicker('getDate') || new Date(year, month - 1, 1);
+        currentDate.setFullYear(year);
+        currentDate.setMonth(month - 1);
+        $(this).datepicker("setDate", currentDate);
+      }
+    }).prop('disabled', true);
+
+    // Check if the start date is set and set the minDate for the end date
+    var startDateValue = $('#datepickerStart').val();
+    if (startDateValue) {
+      $('#datepickerEnd').datepicker("option", "minDate", startDateValue);
+      $('#datepickerEnd').prop('disabled', false);
+    }
+
+    // Close dropdown when clicking outside
+    $(document).click(function (e) {
+      if (!$(e.target).closest('.dropdown-check-list').length) {
+        $(".dropdown-check-list").removeClass('visible');
+      }
+    })
+
+    // Handle Select All functionality
+    $('#selectAllEmployees').change(function () {
+      var isChecked = $(this).is(':checked');
+      $('#listEmployees .employeeCheckbox').prop('checked', isChecked);
+    });
+
+    // Handle individual checkbox changes to update "Select All" state
+    $('#listEmployees').on('change', '.employeeCheckbox', function () {
+      var allChecked = $('#listEmployees .employeeCheckbox').length === $('#listEmployees .employeeCheckbox:checked').length;
+      $('#selectAllEmployees').prop('checked', allChecked);
+    });
+
+
+    // Load users based on the selected departments for Admin
+    $('#listDepartments input[type="checkbox"]').change(function () {
+      var selectedDepartments = [];
+      $('#listDepartments input[type="checkbox"]:checked').each(function () {
+        selectedDepartments.push($(this).val());
+      });
+
+
+      if (selectedDepartments.length === 0) {
+        console.log('No departments selected.');
+        return;
+      }
+
+
+
+      function capitalizeFirstLetterOfEachWord(str) {
+        return str.split(' ').map(function (word) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+      }
+
+              $.ajax({
+            url: '@Url.Action("GetUsersByDepartments", "LeavesResponse")',
+            type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ departmentNames: selectedDepartments }),
+
+            success: function (data) {
+              var employeeList = $("#listEmployees ul.items");
+              employeeList.empty();
+
+              // Add "Select All Employees" checkbox for the current department employees
+              var selectAllHtml = '<li><label for="selectAllEmployees"><input type="checkbox" id="selectAllEmployees" /> Select All Employees</label></li>';
+              employeeList.append(selectAllHtml);
+
+              $.each(data, function (index, item) {
+                var userName = capitalizeFirstLetterOfEachWord(item.Text);
+
+                  employeeList.append($('<li>').html(
+                    '<label for="emp_' + item.Value + '">' +
+                    '<input type="checkbox"  class="employeeCheckbox" value="' + item.Value + '" id="emp_' + item.Value + '" /> ' +
+                    userName +
+                    '</label>'
+                  ));
+              });
+
+              // Automatically select all employees if any department is selected
+              $('#selectAllEmployees').prop('checked', true);
+              $('#listEmployees input.employeeCheckbox').prop('checked', true);
+
+              // Re-attach change event for "Select All Employees"
+              attachSelectAllEvent();
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+                alert('Failed to load users');
+            }
+        });
+    });
+
+    // Function to handle select all employees functionality
+    function attachSelectAllEvent() {
+      $('#selectAllEmployees').change(function () {
+        var isChecked = $(this).is(':checked');
+        $('#listEmployees input[type="checkbox"]').prop('checked', isChecked);
+      });
+    }
+
+    // Function to disable or enable inputs
+    function disableInputs(isDisabled) {
+      $('#load').prop('disabled', isDisabled);
+      $('#listDepartments input[type="checkbox"]').prop('disabled', isDisabled);
+      $('#listEmployees input[type="checkbox"]').prop('disabled', isDisabled);
+      $('#datepickerStart').prop('disabled', isDisabled);
+      $('#datepickerEnd').prop('disabled', isDisabled);
+    }
+
+    $('#load').click(function () {
+      // Show the loader and hide the button text
+      $('.loader').show();
+      $('.button-text').hide();
+      $("#wait").css("display", "block");
+      disableInputs(true);
+
+            var reqMonthYear = $('#selectMonth').val();
+            var startDate = $('#datepickerStart').val();
+            var endDate = $('#datepickerEnd').val();
+            var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
+            var requestData;
+
+
+
+      if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
+              var selectedEmployees = [];
+              $('#listEmployees input[type="checkbox"]:checked').each(function () {
+                selectedEmployees.push($(this).val());
+              });
+
+              // Check if "on" is at index 0 and shift employee IDs
+              if (selectedEmployees[0] === "on") {
+                selectedEmployees.shift();
+              }
+
+                if (selectedEmployees.length === 0) {
+              if (userRole === "Admin") {
+                alert('Please select at least one department and one employee.');
+                $('.loader').hide();
+                $('.button-text').show();
+                $("#wait").css("display", "none");
+                disableInputs(false);
+                  return;
+              } else {
+                alert('Please select at least one employee.');
+                $('.loader').hide();
+                $('.button-text').show();
+                $("#wait").css("display", "none");
+                disableInputs(false);
+                  return;
+                  }
+                }
+              if (!startDate) {
+                alert('Please select start date.');
+                $('.loader').hide();
+                $('.button-text').show();
+                $("#wait").css("display", "none");
+                disableInputs(false);
+                return;
+              }
+
+              if (!endDate) {
+                alert('Please select end date.');
+                $('.loader').hide();
+                $('.button-text').show();
+                $("#wait").css("display", "none");
+                disableInputs(false);
+                return;
+              }
+
+              console.log("selectedEmployees", selectedEmployees)
+
+              requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
+            }
+
+            //else if (userRole === "User") {
+            //  var employeeId = $('#selectedEmployees').val();
+            //  requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
+            //}
+         
+
+           // JSON.stringify(selectedEmployees)
+              $.ajax({
+                url: "@Url.Action("LeaveReport", "LeavesResponse")",
+                data: requestData,
+                  type: "POST",
+                  success: function (data) {
+                    $("#NewData").html(data);
+                    //$('#listDepartments input[type="checkbox"]').prop('checked', false);
+                    //$('#listEmployees input[type="checkbox"]').prop('checked', false);
+                  },
+                  error: function (xhr, ajaxOptions, thrownError) {
+                      alert('Data provided was not valid');
+                },
+                complete: function () {
+                  // Hide the loader when the request is complete (success or error)
+                  $('.loader').hide();
+                  $('.button-text').show();
+                  $("#wait").css("display", "none");
+                  disableInputs(false);
+                }
+              });
+          });
+      });
+</script>
+
+<style>
+
+  .dropdown-check-list {
+    display: inline-block;
+    position: relative;
+    background-color: #ffffff;
+    width: 250px;
+    height: 40px;
+    margin: 10px 5px;
+  }
+
+    .dropdown-check-list .anchor {
+      position: relative;
+      cursor: context-menu;
+      display: inline-block;
+      padding: 0 50px 0 10px;
+      border: 1px solid #ccc;
+      font-weight: normal;
+      font-size: 14.8px;
+      color: #000000;
+      border: 1px solid #767676;
+      border-radius: 2px;
+      width: 250px;
+      height: 40px;
+      text-overflow: ellipsis;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+  .employee-dropdown-width .anchor {
+    /*padding: 0 177px 0 10px;*/
+  }
+  .dropdown-check-list .anchor:after {
+    position: absolute;
+    content: "";
+    border-left: 1.5px solid black;
+    border-top: 1.5px solid black;
+    padding: 3px;
+    right: 10px;
+    top: 30%;
+    -moz-transform: rotate(-135deg);
+    -ms-transform: rotate(-135deg);
+    -o-transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+    transform: rotate(-135deg);
+  }
+
+      .dropdown-check-list .anchor:active:after {
+        right: 8px;
+        top: 41%;
+      }
+
+  .dropdown-check-list ul.items {
+    display: flex;
+    align-items: baseline;
+    padding: 2px;
+    display: none;
+    margin: 0;
+    border: 1px solid #ccc;
+    max-height: 570px;
+    width: 250px;
+    overflow-y: auto;
+    border-top: none;
+    background-color: white;
+    position: absolute;
+    @*  width: 100%;*@
+    z-index: 1;
+  }
+
+      .dropdown-check-list ul.items li {
+        list-style: none;
+        padding: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-weight: normal;
+      }
+        .dropdown-check-list ul.items li label {
+          font-weight: normal;
+        }
+        .dropdown-check-list ul.items li:hover {
+          background-color: #0094ff;
+        }
+
+    .dropdown-check-list.visible .anchor {
+
+    }
+
+    .dropdown-check-list.visible .items {
+      display: block;
+    }
+
+    .dropdown-check-list input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+  #load {
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .selectpicker {
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .datepicker {
+    width: 250px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+  .ui-datepicker {
+    width: 250px;
+  }
+
+
+</style>
+
+
+

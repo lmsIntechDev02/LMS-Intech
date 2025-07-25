@@ -20,37 +20,24 @@
     <div class="card-header">
       <h3 class="card-title">Access Rights</h3>
     </div>
-
-
     @using (Html.BeginForm("Index", "AspNetUserClaims"))
     {
       @Html.AntiForgeryToken()
-
-
-      
       <div class="card-body">
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
-        @Html.DropDownList("UserId", (IEnumerable<SelectListItem>)ViewBag.Employees, null, new { @class = "form-control" })
-        @Html.DropDownList("ClaimValue", (IEnumerable<SelectListItem>)ViewBag.Departments, null, new { @class = "form-control" })
+        @Html.DropDownList("UserId", (IEnumerable<SelectListItem>)ViewBag.Employees, null, new { @class = "form-control dropdown" })
+        @Html.DropDownList("ClaimValue", (IEnumerable<SelectListItem>)ViewBag.Departments, null, new { @class = "form-control dropdown" })
         </div>
-
         <div class="form-group">
-          <div class="col-md-offset-2 col-md-10 AddClaim">
-            <input type="submit" value="Add" class="btn btn-primary" />
+          <div class="col-md-offset-2 col-md-1 AddClaim">
+            <input type="submit" value="Add" class="btn btn-primary add_btn" />
           </div>
         </div>
-
         }
-
-
         <section class="content">
           <div class="row">
             <div class="col-12">
-
-
               <div class="card-body">
-
                 <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
                   <div class="row">
                     <div class="col-sm-12 col-md-6">
@@ -59,8 +46,6 @@
                   </div>
                   <div class="row">
                     <div class="col-sm-12">
-
-
                       @using (Html.BeginForm("DeleteClaim", "AspNetUserClaims"))
                       {
                         @Html.AntiForgeryToken()
@@ -75,7 +60,6 @@
                               <th>
                                 Department
                               </th>
-
                               <th></th>
                             </tr>
                           </thead>
@@ -96,35 +80,25 @@
                               <td>
                                 @*@Html.ActionLink("Delete", "Delete", new { id = item.Id })*@
                                 @*<input type="submit" Class="DeleteClaim" name="AspNetUserClaim.ClaimType" id="Delete@(item.Id)" value="Delete@(item.Id)" class="btn btn-danger" />*@
-
-
                                 <div class="form-group">
                                   <div class="col-md-offset-2 col-md-10">
                                     @*<input type="submit" value="Add" class="btn btn-primary" />*@
                                     <button type="submit" title="Delete" Class="btn btn-danger DeleteClaim" name="ClaimId" id="Delete@(item.Id)" value="@(item.Id)">X</button>
                                   </div>
                                 </div>
-
                               </td>
                             </tr>
-
-
                           }
-
                         </table>
-
                       }
-
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
         </section>
       </div>
-
     </div>
 <script>
   $(".DeleteClaim").on('click', function () {
@@ -137,7 +111,6 @@
     if (!confirm('Are you sure?')) {
       return false;
     }
-
   });
    $(function () {
     $('#example2').DataTable({
@@ -150,6 +123,21 @@
       "responsive": true,
     });
   });
-
 </script>
+
+<style>
+  .add_btn {
+    padding: 10px 25px;
+    text-align: center;
+    margin-left: 15px;
+  }
+
+  .form-control {
+    height: 40px;
+  }
+  .dropdown {
+    height: 45px !important;
+    margin-bottom: 10px;
+  }
+</style>
  
