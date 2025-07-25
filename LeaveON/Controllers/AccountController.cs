@@ -179,7 +179,7 @@ namespace LeaveON.Controllers
 
       //ADUser = "Khaleel.khan@intechww.com";
       //ADUser = "kashif.ali@intechww.com";
-      //ADUser = "Hassan.masood@intechww.com";
+     //ADUser = "Hassan.masood@intechww.com";
       //ADUser = "waqqasjavaid@gmail.com";
       //ADUser = "testing@intechww.com";
       //ADUser = "Usman.Javed@intechww.com";
@@ -192,7 +192,7 @@ namespace LeaveON.Controllers
       /*Manager*/
       // ADUser = "Muzammil.Riaz@intechww.com";
       //ADUser = "Khaleel.khan@intechww.com";
-       ADUser = "noor.khan@intechww.com";
+      // ADUser = "noor.khan@intechww.com";
       // ADUser = "Noor.Uddin.Khan@intechww.com";
       //ADUser = "Aqib.Latif@intechww.com";
       /*User*/

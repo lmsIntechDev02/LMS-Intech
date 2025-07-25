@@ -255,6 +255,22 @@ namespace LeaveON.Controllers
         proratedLeave = (int)Math.Floor(proratedLeaves);
       }
 
+      //HRBP Email 
+      var hrbpEmail = db.DepartmentNames
+            .Where(d => d.Name == currentUser.DepartmentName)
+            .Select(d => d.HRBPEmail)
+            .FirstOrDefault();
+
+      if (string.IsNullOrWhiteSpace(hrbpEmail))
+      {
+        hrbpEmail = db.AnnualLeaveManagers
+                .Select(m => m.ManagerEmail)
+                .FirstOrDefault();
+      }
+
+      ViewBag.HRBPEmail = !string.IsNullOrWhiteSpace(hrbpEmail)
+                          ? hrbpEmail
+                          : "HRBP email not available";
 
       ViewBag.proratedLeave = proratedLeave;
 
