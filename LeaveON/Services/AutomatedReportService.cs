@@ -128,8 +128,8 @@ namespace LeaveON.Services
     {
       string monthName = GetMonthName(month);
       var legitimacyCheckers = GetLegitemacyChckers();
-    //  var managerEmails = GetManagersIDs();
-       var managerEmails = GetPolicyWiseManagerIDs();
+      var managerEmails = GetManagersIDs();
+      //var managerEmails = GetPolicyWiseManagerIDs();
 
       foreach (var managerEmail in managerEmails)
       {
@@ -211,7 +211,7 @@ namespace LeaveON.Services
 
               DateTime startOfCurrentMonth = new DateTime(year, month, 1);
               // Filter leaves taken before the current month from attendanceData
-              int leavesTakenBeforeCurrentMonth = fullYearAttendanceData
+              int leavesTakenBeforeCurrentMonth = attendanceData
                   .Where(a => (a.IsLeave == true || a.IsAbsent == true) 
                            && a.CreatedDate.Value < startOfCurrentMonth)
                   .Count();
@@ -282,6 +282,7 @@ namespace LeaveON.Services
                 LateArrivals = attendanceData.Count(x => x.IsLateArrival == true),
                 EarlyDepartures = attendanceData.Count(x => x.IsEarlyDeparture == true),
                 //AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
+                //AvailedLeave
                 AbsentDays = absentCount,
                 LeaveDays = attendanceData.Count(x => x.IsLeave == true),
                 AverageTimeIn = averageTimeIn.ToString(@"hh\:mm"),
@@ -292,8 +293,11 @@ namespace LeaveON.Services
                 CountryName = attendanceData.First().CountryName,
                 ManagerEmail = managerEmail,
                 TotalDays = totalWorkDays,
+                //assignedLeaveQuote
                 AssignedLeaveQuota = assignedLeaveQuota.HasValue ? (assignedLeaveQuota.Value < 0 ? "0" : assignedLeaveQuota.Value.ToString()) : "0",
+                //OpeningLeaveBalance
                 BalanceLeave = openingBalanceLeave.HasValue ? (openingBalanceLeave.Value < 0 ? "0" : openingBalanceLeave.Value.ToString()) : "0",
+                //AvailiableLeaveBalacne
                 AvailableLeave = totalBalanceLeave.HasValue ? (totalBalanceLeave.Value < 0 ? "0" : totalBalanceLeave.Value.ToString()) : "0",
                 CompensatoryLeave = compensatoryLeaves.HasValue ? (compensatoryLeaves.Value < 0 ? "0" : compensatoryLeaves.Value.ToString()) : "0",
                 //ShortHoursInMonth = shortHoursInMonth,
@@ -529,12 +533,12 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Body: {mail.Body}");
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
-        // mail.To.Add("laiba.khan@intechww.com");
-         mail.To.Add("kixen33040@hedotu.com");
+         mail.To.Add("laiba.khan@intechww.com");
+         mail.To.Add("vimepox671@devdigs.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
-        mail.To.Add("saeed.dev125@gmail.com");
+        mail.Bcc.Add("saeed.dev125@gmail.com");
 
         //  mail.To.Add(mangerEmail);
       }
@@ -851,7 +855,7 @@ namespace LeaveON.Services
           if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
-          // Balance Leave (dummy data)
+          //Opening Balance Leave
           cell = new PdfPCell(new Phrase(data.BalanceLeave, dataFont))
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
@@ -860,7 +864,7 @@ namespace LeaveON.Services
           if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
-          // Absent/Leaves Days (existing)
+          // Availed Leaves Days (existing)
           cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
@@ -869,7 +873,7 @@ namespace LeaveON.Services
           if (data == lastEmployee) cell.BorderWidthBottom = 3f;
           table.AddCell(cell);
 
-          // Available/Leaves Days (dummy data)
+          // Available Leaves Balance 
           cell = new PdfPCell(new Phrase(data.AvailableLeave, dataFont))
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
@@ -1200,24 +1204,23 @@ namespace LeaveON.Services
       {
         var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
 
-      //  var allowedDepartments = new[] { "IS&T" };
-        //var managersIDs = context.AspNetUsers
-        //    .Where(user =>
-        //        allowedDepartments.Contains(user.DepartmentName) &&
-        //        (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID))) // Correct grouping
-        //    .Select(user =>
-        //        !string.IsNullOrEmpty(user.ManagerID) ? user.ManagerID : user.Manager2ID) // Select ManagerID or Manager2ID
-        //    .Distinct() // Ensure unique IDs
-        //    .ToList();
-
+        // Fetch all users who have either ManagerID or Manager2ID
         var managersIDs = context.AspNetUsers
-    .Where(user =>
-        allowedDepartments.Contains(user.DepartmentName) &&
-        (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)))
-    .SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
-    .Where(id => !string.IsNullOrEmpty(id)) // Filter out null or empty IDs
-    .Distinct() // Ensure unique IDs
-    .ToList();
+            .Where(user =>
+                !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID))
+            .SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
+            .Where(id => !string.IsNullOrEmpty(id)) // Filter out null or empty IDs
+            .Distinct() // Ensure unique IDs
+            .ToList();
+
+    //    var managersIDs = context.AspNetUsers
+    //.Where(user =>
+    //    allowedDepartments.Contains(user.DepartmentName) &&
+    //    (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)))
+    //.SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
+    //.Where(id => !string.IsNullOrEmpty(id)) // Filter out null or empty IDs
+    //.Distinct() // Ensure unique IDs
+    //.ToList();
 
 
         // var managersIDs = context.AspNetUsers
@@ -1235,7 +1238,7 @@ namespace LeaveON.Services
             .ToList();
 
 
-        foreach (var managerID in filteredManagersIDs)
+        foreach (var managerID in managersIDs)
         {
           Console.WriteLine($"managerID => { managerID}");
         }
