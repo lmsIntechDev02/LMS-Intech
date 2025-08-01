@@ -202,7 +202,7 @@ namespace LeaveON.Controllers
       //ADUser = "lms.dev02@intechww.com";
 
       // ADUser = "umme.kalsoom@intechww.com";
-      ADUser = "wardah.zukhra@intechww.com";
+     // ADUser = "wardah.zukhra@intechww.com";
       //ADUser = "nouman.sial@intechww.com";
      //  ADUser = "waqar.ahmad@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
