@@ -52,6 +52,7 @@ namespace LeaveON.Services
       public string email { get; set; }
       public int? userLeavePolicyID { get; set; }
       public string UserID { get; set; }
+      public Nullable<System.DateTime> JoiningDate { get; set; }
     }
     public List<EmailAndIDs> GetUserEmailsAndIDs(string managerEmail)
     {
@@ -65,6 +66,7 @@ namespace LeaveON.Services
           email = x.Email,
           userLeavePolicyID = x.UserLeavePolicyId,
           UserID = x.Id,
+          JoiningDate = x.JoiningDate
         })
         .ToList();
 
@@ -200,24 +202,77 @@ namespace LeaveON.Services
 
               // getting assingledleave for leave types 1 and 2 for the given user.(causal + annual)
 
-              int? assignedLeaveQuota = user?.userLeavePolicyID != null
-                    ? context.UserLeavePolicyDetails
-                        .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID &&
-                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-                        .Select(lb => (int?)lb.Allowed)
-                        .Sum() ?? 0
-                    : 0;
+              //int? assignedLeaveQuota = user?.userLeavePolicyID != null
+              //      ? context.UserLeavePolicyDetails
+              //          .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID &&
+              //                       (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+              //          .Select(lb => (int?)lb.Allowed)
+              //          .Sum() ?? 0
+              //      : 0;
+              if (user.userLeavePolicyID == null)
+              {
+                continue;
+              }
+              var userPolicy = context.UserLeavePolicies.FirstOrDefault(x => x.Id == user.userLeavePolicyID);
+              DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
+              DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
+              DateTime joiningDate = user.JoiningDate ?? fiscalStart;
+              DateTime effectiveStart = (joiningDate > fiscalStart) ? joiningDate : fiscalStart;
 
+              // Calculate worked months within the fiscal year
+              int workedMonths;
+              if (joiningDate > fiscalEnd)
+              {
+                workedMonths = 0;
+              }
+              else
+              {
+                workedMonths = ((fiscalEnd.Year - effectiveStart.Year) * 12 + fiscalEnd.Month - effectiveStart.Month + 1);
+              }
 
+              // Get total allowed leave (LeaveType 1 and 2)
+              int? fullAssignedLeaveQuota = user.userLeavePolicyID != null
+                  ? context.UserLeavePolicyDetails
+                      .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID &&
+                                   (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                      .Select(lb => (int?)lb.Allowed)
+                      .Sum() ?? 0
+                  : 0;
+
+              // Apply prorated formula
+              double proratedLeaves = (workedMonths / 12.0) * (fullAssignedLeaveQuota ?? 0);
+              int assignedLeaveQuota;
+
+              // Round logic
+              if (proratedLeaves % 1 >= 0.5)
+              {
+                assignedLeaveQuota = (int)Math.Ceiling(proratedLeaves);
+              }
+              else
+              {
+                assignedLeaveQuota = (int)Math.Floor(proratedLeaves);
+              }
+
+              // Get the start of the selected month
               DateTime startOfCurrentMonth = new DateTime(year, month, 1);
               // Filter leaves taken before the current month from attendanceData
-              int leavesTakenBeforeCurrentMonth = attendanceData
+              int leavesTakenBeforeCurrentMonth1 = attendanceData
                   .Where(a => (a.IsLeave == true || a.IsAbsent == true) 
                            && a.CreatedDate.Value < startOfCurrentMonth)
                   .Count();
+              // Get leaves taken by user before selected month in the same fiscal year
+              decimal? leavesTakenBeforeCurrentMonth = context.Leaves
+                  .Where(l => l.UserId == user.UserID &&
+                              (l.LeaveTypeId == 1 || l.LeaveTypeId == 2) &&
+                              l.IsAccepted1 == 1 &&
+                              l.IsAccepted2 == 1 &&
+                              l.StartDate >= fiscalStart &&
+                              l.StartDate < startOfCurrentMonth)
+                  .Select(l => (int?)l.TotalDays)
+                  .DefaultIfEmpty(0)
+                  .Sum();
 
               // Get balance leave from LeaveBalance 
-
               int? balanceLeave = context.LeaveBalances
                             .Where(lb => lb.UserId == user.UserID && lb.UserLeavePolicyId == user.userLeavePolicyID && (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
                             .Select(lb => (int?)lb.Taken)
@@ -225,15 +280,45 @@ namespace LeaveON.Services
                             .Sum();
 
 
-              var totalAbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true);
+              //var totalAbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true);
 
               // Avalied Leave
               //int absentCount = totalAbsentDays + (balanceLeave ?? 0);
-              int absentCount = totalAbsentDays;
 
-              int? openingBalanceLeave = assignedLeaveQuota - leavesTakenBeforeCurrentMonth;
 
-              int? totalBalanceLeave = openingBalanceLeave - absentCount;
+              // Date range for the current month
+              DateTime startSelectedMonth = new DateTime(year, month, 1);
+              DateTime endOfSelectedMonth = startSelectedMonth.AddMonths(1).AddDays(-1);
+
+              // Get approved leave days from Leave table (only for LeaveTypeId 1 or 2)
+              decimal? availedLeaves = context.Leaves
+                  .Where(l => l.UserId == user.UserID &&
+                              (l.LeaveTypeId == 1 || l.LeaveTypeId == 2) &&
+                              l.StartDate >= startSelectedMonth &&
+                              l.EndDate <= endOfSelectedMonth &&
+                              l.IsAccepted1 == 1 &&
+                              l.IsAccepted2 == 1)
+                  .Select(l => l.TotalDays)
+                  .DefaultIfEmpty(0)
+                  .Sum();
+
+
+
+
+              //int absentCount = totalAbsentDays;
+
+              int? openingBalanceLeave = assignedLeaveQuota - (int)leavesTakenBeforeCurrentMonth;
+
+              var totalTakenLeave = context.LeaveBalances
+                                    .Where(lb => lb.UserId == user.UserID &&
+                                                 lb.UserLeavePolicyId == user.userLeavePolicyID &&
+                                                 (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                                    .Select(lb => lb.Taken ?? 0)
+                                    .DefaultIfEmpty(0)
+                                    .Sum();
+              int availiableBalance = (int)assignedLeaveQuota - (int)totalTakenLeave;
+
+              //int? totalBalanceLeave = openingBalanceLeave - absentCount;
 
 
               // Get available leave days from LeaveBalance 
@@ -283,7 +368,8 @@ namespace LeaveON.Services
                 EarlyDepartures = attendanceData.Count(x => x.IsEarlyDeparture == true),
                 //AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
                 //AvailedLeave
-                AbsentDays = absentCount,
+                //AbsentDays = absentCount
+                AbsentDays = (int)availedLeaves,
                 LeaveDays = attendanceData.Count(x => x.IsLeave == true),
                 AverageTimeIn = averageTimeIn.ToString(@"hh\:mm"),
                 AverageTimeOut = averageTimeOut.ToString(@"hh\:mm"),
@@ -294,11 +380,13 @@ namespace LeaveON.Services
                 ManagerEmail = managerEmail,
                 TotalDays = totalWorkDays,
                 //assignedLeaveQuote
-                AssignedLeaveQuota = assignedLeaveQuota.HasValue ? (assignedLeaveQuota.Value < 0 ? "0" : assignedLeaveQuota.Value.ToString()) : "0",
+                //AssignedLeaveQuota = assignedLeaveQuota.HasValue ? (assignedLeaveQuota.Value < 0 ? "0" : assignedLeaveQuota.Value.ToString()) : "0",
+                AssignedLeaveQuota = assignedLeaveQuota.ToString() ?? "0",
                 //OpeningLeaveBalance
                 BalanceLeave = openingBalanceLeave.HasValue ? (openingBalanceLeave.Value < 0 ? "0" : openingBalanceLeave.Value.ToString()) : "0",
                 //AvailiableLeaveBalacne
-                AvailableLeave = totalBalanceLeave.HasValue ? (totalBalanceLeave.Value < 0 ? "0" : totalBalanceLeave.Value.ToString()) : "0",
+                //AvailableLeave = totalBalanceLeave.HasValue ? (totalBalanceLeave.Value < 0 ? "0" : totalBalanceLeave.Value.ToString()) : "0",
+                AvailableLeave = availiableBalance.ToString(),
                 CompensatoryLeave = compensatoryLeaves.HasValue ? (compensatoryLeaves.Value < 0 ? "0" : compensatoryLeaves.Value.ToString()) : "0",
                 //ShortHoursInMonth = shortHoursInMonth,
                 ShortHoursInMonth = shortHoursInMonth.HasValue ? shortHoursInMonth.Value.ToString() : "0",
@@ -534,7 +622,7 @@ namespace LeaveON.Services
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
          mail.To.Add("laiba.khan@intechww.com");
-         mail.To.Add("vimepox671@devdigs.com");
+         mail.To.Add("mocaw61533@devdigs.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
@@ -1202,7 +1290,8 @@ namespace LeaveON.Services
       using (var context = new LeaveONEntities())
       // using (var context = new LeaveONEntitiesTarget())
       {
-        var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
+        //var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
+        var allowedDepartments = new[] {"IS&T", "Human Resource" };
 
         // Fetch all users who have either ManagerID or Manager2ID
         var managersIDs = context.AspNetUsers
@@ -1213,14 +1302,14 @@ namespace LeaveON.Services
             .Distinct() // Ensure unique IDs
             .ToList();
 
-    //    var managersIDs = context.AspNetUsers
-    //.Where(user =>
-    //    allowedDepartments.Contains(user.DepartmentName) &&
-    //    (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)))
-    //.SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
-    //.Where(id => !string.IsNullOrEmpty(id)) // Filter out null or empty IDs
-    //.Distinct() // Ensure unique IDs
-    //.ToList();
+        //    var managersIDs = context.AspNetUsers
+        //.Where(user =>
+        //    allowedDepartments.Contains(user.DepartmentName) &&
+        //    (!string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID)))
+        //.SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
+        //.Where(id => !string.IsNullOrEmpty(id)) // Filter out null or empty IDs
+        //.Distinct() // Ensure unique IDs
+        //.ToList();
 
 
         // var managersIDs = context.AspNetUsers
