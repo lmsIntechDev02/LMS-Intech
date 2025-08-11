@@ -621,14 +621,14 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Body: {mail.Body}");
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
-         mail.To.Add("laiba.khan@intechww.com");
-         mail.To.Add("mocaw61533@devdigs.com");
+         //mail.To.Add("laiba.khan@intechww.com");
+         //mail.To.Add("pedor75982@misehub.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
         mail.Bcc.Add("saeed.dev125@gmail.com");
 
-        //  mail.To.Add(mangerEmail);
+        mail.To.Add(mangerEmail);
       }
 
       using (MemoryStream memoryStream = new MemoryStream())

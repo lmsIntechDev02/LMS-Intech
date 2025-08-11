@@ -14,10 +14,10 @@ namespace AutomatedReportTaskRunner
             Console.WriteLine("LOADING");
             DateTime today = DateTime.Today;
             DateTime previousMonthDate = today.AddMonths(-1);
-            //int month = previousMonthDate.Month;
-            //int year = previousMonthDate.Year;
-            int month = today.Month;
-            int year = today.Year;
+            int month = previousMonthDate.Month;
+            int year = previousMonthDate.Year;
+            //int month = today.Month;
+            //int year = today.Year;
             // Initialize the service
             AutomatedReportService service = new AutomatedReportService();  // Make sure any dependencies are resolved
             if (DateTime.Today.Day == 26)
