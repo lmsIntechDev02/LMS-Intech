@@ -17,7 +17,7 @@ namespace LeaveON.Services
   public class BreakHoursService
   {
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
-                                                 543734917, 538205733};
+                                                 543734917, 538205733, 538205730};
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
     LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();

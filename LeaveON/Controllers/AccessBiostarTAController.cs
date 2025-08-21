@@ -27,7 +27,7 @@ namespace LeaveON.Controllers
     //enum ReadersIn {538600343, 38677, 538595648, 35816,540093375,540093369,540093374 , 547241993  ,540133115 , 538848767 }
 
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
-                                                 543734917, 538205733 };
+                                                 543734917, 538205733, 538205730 };
 
     private Task<List<TimeData>> ConnectToDBandReturnAbsentees(string startDate, string endDate, List<int> UserIds)
     {
