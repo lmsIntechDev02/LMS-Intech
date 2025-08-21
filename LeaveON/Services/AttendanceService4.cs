@@ -17,7 +17,7 @@ namespace LeaveON.Services
   public class AttendanceService4
   {
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042, 
-                                                543734917, 538205733 };
+                                                543734917, 538205733, 538205730 };
     private BioStarEntities dbBioStar = new BioStarEntities();
      LeaveONEntities dbLeaveOn = new LeaveONEntities(); 
      LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
@@ -40,16 +40,25 @@ namespace LeaveON.Services
       TimeSpan TotalWorkingHours = new TimeSpan();
       List<string> logg = new List<string>();
 
-    //  List<AspNetUser> users = dbLeaveOn.AspNetUsers
-    //.Where(u => u.CntryName != null &&
-    //    (u.CntryName.ToLower() == "pakistan" || u.CntryName.ToLower() == "iraq"))
-    //.ToList();
+      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers
+      //.Where(u => u.CntryName != null &&
+      //    (u.CntryName.ToLower() == "pakistan" || u.CntryName.ToLower() == "iraq"))
+      //.ToList();
 
+      
+      
+      
+      
+      
+      
+      
+      
+      
       List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       //mohsin.ali@intechww.com
       //Emmanuel.Dakore@intechww.com
       // Osaid.Hafeez@intechww.com
-      //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "sadia.iqbal@intechww.com").ToList();
+      // List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "salman.ashraf@intechww.com").ToList();
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       con.Open();
