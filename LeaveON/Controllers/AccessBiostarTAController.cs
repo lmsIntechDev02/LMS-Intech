@@ -482,7 +482,7 @@ namespace LeaveON.Controllers
             .OrderBy(a => a.CreatedDate)
             .ToList();
 
-        if (!attendanceRecords.Any()) continue; // If no records found, skip to the next user
+        if (!attendanceRecords.Any()) continue; 
 
         // Process each attendance record
         foreach (var record in attendanceRecords)
@@ -494,8 +494,38 @@ namespace LeaveON.Controllers
             continue;
           }
           if (record.IsAbsent == true)
-          { 
-          DateTime? timeInNullable = record.FirstPunchIn;
+          {
+
+            // check if absent date is actually in approved leave range
+            bool isOnLeave = dbLeaveOn.Leaves.Any(l =>
+                l.UserId == record.UserID &&
+                l.IsAccepted1 == 1 &&
+                l.IsAccepted2 == 1 &&
+                l.StartDate <= record.CreatedDate.Value &&
+                l.EndDate >= record.CreatedDate.Value
+            );
+
+            if (isOnLeave)
+            {
+              // Skip this record because it falls under approved leave
+              continue;
+            }
+
+            //  Check public holiday (AnnualOffDays table)
+            bool isPublicHoliday = dbLeaveOn.AnnualOffDays.Any(h =>
+                h.UserLeavePolicyId == record.AspNetUser.UserLeavePolicyId &&
+                h.OffDay == record.CreatedDate.Value
+            );
+
+            if (isPublicHoliday)
+            {
+              // skip this record, because it's a public holiday
+              continue;
+            }
+
+
+
+            DateTime? timeInNullable = record.FirstPunchIn;
           DateTime? timeOutNullable = record.LastPunchOut;
           DateTime timeIn = timeInNullable ?? DateTime.MinValue;
           DateTime timeOut = timeOutNullable ?? (timeInNullable ?? DateTime.MinValue);
@@ -2080,10 +2110,18 @@ namespace LeaveON.Controllers
               else
               {
                 // Check leave type 
-                var leaveRecord = dbLeaveOn.Leaves.Where(l => l.UserId == userData.Id && DbFunctions.TruncateTime(l.StartDate) <= currentDate.Date && DbFunctions.TruncateTime(l.EndDate) >= currentDate.Date)
-                  .Join(dbLeaveOn.LeaveTypes,
-                  l => l.LeaveTypeId, lt => lt.Id,
-                  (l, lt) => lt.Name).FirstOrDefault();
+                var leaveRecord = dbLeaveOn.Leaves
+                                  .Where(l => l.UserId == userData.Id
+                                      && DbFunctions.TruncateTime(l.StartDate) <= currentDate.Date
+                                      && DbFunctions.TruncateTime(l.EndDate) >= currentDate.Date
+                                      && l.IsAccepted1 == 1
+                                      && l.IsAccepted2 == 1)   // ✅ Only approved leaves
+                                  .Join(dbLeaveOn.LeaveTypes,
+                                      l => l.LeaveTypeId,
+                                      lt => lt.Id,
+                                      (l, lt) => lt.Name)
+                                  .FirstOrDefault();
+
 
 
                 if (leaveRecord != null)

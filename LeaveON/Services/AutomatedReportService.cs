@@ -28,6 +28,7 @@ namespace LeaveON.Services
       public int LateArrivals { get; set; }
       public int EarlyDepartures { get; set; }
       public int AbsentDays { get; set; }
+      public int AvailedLeave { get; set; }
       public int LeaveDays { get; set; }
       public int WorkFromHomeDays { get; set; }
       public int OfficialDaysOff { get; set; }
@@ -131,7 +132,13 @@ namespace LeaveON.Services
       string monthName = GetMonthName(month);
       var legitimacyCheckers = GetLegitemacyChckers();
       var managerEmails = GetManagersIDs();
-      //var managerEmails = GetPolicyWiseManagerIDs();
+      //var manageremails = getpolicywisemanagerids();
+
+      //var managerEmails = new List<string>
+      //    {
+      //        "6c88b517-d020-411e-99ec-b25080d1af46",
+      //    };
+
 
       foreach (var managerEmail in managerEmails)
       {
@@ -200,15 +207,6 @@ namespace LeaveON.Services
               // Calculate average time in office
               TimeSpan averageTimeInOffice = averageTimeOut - averageTimeIn;
 
-              // getting assingledleave for leave types 1 and 2 for the given user.(causal + annual)
-
-              //int? assignedLeaveQuota = user?.userLeavePolicyID != null
-              //      ? context.UserLeavePolicyDetails
-              //          .Where(lb => lb.UserLeavePolicyId == user.userLeavePolicyID &&
-              //                       (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-              //          .Select(lb => (int?)lb.Allowed)
-              //          .Sum() ?? 0
-              //      : 0;
               if (user.userLeavePolicyID == null)
               {
                 continue;
@@ -280,7 +278,7 @@ namespace LeaveON.Services
                             .Sum();
 
 
-              //var totalAbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true);
+              var absentCount1 = attendanceData.Count(x => x.IsAbsent == true);
 
               // Avalied Leave
               //int absentCount = totalAbsentDays + (balanceLeave ?? 0);
@@ -302,8 +300,52 @@ namespace LeaveON.Services
                   .DefaultIfEmpty(0)
                   .Sum();
 
+              DateTime extendedStart = startOfCurrentMonth.AddMonths(-1); // previous month start
+              DateTime extendedEnd = endOfSelectedMonth.AddMonths(1);   // next month end
 
 
+              // Get all approved leaves for this user in current month
+              var approvedLeaves = context.Leaves
+                  .Where(l => l.UserId == user.UserID
+                           && l.IsAccepted1 == 1
+                           && l.IsAccepted2 == 1
+                           && l.StartDate <= endOfSelectedMonth
+                           && l.EndDate >= startOfCurrentMonth)
+                  .ToList();
+
+              var approvedLeaves1= context.Leaves
+                    .Where(l => l.UserId == user.UserID
+                             && l.IsAccepted1 == 1
+                             && l.IsAccepted2 == 1
+                             && l.StartDate <= extendedEnd
+                             && l.EndDate >= extendedStart)
+                    .AsEnumerable()
+                    .Select(l => new
+                    {
+                      EffectiveStart = l.StartDate < startOfCurrentMonth ? startOfCurrentMonth : l.StartDate,
+                      EffectiveEnd = l.EndDate > endOfSelectedMonth ? endOfSelectedMonth : l.EndDate
+                    })
+                    .ToList();
+
+              int? policyId = user.userLeavePolicyID;
+              // Get public holidays list for this month
+              var holidayDates = context.AnnualOffDays
+                  .Where(o => o.UserLeavePolicyId == policyId
+                           && o.OffDay >= startOfCurrentMonth
+                           && o.OffDay <= endOfSelectedMonth)
+                  .Select(o => o.OffDay)
+                  .ToHashSet();
+
+              // Absent count excluding public holidays + approved leaves
+              var absentCount = attendanceData
+                  .Where(x => x.IsAbsent == true
+                           && !holidayDates.Contains(x.CreatedDate.Value.Date)   // exclude public holidays
+                           && !approvedLeaves.Any(l => x.CreatedDate >= l.StartDate && x.CreatedDate <= l.EndDate)
+                          //&& !approvedLeaves.Any(l =>
+                          //   x.CreatedDate.Value.Date >= l.EffectiveStart.Date &&
+                          //   x.CreatedDate.Value.Date <= l.EffectiveEnd.Date)
+                          )
+                  .Count();
 
               //int absentCount = totalAbsentDays;
 
@@ -316,7 +358,27 @@ namespace LeaveON.Services
                                     .Select(lb => lb.Taken ?? 0)
                                     .DefaultIfEmpty(0)
                                     .Sum();
-              int availiableBalance = (int)assignedLeaveQuota - (int)totalTakenLeave;
+
+              var totalTakenLeaveOfCurrentMonth = context.Leaves
+                     .Where(l => l.UserId == user.UserID
+                              && (l.LeaveTypeId == 1 || l.LeaveTypeId == 2)
+                              && l.IsAccepted1 == 1
+                              && l.IsAccepted2 == 1
+                              && l.StartDate <= endOfSelectedMonth
+                              && l.EndDate >= startOfCurrentMonth)
+                     .AsEnumerable() 
+                     .Sum(l =>
+                     {
+                      // Take the later of leave.StartDate or startOfCurrentMonth
+                      var effectiveStartDate = l.StartDate < startOfCurrentMonth ? startOfCurrentMonth : l.StartDate;
+
+                      // Take the earlier of leave.EndDate or endOfSelectedMonth
+                      var effectiveEndDate = l.EndDate > endOfSelectedMonth ? endOfSelectedMonth : l.EndDate;
+
+                      // Days covered in current month
+                      return (effectiveEndDate - effectiveStartDate).Days + 1;
+                     });
+              int availiableBalance = (int)assignedLeaveQuota - (int)totalTakenLeaveOfCurrentMonth;
 
               //int? totalBalanceLeave = openingBalanceLeave - absentCount;
 
@@ -341,7 +403,7 @@ namespace LeaveON.Services
                                        .FirstOrDefault();
 
               var daysInMonth = DateTime.DaysInMonth(year, month);
-              int? policyId = user.userLeavePolicyID;
+              //int? policyId = user.userLeavePolicyID;
               int publicHolidays = 0;
               if (policyId != null)
               {
@@ -368,8 +430,8 @@ namespace LeaveON.Services
                 EarlyDepartures = attendanceData.Count(x => x.IsEarlyDeparture == true),
                 //AbsentDays = attendanceData.Count(x => x.IsAbsent == true || x.IsLeave == true),
                 //AvailedLeave
-                //AbsentDays = absentCount
-                AbsentDays = (int)availedLeaves,
+                AbsentDays = absentCount,
+                AvailedLeave = (int)availedLeaves,
                 LeaveDays = attendanceData.Count(x => x.IsLeave == true),
                 AverageTimeIn = averageTimeIn.ToString(@"hh\:mm"),
                 AverageTimeOut = averageTimeOut.ToString(@"hh\:mm"),
@@ -621,14 +683,14 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Body: {mail.Body}");
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
-         //mail.To.Add("laiba.khan@intechww.com");
-         //mail.To.Add("pedor75982@misehub.com");
+        //mail.To.Add("laiba.khan@intechww.com");
+        mail.Bcc.Add("miyex61517@lanipe.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
         // mail.To.Add("somia.waseem@acme-one.com");
         mail.Bcc.Add("saeed.dev125@gmail.com");
 
-        mail.To.Add(mangerEmail);
+        //mail.To.Add(mangerEmail);
       }
 
       using (MemoryStream memoryStream = new MemoryStream())
@@ -798,7 +860,7 @@ namespace LeaveON.Services
         // Column headers for attendance table
         //string[] headers = { "Employee ID", "Employee\n Name", "Average \nEntry Time", "Average \nExit Time", "Total\n Days", "Working Days", "Absent/Leaves \nDays", "Work From \nHome Days", "Official Days \nOff" };
         // Create a 12-column table; adjust the float array as needed for column widths
-        PdfPTable table = new PdfPTable(new float[] { 3f, 8f, 4.8f, 4.3f, 4.3f, 4.7f, 4.9f, 5.3f, 5f, 5.2f });
+        PdfPTable table = new PdfPTable(new float[] { 3f, 8f, 4.8f, 4.3f, 4.3f, 4.7f, 4f , 4.9f, 5.3f, 5f, 5.2f });
         table.WidthPercentage = 100;
         table.SpacingBefore = 20f;
         table.SplitLate = false;
@@ -806,7 +868,7 @@ namespace LeaveON.Services
 
         PdfPCell managerHeaderCell = new PdfPCell(new Phrase($"Manager - {CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MangerName.ToLower())}", headHeaderFont))
         {
-          Colspan = 10, // Match your column count
+          Colspan = 11, // Match your column count
           HorizontalAlignment = Element.ALIGN_CENTER,
           BackgroundColor = new BaseColor(0, 51, 102),
           Padding = 9,
@@ -821,7 +883,7 @@ namespace LeaveON.Services
 
 
         // Define header cells for the attendance table
-        string[] headers = { "\n ID", "\n Name", "Assigned\n Leave\n Quota", $"Opening \n Balance \n {shortMonthName}", $"Availed Leave \n {shortMonthName}", "Available\n Leave\n Balance", "Short\n Hours\n In Month", "\n Avg. Entry Time", "\n Avg. Exit Time", "\n Avg. Time\n In Office" };
+        string[] headers = { "\n ID", "\n Name", "Assigned\n Leave\n Quota", $"Opening \n Balance \n {shortMonthName}", $"Availed Leave \n {shortMonthName}", "Available\n Leave\n Balance","Absent \n Leave",  "Short\n Hours\n In Month", "\n Avg. Entry Time", "\n Avg. Exit Time", "\n Avg. Time\n In Office" };
         Font headerFont2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
         //foreach (var header in headers)
         //{
@@ -853,15 +915,15 @@ namespace LeaveON.Services
           {
               colHeaderCell.BorderWidthLeft = 3f;
               colHeaderCell.BorderWidthTop = 0f;
-          } else if (i == 2 || i == 7)
+          } else if (i == 2 || i == 8)
           {
             colHeaderCell.BorderWidthLeft = 1.5f;
             colHeaderCell.BorderWidthTop = 0f;
-          } else if (i == 1 || i == 6)
+          } else if (i == 1 || i == 7)
           {
             colHeaderCell.BorderWidthRight = 1.5f;
             colHeaderCell.BorderWidthTop = 0f;
-          } else if (i == 9)
+          } else if (i == 10)
           {
               colHeaderCell.BorderWidthRight = 3f;
               colHeaderCell.BorderWidthTop = 0f;
@@ -953,7 +1015,7 @@ namespace LeaveON.Services
           table.AddCell(cell);
 
           // Availed Leaves Days (existing)
-          cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
+          cell = new PdfPCell(new Phrase(data.AvailedLeave.ToString(), dataFont))
           {
             HorizontalAlignment = PdfPCell.ALIGN_CENTER
           };
@@ -985,6 +1047,14 @@ namespace LeaveON.Services
           //  HorizontalAlignment = PdfPCell.ALIGN_CENTER
           //};
           //table.AddCell(cell);
+
+          // Absent Leaves
+          cell = new PdfPCell(new Phrase(data.AbsentDays.ToString(), dataFont))
+          {
+            HorizontalAlignment = PdfPCell.ALIGN_CENTER,
+          };
+          if (data == lastEmployee) cell.BorderWidthBottom = 3f;
+          table.AddCell(cell);
 
           // Short Hours In Month (dummy data)
           cell = new PdfPCell(new Phrase(data.ShortHoursInMonth, dataFont))
