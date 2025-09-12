@@ -190,7 +190,7 @@ namespace LeaveON.Controllers
       // ADUser = "Obaid.Rehman@intechww.com";
       // ADUser = "usman.tariq@intechww.com";
       /*Manager*/
-      // ADUser = "Muzammil.Riaz@intechww.com";
+       //ADUser = "Muzammil.Riaz@intechww.com";
       //ADUser = "Khaleel.khan@intechww.com";
       // ADUser = "noor.khan@intechww.com";
       // ADUser = "Noor.Uddin.Khan@intechww.com";
@@ -215,7 +215,7 @@ namespace LeaveON.Controllers
 
       // test user
       // ADUser = "Bilal.Yasin@intechww.com";
-      //  ADUser = "laiba.khan@intechww.com";
+        //ADUser = "laiba.khan@intechww.com";
 
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();

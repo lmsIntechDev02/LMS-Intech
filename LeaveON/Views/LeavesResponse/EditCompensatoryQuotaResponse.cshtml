@@ -237,29 +237,28 @@
   $(document).ready(function () {
 
     function calculateDays() {
-      const startDateStr = $('#StartDate').val();
-      const endDateStr = $('#EndDate').val();
+      const startDateStr = $('#StartDate').val().split(" ")[0]; // take only the date part
+      const endDateStr = $('#EndDate').val().split(" ")[0];
 
-      // Ensure the format is YYYY-MM-DD for proper parsing by JavaScript Date
-      const startDate = new Date(startDateStr.split("/").reverse().join("-"));
-      const endDate = new Date(endDateStr.split("/").reverse().join("-"));
+      if (startDateStr && endDateStr) {
+        const [startDay, startMonth, startYear] = startDateStr.split("/");
+        const [endDay, endMonth, endYear] = endDateStr.split("/");
 
-      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-        // Calculate the difference in milliseconds
-        const diffTime = endDate - startDate;
-        // Convert milliseconds to days and add 1 to include both start and end dates
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        // Construct dates explicitly as YYYY, MM-1, DD
+        const startDate = new Date(startYear, startMonth - 1, startDay);
+        const endDate = new Date(endYear, endMonth - 1, endDay);
 
-        // Display the result
-        $('#Days').val(diffDays);
-      } else {
-        $('#Days').val(''); // Clear the field if dates are invalid
+        if (!isNaN(startDate) && !isNaN(endDate)) {
+          const diffTime = endDate - startDate;
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+          $('#Days').val(diffDays);
+        } else {
+          $('#Days').val('');
+        }
       }
     }
 
     $('#StartDate, #EndDate').on('change', calculateDays);
-
-    // Initial calculation in case dates are already prefilled
     calculateDays();
 
 
