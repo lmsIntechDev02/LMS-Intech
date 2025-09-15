@@ -690,7 +690,7 @@ namespace LeaveON.Services
         // mail.To.Add("somia.waseem@acme-one.com");
         mail.Bcc.Add("saeed.dev125@gmail.com");
 
-        //mail.To.Add(mangerEmail);
+        mail.To.Add(mangerEmail);
       }
 
       using (MemoryStream memoryStream = new MemoryStream())
