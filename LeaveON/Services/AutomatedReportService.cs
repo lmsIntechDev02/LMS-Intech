@@ -517,7 +517,7 @@ namespace LeaveON.Services
       try
       {
         mail.From = new MailAddress(LeavON_Email);
-        mail.To.Add(new MailAddress("saeed.dev125@gmail.com"));
+        mail.Bcc.Add(new MailAddress("saeed.dev125@gmail.com"));
         //  mail.To.Add(new MailAddress(userEmail));
         mail.Subject = $"Monthly Attendance Report";
         mail.Body = $"Dear {reportData.EmployeeName},\n\nPlease find the attached attendance report for your review. If you have any questions or need further clarification, please feel free to reach out. \n\nBest regards,\n";

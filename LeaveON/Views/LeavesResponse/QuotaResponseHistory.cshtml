@@ -34,6 +34,13 @@
 
 
         <div class="card-body">
+          <div class="mb-3 d-flex gap-2">
+            <button id="btnAll" class="filter-btn active" data-status="all">All</button>
+            <button id="btnApproved" class="filter-btn " data-status="approved">Approved</button>
+            <button id="btnRejected" class="filter-btn" data-status="rejected">Rejected</button>
+            <button id="btnPending" class="filter-btn" data-status="pending">Pending</button>
+          </div>
+
           <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
             <div class="row">
               <div class="col-sm-12 col-md-6">
@@ -90,96 +97,115 @@
 
                   @foreach (var item in Model)
                   {
-                <tr role="row" class="odd">
-                  <td>
-                    @Html.DisplayFor(modelItem => item.DateCreated)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.AspNetUser.UserName)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.AspNetUser.JoiningDate)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.StartDate)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.EndDate)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.LeaveType.Name)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.TotalDays)
-                  </td>
-                  <td>
-                    @Html.DisplayFor(modelItem => item.Reason)
-                  </td>
+                    string status = "pending";
 
-
-
-                  <td>
-                    @*@Html.DisplayFor(modelItem => item.IsAccepted1)*@
-                    @if (item.IsAccepted1 != null && item.IsAccepted1 > 0)
+                    // ✅ Approved: both approved OR LM1 approved and LM2 not exists
+                    if (item.IsAccepted1 == 1 && (item.LineManager2Id == null || item.IsAccepted2 == 1))
                     {
-                      <p style="color:green"><b> Approved </b></p>
-                      <p style="color:green;font-size:80%;">@item.Remarks1</p>
+                      status = "approved";
                     }
-                    @if (item.IsAccepted1 != null && item.IsAccepted1 == 0)
+                    // 🕓 Pending: any manager not responded yet
+                    else if (item.IsAccepted1 == null || (item.LineManager2Id != null && item.IsAccepted2 == null))
                     {
-                      <p style="color:red"><b> Refused </b></p>
-                      <p style="color:red;font-size:80%;">@item.Remarks1</p>
+                      status = "pending";
                     }
-                  </td>
-
-                  <td>
-                    @*@Html.DisplayFor(modelItem => item.IsAccepted2)*@
-                    @if (item.IsAccepted2 != null && item.IsAccepted2 > 0)
+                    // ❌ Rejected: any manager rejected
+                    else if (item.IsAccepted1 == 0 && item.IsAccepted2 == 0)
                     {
-                      <p style="color:green"><b> Approved </b></p>
-                      <p style="color:green;font-size:80%;">@item.Remarks2</p>
+                      status = "rejected";
                     }
-                    @if (item.IsAccepted2 != null && item.IsAccepted2 == 0)
-                    {
-                      <p style="color:red"><b> Refused </b></p>
-                      <p style="color:red;font-size:80%;">@item.Remarks2</p>
-                    }
-                  </td>
 
 
+                    <tr role="row" class="odd" data-status="@status">
+                      <td>
+                        @Html.DisplayFor(modelItem => item.DateCreated)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.AspNetUser.UserName)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.AspNetUser.JoiningDate)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.LeaveType.Name)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.TotalDays)
+                      </td>
+                      <td>
+                        @Html.DisplayFor(modelItem => item.Reason)
+                      </td>
 
 
-                  <td>
-                    @{
-                      string currentUserId = User.Identity.GetUserId();
-                      bool isManager1 = currentUserId == item.LineManager1Id;
-                      bool isManager2 = currentUserId == item.LineManager2Id;
-                    }
-                    @if (isManager1 && item.IsAccepted1 == null)
-                    {
-                      // Show approval code for Line Manager 1
-                      @Html.ActionLink("Approve", "EditCompensatoryQuotaResponse", new { id = item.Id })
-                    }
-                    else if (isManager2 && item.IsAccepted2 == null && item.IsAccepted1 == 1)
-                    {
-                      // Show approval code for Line Manager 2
-                      @Html.ActionLink("Approve", "EditCompensatoryQuotaResponse", new { id = item.Id })
-                    }
-                    else if (item.IsAccepted1 == null)
-                    {
-                      // Show message: Waiting for approval from Line Manager 1
-                      <p style="color:red;font-size:80%;">Waiting for approval from Line Manager 1</p>
-                    }
-                    @*@Html.ActionLink("Details", "Details", new { id = item.Id }) |*@
-                    @*@Html.ActionLink("Delete", "Delete", new { id = item.Id })*@
-                  </td>
-                </tr>
+
+                      <td>
+                        @*@Html.DisplayFor(modelItem => item.IsAccepted1)*@
+                        @if (item.IsAccepted1 != null && item.IsAccepted1 > 0)
+                        {
+                          <p style="color:green"><b> Approved </b></p>
+                          <p style="color:green;font-size:80%;">@item.Remarks1</p>
+                        }
+                        @if (item.IsAccepted1 != null && item.IsAccepted1 == 0)
+                        {
+                          <p style="color:red"><b> Refused </b></p>
+                          <p style="color:red;font-size:80%;">@item.Remarks1</p>
+                        }
+                      </td>
+
+                      <td>
+                        @*@Html.DisplayFor(modelItem => item.IsAccepted2)*@
+                        @if (item.IsAccepted2 != null && item.IsAccepted2 > 0)
+                        {
+                          <p style="color:green"><b> Approved </b></p>
+                          <p style="color:green;font-size:80%;">@item.Remarks2</p>
+                        }
+                        @if (item.IsAccepted2 != null && item.IsAccepted2 == 0)
+                        {
+                          <p style="color:red"><b> Refused </b></p>
+                          <p style="color:red;font-size:80%;">@item.Remarks2</p>
+                        }
+                      </td>
+
+
+
+
+                      <td>
+                        @{
+                          string currentUserId = User.Identity.GetUserId();
+                          bool isManager1 = currentUserId == item.LineManager1Id;
+                          bool isManager2 = currentUserId == item.LineManager2Id;
+                        }
+                        @if (isManager1 && item.IsAccepted1 == null)
+                        {
+                          // Show approval code for Line Manager 1
+                          @Html.ActionLink("Approve", "EditCompensatoryQuotaResponse", new { id = item.Id })
+                        }
+                        else if (isManager2 && item.IsAccepted2 == null && item.IsAccepted1 == 1)
+                        {
+                          // Show approval code for Line Manager 2
+                          @Html.ActionLink("Approve", "EditCompensatoryQuotaResponse", new { id = item.Id })
+                        }
+                        else if (item.IsAccepted1 == null)
+                        {
+                          // Show message: Waiting for approval from Line Manager 1
+                          <p style="color:red;font-size:80%;">Waiting for approval from Line Manager 1</p>
+                        }
+                        @*@Html.ActionLink("Details", "Details", new { id = item.Id }) |*@
+                        @*@Html.ActionLink("Delete", "Delete", new { id = item.Id })*@
+                      </td>
+                    </tr>
 
                   }
                   @*<tfoot>
-                      <tr>
-                      </tr>
-                    </tfoot>*@
+              <tr>
+              </tr>
+            </tfoot>*@
 
 
 
@@ -202,7 +228,7 @@
 <script>
   $(function () {
 
-    $('#example2').DataTable({
+    var table = $('#example2').DataTable({
       "paging": false,
       "lengthChange": false,
       "searching": true,
@@ -212,6 +238,64 @@
       "responsive": true,
       "order": [[0, "desc"]]
     });
+
+    // Helper: show rows based on status
+    function filterByStatus(status) {
+      table.rows().every(function () {
+        var row = $(this.node());
+        if (status === 'all' || row.data('status') === status) {
+          row.show();
+        } else {
+          row.hide();
+        }
+      });
+    }
+    // Manage active state
+    $('.filter-btn').on('click', function () {
+      $('.filter-btn').removeClass('active');
+      $(this).addClass('active');
+    });
+
+    // Button events
+    $('#btnAll').click(function () {
+      filterByStatus('all');
+    });
+
+    $('#btnApproved').click(function () {
+      filterByStatus('approved');
+    });
+
+    $('#btnRejected').click(function () {
+      filterByStatus('rejected');
+    });
+
+    $('#btnPending').click(function () {
+      filterByStatus('pending');
+    });
   });
 </script>
+
+
+<style>
+  .filter-btn {
+    color: #000;
+    border: 1px solid #c5c5c5;
+    padding: 6px 12px;
+    width: 110px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    margin-left: 7px;
+  }
+
+    .filter-btn:hover {
+      background-color: #e0e0e0;
+      border: 1px solid #000;
+    }
+
+    .filter-btn.active {
+      border: 1px solid #000;
+    }
+</style>
+
 
