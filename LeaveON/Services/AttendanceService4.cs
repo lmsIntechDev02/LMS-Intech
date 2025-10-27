@@ -90,7 +90,14 @@ namespace LeaveON.Services
         }
         else
         {
-          timeZone = aspNetUser.CountryName.TimeZone;
+          if (aspNetUser.CountryName != null)
+          {
+            timeZone = aspNetUser.CountryName.TimeZone;
+          }
+          else
+          {
+            timeZone = "Pakistan"; 
+          }
           countryName = aspNetUser.CntryName;
         }
         List<AttendanceRecord> records = new List<AttendanceRecord>();

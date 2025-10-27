@@ -80,8 +80,8 @@
     </div>
     <div class="form-group">
       @Html.Label("Days", htmlAttributes: new { @class = " " })
+      <input id="Days" name="Days" type="text" value="@ViewBag.totalDays" class="form-control" readonly />
 
-      <input id="Days" name="Days" type="text" class="form-control" readonly />
     </div>
 
 
@@ -213,31 +213,31 @@
 
   $(document).ready(function () {
 
-    function calculateDays() {
-      const startDateStr = $('#StartDate').val();
-      const endDateStr = $('#EndDate').val();
+    //function calculateDays() {
+    //  const startDateStr = $('#StartDate').val();
+    //  const endDateStr = $('#EndDate').val();
 
-      // Ensure the format is YYYY-MM-DD for proper parsing by JavaScript Date
-      const startDate = new Date(startDateStr.split("/").reverse().join("-")); 
-      const endDate = new Date(endDateStr.split("/").reverse().join("-"));
+    //  // Ensure the format is YYYY-MM-DD for proper parsing by JavaScript Date
+    //  const startDate = new Date(startDateStr.split("/").reverse().join("-")); 
+    //  const endDate = new Date(endDateStr.split("/").reverse().join("-"));
 
-      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-        // Calculate the difference in milliseconds
-        const diffTime = endDate - startDate;
-        // Convert milliseconds to days and add 1 to include both start and end dates
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    //  if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+    //    // Calculate the difference in milliseconds
+    //    const diffTime = endDate - startDate;
+    //    // Convert milliseconds to days and add 1 to include both start and end dates
+    //    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-        // Display the result
-        $('#Days').val(diffDays);
-      } else {
-        $('#Days').val(''); // Clear the field if dates are invalid
-      }
-    }
+    //    // Display the result
+    //    $('#Days').val(diffDays);
+    //  } else {
+    //    $('#Days').val(''); // Clear the field if dates are invalid
+    //  }
+    //}
 
-    $('#StartDate, #EndDate').on('change', calculateDays);
+    //$('#StartDate, #EndDate').on('change', calculateDays);
 
-    // Initial calculation in case dates are already prefilled
-    calculateDays();
+    //// Initial calculation in case dates are already prefilled
+    //calculateDays();
 
     $('#sendResponse').click(function (event) {
       event.preventDefault(); // Prevent the default form submission momentarily

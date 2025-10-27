@@ -98,6 +98,7 @@ namespace LeaveON.Controllers
       ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
       ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
+      ViewBag.totalDays = Convert.ToInt32(leave.TotalDays);
       return View(leave);
     }
 
