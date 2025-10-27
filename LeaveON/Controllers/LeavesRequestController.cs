@@ -293,7 +293,15 @@ namespace LeaveON.Controllers
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", Consts.CompensatoryLeaveTypeId);
       ViewBag.CompensatoryLeaveTypeId = Consts.CompensatoryLeaveTypeId;
       string userId = User.Identity.GetUserId();
-      int policyId = db.AspNetUsers.FirstOrDefault(x => x.Id == userId).UserLeavePolicyId.GetValueOrDefault();
+
+      // Reload user from DB fresh, ignoring cache
+      // Reload user from DB fresh, ignoring cache
+      var user = db.AspNetUsers.AsNoTracking()
+                               .FirstOrDefault(x => x.Id == userId);
+
+      int policyId = user?.UserLeavePolicyId ?? 0;
+
+      int policyId1 = db.AspNetUsers.FirstOrDefault(x => x.Id == userId).UserLeavePolicyId.GetValueOrDefault();
       //bool found=false;
       //foreach (AspNetUser user in db.AspNetUsers.ToList<AspNetUser>())
       //{
@@ -607,7 +615,15 @@ namespace LeaveON.Controllers
                   .Select(offset => leave.StartDate.AddDays(offset))
                   .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-              leave.TotalDays = validDaysCount; // Set TotalDays for Sick leave
+              if (validDaysCount > balanceCheck)
+              {
+                TempData["ErrorMessage"] = "Your leave request exceeds the available balance.";
+                return PartialView("Error", "Shared");
+              }
+              else
+              {
+                leave.TotalDays = validDaysCount; // Set TotalDays for Sick leave
+              }
             }
             else if (daysCount <= balanceCheck)
             {
@@ -629,6 +645,7 @@ namespace LeaveON.Controllers
         
           try
           {
+            ViewBag.BalanceCheck = balanceCheck;
             db.Leaves.Add(leave);
             await db.SaveChangesAsync();
             SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, receiver: admin1, MessageType: "LeaveRequest");
