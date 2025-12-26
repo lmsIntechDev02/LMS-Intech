@@ -11,6 +11,7 @@ using Repository.Models;
 using Microsoft.AspNet.Identity;
 using LeaveON.EmailSender;
 using LMS.Constants;
+using System.Globalization;
 
 namespace LeaveON.Controllers
 {
@@ -96,6 +97,11 @@ namespace LeaveON.Controllers
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
+      ViewBag.JoiningDate = db.AspNetUsers
+                        .FirstOrDefault(x => x.Id == leave.UserId)?
+                        .JoiningDate?
+                        .ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+                        ?? "Not available";
       ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       ViewBag.totalDays = Convert.ToInt32(leave.TotalDays);
@@ -109,23 +115,29 @@ namespace LeaveON.Controllers
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> Edit([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,ResponseDate1,ResponseDate2,IsAccepted1,IsAccepted2,LineManager1Id,LineManager2Id,Remarks1,Remarks2,DateCreated,DateModified,UserLeavePolicyId")] Leave leave, string IsLineManager1)
     {
+      string currentUserId = User.Identity.GetUserId();
       //assign values to variable as we will reassing these values to the object
       leave.IsQuotaRequest = false;
       Nullable<int> IsAccepted1 = null;
       Nullable<int> IsAccepted2 = null;
       string Remarks1 = string.Empty;
       string Remarks2 = string.Empty;
-      
+      string ModifyBy = null;        
+      DateTime? ModifyDate = null;   
+
       if (IsLineManager1 == "True")
       {
         IsAccepted1 = leave.IsAccepted1;
         Remarks1 = leave.Remarks1;
-      
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
       }
       else
       {
         IsAccepted2 = leave.IsAccepted2;
         Remarks2 = leave.Remarks2;
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
       }
       //--------------------------------------------------
       Leave leaveOld = db.Leaves.FirstOrDefault(x => x.Id == leave.Id);
@@ -136,6 +148,8 @@ namespace LeaveON.Controllers
         leave.IsAccepted1 = IsAccepted1;
         leave.Remarks1 = Remarks1;
         leave.ResponseDate1 = DateTime.Now;
+        leave.ModifiedBy = ModifyBy;
+        leave.ModifiedDate = DateTime.Now;
 
         //if (IsAccepted1 == Consts.ApprovedWithComments)
         //{
@@ -148,6 +162,8 @@ namespace LeaveON.Controllers
           leave.IsAccepted2 = IsAccepted1;
           leave.Remarks2 = leave.Remarks1;
           leave.ResponseDate2 = DateTime.Now;
+          leave.ModifiedBy = ModifyBy;
+          leave.ModifiedDate = DateTime.Now;
           if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
         }
 
@@ -158,6 +174,8 @@ namespace LeaveON.Controllers
         leave.IsAccepted2 = IsAccepted2;
         leave.Remarks2 = Remarks2;
         leave.ResponseDate2 = DateTime.Now;
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
         //if (IsAccepted2 == Consts.ApprovedWithComments)
         //{
         //  leave.Remarks2 = string.Empty;
@@ -257,10 +275,13 @@ namespace LeaveON.Controllers
       //----------------------------get new value----------------------------------------------
       //assign values to variable as we will reassing these values to the object
       //leave.IsQuotaRequest = true; no need to assing ture. when we get old leave few line ahead there is ture in IsQotaRequest
+      string currentUserId = User.Identity.GetUserId();
       Nullable<int> IsAccepted1 = null;
       Nullable<int> IsAccepted2 = null;
       string Remarks1 = string.Empty;
       string Remarks2 = string.Empty;
+      string ModifyBy = null;
+      DateTime? ModifyDate = null;
       //DateTime startDate = leave.StartDate;
       //DateTime endDate = leave.EndDate;
       //decimal totalDays;
@@ -278,12 +299,16 @@ namespace LeaveON.Controllers
         IsAccepted1 = leave.IsAccepted1;
         //if (IsAccepted1 == Consts.ApprovedWithComments) Remarks1 = (leave.Remarks1 == null) ? string.Empty : leave.Remarks1.Trim();
         Remarks1 = leave.Remarks1;
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
       }
       else
       {
         IsAccepted2 = leave.IsAccepted2;
         //if (IsAccepted2 == Consts.ApprovedWithComments) Remarks2 = (leave.Remarks2 == null) ? string.Empty : leave.Remarks2.Trim();
         Remarks2 = leave.Remarks2;
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
       }
       //--------------------------get old leave and put new values to it------------------------
       Leave leaveOld = db.Leaves.FirstOrDefault(x => x.Id == leave.Id);
@@ -296,6 +321,8 @@ namespace LeaveON.Controllers
         leave.Remarks1 = Remarks1;
         //if (!(string.IsNullOrEmpty(Remarks1))) leave.TotalDays = decimal.Parse(Remarks1);
         leave.ResponseDate1 = DateTime.Now;
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
         //if (IsAccepted1 == Consts.ApprovedWithComments)
         //{
         //  leave.StartDate = startDate;
@@ -308,6 +335,8 @@ namespace LeaveON.Controllers
           leave.IsAccepted2 = IsAccepted1;
           leave.Remarks2 = leave.Remarks1;
           leave.ResponseDate2 = DateTime.Now;
+          ModifyBy = currentUserId;
+          ModifyDate = DateTime.Now;
           // calculatin will perform when linemanager 2 will aprove so it is in if condition
           if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalanceQuota(ref leave);
         }
@@ -318,6 +347,8 @@ namespace LeaveON.Controllers
         leave.IsAccepted2 = IsAccepted2;
         leave.Remarks2 = Remarks2;
         leave.ResponseDate2 = DateTime.Now;
+        ModifyBy = currentUserId;
+        ModifyDate = DateTime.Now;
         //if (IsAccepted2 == Consts.ApprovedWithComments)
         //{
         //  leave.StartDate = startDate;

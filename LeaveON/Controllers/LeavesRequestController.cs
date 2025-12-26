@@ -481,12 +481,34 @@ namespace LeaveON.Controllers
         //check leave Balance
         TimeSpan duration = leave.EndDate - leave.StartDate;
         int daysCount = duration.Days + 1; //total days including weekends
-        var balanceCheck = db.LeaveBalances
+
+        int totalDaysCount = Enumerable.Range(0, daysCount)
+            .Select(offset => leave.StartDate.AddDays(offset))
+            .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday); // excluding weekends
+
+        // Pending Leaves
+        var pendingLeaves = db.Leaves
+                .Where(l => l.UserId == leave.UserId
+                    && l.UserLeavePolicyID == leave.UserLeavePolicyID
+                    && l.LeaveTypeId == leave.LeaveTypeId
+                    && (
+                           l.IsAccepted1 == null
+                        || l.IsAccepted2 == null
+                       )
+                 )
+                .Select(l => (decimal?)l.TotalDays)
+                .DefaultIfEmpty(0)
+                .Sum();
+
+
+        var existingBalance = db.LeaveBalances
           .Where(leaveBalance =>
             leaveBalance.UserLeavePolicyId == leave.UserLeavePolicyID &&
             leaveBalance.UserId == leave.UserId &&
             leaveBalance.LeaveTypeId == leave.LeaveTypeId)
           .Select(detail => detail.Balance).FirstOrDefault();
+
+        var balanceCheck = existingBalance - pendingLeaves;
 
         if (balanceCheck == null)
         {
@@ -533,8 +555,9 @@ namespace LeaveON.Controllers
           }
           else
           {
-            balanceCheck = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
+            existingBalance = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
             leaveDetail.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId).Select(detail => detail.Allowed).FirstOrDefault();
+            balanceCheck = existingBalance - pendingLeaves;
           }
         }
         var daysForFinalCompare = 0;
@@ -607,7 +630,15 @@ namespace LeaveON.Controllers
                   .Select(offset => leave.StartDate.AddDays(offset))
                   .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-              leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
+              if (validDaysCount > balanceCheck)
+              {
+                TempData["ErrorMessage"] = "Your leave request exceeds the available balance.";
+                return PartialView("Error", "Shared");
+              }
+              else
+              {
+                leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
+              }
             }
            else if (leave.LeaveType.Id == 1) // Sick Leave
             {
@@ -625,10 +656,10 @@ namespace LeaveON.Controllers
                 leave.TotalDays = validDaysCount; // Set TotalDays for Sick leave
               }
             }
-            else if (daysCount <= balanceCheck)
+            else if (totalDaysCount <= balanceCheck)
             {
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-              leave.TotalDays = daysCount;
+              leave.TotalDays = totalDaysCount;
             }
             else
             {
@@ -646,6 +677,10 @@ namespace LeaveON.Controllers
           try
           {
             ViewBag.BalanceCheck = balanceCheck;
+            leave.ModifiedBy = leave.UserId;
+            leave.ModifiedDate = DateTime.Now;
+            leave.CreatedBy = leave.UserId;
+            leave.CreatedDate = DateTime.Now;
             db.Leaves.Add(leave);
             await db.SaveChangesAsync();
             SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, receiver: admin1, MessageType: "LeaveRequest");
@@ -709,7 +744,10 @@ namespace LeaveON.Controllers
         //  db.Entry(leaveBalance).State = EntityState.Modified;
         //}
         ///////////////
-
+        leave.ModifiedBy = leave.UserId;
+        leave.ModifiedDate = DateTime.Now;
+        leave.CreatedBy = leave.UserId;
+        leave.CreatedDate = DateTime.Now;
         await db.SaveChangesAsync();
         AspNetUser admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
         SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin1, "LeaveRequest");

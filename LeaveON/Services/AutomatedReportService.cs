@@ -138,10 +138,10 @@ namespace LeaveON.Services
 
       //var managerEmails = new List<string>
       //    {
-      //        "c6d11b88-5ad0-4d7b-8c95-d5cd797e6e27",
+      //        //"c6d11b88-5ad0-4d7b-8c95-d5cd797e6e27",
       //        "7baffeb6-7cad-46ad-9418-493d86e1da75",
-      //        "cec06760-2ff1-4b68-92ee-f53ae43fa4ea",
-      //        "6c75398c-4f4c-4ff5-baed-814c75138588"
+      //        //"cec06760-2ff1-4b68-92ee-f53ae43fa4ea",
+      //        //"6c75398c-4f4c-4ff5-baed-814c75138588"
       //    };
 
 
@@ -163,10 +163,11 @@ namespace LeaveON.Services
         {
 
           totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
-          //if (user.userId != 3182 && user.userId != 3178)
+          //if (user.userId != 2696 && user.userId != 3178)
           //{
           //  continue;
           //}
+          
           using (var context = new LeaveONEntities())
           // test DB LeaveONEntitiesTarget
          //  using (var context = new LeaveONEntitiesTarget())
@@ -254,7 +255,49 @@ namespace LeaveON.Services
               double totalWorkSeconds = attendanceData.Sum(x => x.TotalWorkHours ?? 0);
               double totalDays = attendanceData.Count(); // only for days with attendance
 
-              var totalWorkDaysExcludingAbsent = totalWorkDays - absentCount;
+              // ✅ Count public holidays in current month (you already fetched them as `holidayDates`)
+              int totalPublicHolidays = holidayDates.Count;
+
+
+              // ✅ Calculate total approved leave working days of month (regardless of leave policy)
+              int totalApprovedLeaveDays = context.Leaves
+                  .Where(l => l.UserId == user.UserID
+                           && l.IsAccepted1 == 1
+                           && l.IsAccepted2 == 1
+                           && l.StartDate <= endOfSelectedMonth
+                           && l.EndDate >= startOfCurrentMonth)
+                  .AsEnumerable()
+                  .Sum(l =>
+                  {
+            // Determine effective leave range within the selected month
+            DateTime effectiveStart1 = l.StartDate < startOfCurrentMonth ? startOfCurrentMonth : l.StartDate;
+                          DateTime effectiveEnd = l.EndDate > endOfSelectedMonth ? endOfSelectedMonth : l.EndDate;
+
+                          int workingDays = 0;
+                          for (DateTime date = effectiveStart1.Date; date <= effectiveEnd.Date; date = date.AddDays(1))
+                          {
+            // Skip weekends
+            if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+                            continue;
+
+            // Skip public holidays
+            if (holidayDates.Contains(date))
+                            continue;
+
+                          workingDays++;
+                        }
+                        return workingDays;
+                      });
+
+
+              // ✅ Calculate present days (exclude absents, approved leaves, and public holidays)
+              var totalWorkDaysExcludingAbsent = totalWorkDays
+                                                 - absentCount
+                                                 - totalApprovedLeaveDays
+                                                 - totalPublicHolidays;
+
+
+              var totalWorkDaysExcludingAbsent1 = totalWorkDays - absentCount;
 
               TimeSpan averageActualWorkTime = totalWorkDaysExcludingAbsent > 0
                   ? TimeSpan.FromSeconds(totalWorkSeconds / totalWorkDaysExcludingAbsent)
@@ -756,11 +799,10 @@ namespace LeaveON.Services
         Console.WriteLine($"Email Body: {mail.Body}");
         Console.WriteLine($"MangerName => {mangerEmail}");
         // Uncomment or adjust the following as needed
-        //mail.To.Add("laiba.khan@intechww.com");
-        mail.Bcc.Add("yiwiyoj961@bdnets.com");
+         mail.Bcc.Add("laiba.khan@intechww.com");
+        // mail.Bcc.Add("ciweh79772@lovleo.com");
 
         // mail.To.Add("nouman.sial@intechww.com");
-        // mail.To.Add("somia.waseem@acme-one.com");
         mail.Bcc.Add("saeed.dev125@gmail.com");
 
         mail.To.Add(mangerEmail);
@@ -824,7 +866,7 @@ namespace LeaveON.Services
 
         // Filter out unwanted countries
         var filteredCountries = countryData
-            .Where(c => c.Name != "United Kingdom" && c.Name != "Singapore" && c.Name != "Qatar")
+            .Where(c => c.Name != "United Kingdom" && c.Name != "Singapore" && c.Name != "Qatar" && c.Name != "São Tomé and Príncipe")
             .ToList();
 
         // Find and move Pakistan to top

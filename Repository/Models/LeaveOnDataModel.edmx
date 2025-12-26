@@ -191,6 +191,10 @@
           <Property Name="DateModified" Type="datetime" />
           <Property Name="IsShortLeave" Type="bit" />
           <Property Name="UserLeavePolicyID" Type="int" />
+          <Property Name="CreatedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="CreatedDate" Type="datetime2" Precision="3" />
+          <Property Name="ModifiedBy" Type="nvarchar" MaxLength="128" />
+          <Property Name="ModifiedDate" Type="datetime2" Precision="3" />
         </EntityType>
         <EntityType Name="LeaveBalance">
           <Key>
@@ -346,6 +350,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Leave_CreatedBy_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="Leave" Type="Self.Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="CreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Leave_LeaveType">
           <End Role="LeaveType" Type="Self.LeaveType" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -357,6 +373,18 @@
             </Principal>
             <Dependent Role="Leave">
               <PropertyRef Name="LeaveTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Leave_ModifiedBy_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="Leave" Type="Self.Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="ModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -487,8 +515,16 @@
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Leave" EntitySet="Leave" />
           </AssociationSet>
+          <AssociationSet Name="FK_Leave_CreatedBy_AspNetUsers" Association="Self.FK_Leave_CreatedBy_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Leave" EntitySet="Leave" />
+          </AssociationSet>
           <AssociationSet Name="FK_Leave_LeaveType" Association="Self.FK_Leave_LeaveType">
             <End Role="LeaveType" EntitySet="LeaveType" />
+            <End Role="Leave" EntitySet="Leave" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Leave_ModifiedBy_AspNetUsers" Association="Self.FK_Leave_ModifiedBy_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Leave" EntitySet="Leave" />
           </AssociationSet>
           <AssociationSet Name="FK_LeaveBalance_AspNetUsers" Association="Self.FK_LeaveBalance_AspNetUsers">
@@ -602,6 +638,14 @@
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="BreakHour" EntitySet="BreakHours" />
           </AssociationSet>
+          <AssociationSet Name="FK_Leave_CreatedBy_AspNetUsers" Association="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="Leave" EntitySet="Leaves" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Leave_ModifiedBy_AspNetUsers" Association="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="Leave" EntitySet="Leaves" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -695,6 +739,8 @@
           <NavigationProperty Name="AttendanceDatas" Relationship="LeaveONModels.FK_AttendanceData_UserID" FromRole="AspNetUser" ToRole="AttendanceData" />
           <NavigationProperty Name="BreakHours" Relationship="LeaveONModels.FK_BreakHours_UserId" FromRole="AspNetUser" ToRole="BreakHour" />
           <Property Name="JoiningDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Leaves1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
+          <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
         </EntityType>
         <EntityType Name="CountryName">
           <Key>
@@ -746,6 +792,12 @@
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
           <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="Leave" ToRole="LeaveType" />
           <Property Name="UserLeavePolicyID" Type="Int32" />
+          <Property Name="CreatedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ModifiedDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUser1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
+          <NavigationProperty Name="AspNetUser2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
         </EntityType>
         <EntityType Name="LeaveBalance">
           <Key>
@@ -1074,6 +1126,30 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Leave_CreatedBy_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="CreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Leave_ModifiedBy_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="ModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1186,6 +1262,10 @@
           <EntitySetMapping Name="Leaves">
             <EntityTypeMapping TypeName="LeaveONModels.Leave">
               <MappingFragment StoreEntitySet="Leave">
+                <ScalarProperty Name="ModifiedDate" ColumnName="ModifiedDate" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
                 <ScalarProperty Name="UserLeavePolicyID" ColumnName="UserLeavePolicyID" />
                 <ScalarProperty Name="DateModified" ColumnName="DateModified" />
                 <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />

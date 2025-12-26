@@ -229,7 +229,7 @@ namespace LeaveON.Controllers
         var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicy.Id);
         var joiningDate = currentUser.JoiningDate;
 
-          if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart)
+          if ( Caller != "UserLeavePolicy" && joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart)
           {
             int joiningYear = joiningDate.Value.Year;
             int joiningMonth = joiningDate.Value.Month;

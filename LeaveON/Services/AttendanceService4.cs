@@ -54,11 +54,17 @@ namespace LeaveON.Services
       
       
       
-      List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
+      //List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
       //mohsin.ali@intechww.com
       //Emmanuel.Dakore@intechww.com
       // Osaid.Hafeez@intechww.com
       // List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "salman.ashraf@intechww.com").ToList();
+      List<AspNetUser> users = dbLeaveOn.AspNetUsers
+    .Where(u =>
+        u.Email == "bilal.khan@intechww.com"
+    )
+    .ToList();
+
       List<int> userIds = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
       List<BreakHour> LstBreakHours = new List<BreakHour>();
       con.Open();

@@ -38,6 +38,8 @@
         <AssociationConnector Association="LeaveONModels.FK_AttendanceData_UserID" />
         <EntityTypeShape EntityType="LeaveONModels.BreakHour" Width="1.5" PointX="7.5" PointY="28.375" IsExpanded="true" />
         <AssociationConnector Association="LeaveONModels.FK_BreakHours_UserId" />
+        <AssociationConnector Association="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" />
+        <AssociationConnector Association="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

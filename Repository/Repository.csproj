@@ -114,9 +114,7 @@
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Leave_Metadata.cs" />
-    <Compile Include="Models\Manager.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
+    <Compile Include="Models\Manager.cs" />
     <Compile Include="Models\sysdiagram.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
