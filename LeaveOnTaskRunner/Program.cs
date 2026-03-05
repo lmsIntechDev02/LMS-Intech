@@ -30,10 +30,15 @@ namespace LeaveOnTaskRunner
 
             //DateTime startDate = new DateTime(DateTime.Today.Year, 1, 1);
             //DateTime endDate = new DateTime(DateTime.Today.Year, 1, 2);
-            //DateTime startDate = new DateTime(2025, 10, 02);
-            //DateTime endDate = new DateTime(2025,10, 07);
-            DateTime startDate = yesterday;
-            DateTime endDate = today;
+           // DateTime startDate = new DateTime(2026, 01, 01);
+            //DateTime endDate = new DateTime(2026, 02, 11);
+
+            //w testing
+            DateTime startDate = new DateTime(2026, 02, 01);
+            DateTime endDate = new DateTime(2026, 02, 28);
+
+            //DateTime startDate = yesterday;
+            //DateTime endDate = today;
 
 
 
@@ -48,7 +53,7 @@ namespace LeaveOnTaskRunner
             await service.ConnectToDBandReturnAttendanceData(startDate, endDate);
             Console.WriteLine("Running Break Hours Service...");
 
-            await breakHours.ConnectToDBandFillBreakHours(startDate, endDate);
+           await breakHours.ConnectToDBandFillBreakHours(startDate, endDate);
 
 
 

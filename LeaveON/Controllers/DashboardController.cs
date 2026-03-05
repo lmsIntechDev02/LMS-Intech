@@ -21,7 +21,8 @@ namespace LeaveON.Controllers
       // db.Leaves.Sum(x=>x..LeaveTypeId!=0)
 
       string userId = User.Identity.GetUserId();
-      int policyId = db.AspNetUsers.FirstOrDefault(x => x.Id == userId).UserLeavePolicyId.GetValueOrDefault();
+      var curr_user = db.AspNetUsers.FirstOrDefault(x => x.Id == userId);
+      int policyId = curr_user.UserLeavePolicyId.GetValueOrDefault();
       UserLeavePolicy userLeavePolicy= db.UserLeavePolicies.Find(policyId);
 
       if (policyId == 0)
@@ -29,9 +30,14 @@ namespace LeaveON.Controllers
         TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
         return RedirectToAction("General", "Error");
       }
-     
+
+      int proratedLeaves = getProratedLeaves(curr_user, policyId);
+      int half = proratedLeaves / 2;
+      int casualLeave = half + (proratedLeaves % 2 != 0 ? 1 : 0);
+      int annualLeave = half;
+
       List<UserLeavePolicyDetail> LstUserLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId && (x.LeaveTypeId == Consts.SickCasualLeaveId || x.LeaveTypeId == Consts.AnnualLeaveId || x.LeaveTypeId == Consts.CompensatoryLeaveTypeId) ).ToList();
-      dashboard.MyAllowedLeaves = LstUserLeavePolicyDetail.Sum(x => x.Allowed).Value;
+      dashboard.MyAllowedLeaves = proratedLeaves;
 
       List<LeaveBalance> LstLeaveBalance = db.LeaveBalances.Where(x => x.UserLeavePolicyId == policyId && x.UserId== userId).ToList();
       dashboard.MyTakenLeaves = LstLeaveBalance.Sum(x => x.Taken).Value;
@@ -49,7 +55,7 @@ namespace LeaveON.Controllers
 
       List<UserLeavePolicyDetail> TotalAnnualLeaves = userLeavePolicy.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId &&  x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
     //  dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Count;
-      dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Sum(x => x.Allowed ?? 0);
+      dashboard.TotalAnnualLeaves = annualLeave;
 
 
       List<Leave> BalanceAnnualLeaves = db.Leaves.Where(x => x.UserId == userId && x.IsAccepted1 > 0 && x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
@@ -64,6 +70,64 @@ namespace LeaveON.Controllers
       dashboard.Country = aspNetUser.CntryName;
       
       return View(dashboard);
+
+    }
+
+    private int getProratedLeaves(AspNetUser currentUser, int policyId)
+    {
+      // Prorated Leaves
+      DateTime today = DateTime.Today;
+      int currentYear = today.Year;
+
+      int workedMonths = 12;
+
+
+      var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId);
+
+
+      DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
+      DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
+
+      // If joining date not exists then used ficalStart
+      DateTime joiningDate = currentUser.JoiningDate ?? fiscalStart;
+
+      if (joiningDate > fiscalEnd)
+      {
+        workedMonths = 0;
+      }
+      else
+      {
+        DateTime effectiveStart = (joiningDate > fiscalStart) ? joiningDate : fiscalStart;
+
+        // Total months
+        workedMonths = ((fiscalEnd.Year - effectiveStart.Year) * 12 + fiscalEnd.Month - effectiveStart.Month + 1);
+      }
+
+  
+      int? assignedLeaveQuota = policyId != null
+                    ? db.UserLeavePolicyDetails
+                        .Where(lb => lb.UserLeavePolicyId == policyId &&
+                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
+                        .Select(lb => (int?)lb.Allowed)
+                        .Sum() ?? 0
+                    : 0;
+      // Prorated Leave Calculation
+      double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+      int proratedLeave;
+
+
+      // Round to nearest whole number or keep decimal
+      //proratedLeaves = Math.Round(proratedLeaves, 2); 
+      // Custom rounding logic
+      if (proratedLeaves % 1 >= 0.5)
+      {
+        proratedLeave = (int)Math.Ceiling(proratedLeaves);
+      }
+      else
+      {
+        proratedLeave = (int)Math.Floor(proratedLeaves);
+      }
+      return proratedLeave;
 
     }
   }

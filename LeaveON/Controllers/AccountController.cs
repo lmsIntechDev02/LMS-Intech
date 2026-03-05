@@ -179,7 +179,7 @@ namespace LeaveON.Controllers
 
       //ADUser = "Khaleel.khan@intechww.com";
       //ADUser = "kashif.ali@intechww.com";
-     //ADUser = "Hassan.masood@intechww.com";
+      //ADUser = "Hassan.masood@intechww.com";
       //ADUser = "waqqasjavaid@gmail.com";
       //ADUser = "testing@intechww.com";
       //ADUser = "Usman.Javed@intechww.com";
@@ -190,7 +190,7 @@ namespace LeaveON.Controllers
       // ADUser = "Obaid.Rehman@intechww.com";
       // ADUser = "usman.tariq@intechww.com";
       /*Manager*/
-     //  ADUser = "Muzammil.Riaz@intechww.com";
+      //  ADUser = "Muzammil.Riaz@intechww.com";
       //ADUser = "Khaleel.khan@intechww.com";
       // ADUser = "noor.khan@intechww.com";
       // ADUser = "Noor.Uddin.Khan@intechww.com";
@@ -202,9 +202,9 @@ namespace LeaveON.Controllers
       //ADUser = "lms.dev02@intechww.com";
 
       // ADUser = "umme.kalsoom@intechww.com";
-     // ADUser = "wardah.zukhra@intechww.com";
+      // ADUser = "wardah.zukhra@intechww.com";
       //ADUser = "nouman.sial@intechww.com";
-     //  ADUser = "waqar.ahmad@intechww.com";
+      //  ADUser = "waqar.ahmad@intechww.com";
       //ADUser = "Usman.Ghani @intechww.com";
       //ADUser = "Haseeb.hayat@intechww.com";
       //ADUser = "haseeb.aslam@intechww.com";
@@ -214,8 +214,9 @@ namespace LeaveON.Controllers
       //ali.raza@intechww.com
 
       // test user
-      // ADUser = "Bilal.Yasin@intechww.com";
-       // ADUser = "laiba.khan@intechww.com";
+      //ADUser = "m.yousaf@intechww.com";
+      //ADUser = "laima.imran@intechww.com";
+      ADUser = "laiba.khan@intechww.com";
 
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();

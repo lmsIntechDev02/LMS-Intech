@@ -42,7 +42,15 @@ namespace Intranet.Controllers
         public ActionResult Sync()
         {
             ScheduledTasks scheduledTasks = new ScheduledTasks();
-            scheduledTasks.SyncAppWithAD();
+            try
+            {
+                scheduledTasks.SyncAppWithAD("Home Sync Task");
+            }
+            catch(Exception ex)
+            {
+                scheduledTasks.InsertSyncLog("Home Sync Task Call", "error", 0, 0, 0, ex.Message, "Home Sync Task", null);
+            }
+   
             ViewBag.Message = "Your application description page.";
             
             return View();
