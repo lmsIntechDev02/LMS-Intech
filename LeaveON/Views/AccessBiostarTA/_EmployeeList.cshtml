@@ -1,0 +1,15 @@
+
+<label class="font-weight-normal">Employee</label>
+@Html.DropDownList(
+    "DepartmentList",
+    new MultiSelectList(ViewBag.Employees, "BioStarEmpNum", "UserName"),
+    htmlAttributes: new
+    {
+      @class = "form-control selectpicker",
+      @id = "idEmployees",
+      @multiple = "multiple",
+      data_live_search = "true",
+      data_actions_box = "true",
+      data_done_button = "true"
+    }
+)

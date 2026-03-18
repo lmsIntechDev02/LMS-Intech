@@ -12,7 +12,19 @@
 <script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
 
+@if (TempData["success"] != null)
+{
+  <script>
+        toastr.success("@TempData["success"]");
+  </script>
+}
 
+@if (TempData["error"] != null)
+{
+  <script>
+        toastr.error("@TempData["error"]");
+  </script>
+}
 <section class="content">
   <div class="row">
     <div class="col-12">
@@ -46,15 +58,15 @@
                         @Html.DisplayNameFor(model => model.Description)
                       </th>
                       @*<th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="FiscalYearStart: activate to sort column ascending">
-                        @Html.DisplayNameFor(model => model.FiscalYearStart)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="FiscalYearEnd: activate to sort column ascending">
-                        @Html.DisplayNameFor(model => model.FiscalYearEnd)
-                      </th>*@
+                          @Html.DisplayNameFor(model => model.FiscalYearStart)
+                        </th>
+                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="FiscalYearEnd: activate to sort column ascending">
+                          @Html.DisplayNameFor(model => model.FiscalYearEnd)
+                        </th>*@
 
                       @*<th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="FiscalYearPeriod: activate to sort column ascending">
-                        @Html.DisplayNameFor(model => model.FiscalYearPeriod)
-                      </th>*@
+                          @Html.DisplayNameFor(model => model.FiscalYearPeriod)
+                        </th>*@
                       @*<th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Hometown: activate to sort column ascending">
                           @Html.DisplayNameFor(model => model.AspNetUser.Hometown)
                         </th>*@
@@ -74,19 +86,19 @@
                         @Html.DisplayFor(modelItem => item.Description)
                       </td>
                       @*<td>
-                        @Html.DisplayFor(modelItem => item.FiscalYearStart)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.FiscalYearEnd)
-                      </td>*@
+                          @Html.DisplayFor(modelItem => item.FiscalYearStart)
+                        </td>
+                        <td>
+                          @Html.DisplayFor(modelItem => item.FiscalYearEnd)
+                        </td>*@
                       @*<td>
-                        @Html.DisplayFor(modelItem => item.FiscalYearPeriod)
-                      </td>*@
+                          @Html.DisplayFor(modelItem => item.FiscalYearPeriod)
+                        </td>*@
                       @*<td>
                           @Html.DisplayFor(modelItem => item.AspNetUser.Hometown)
                         </td>*@
                       <td>
-                        @Html.ActionLink("Edit", "Edit", new { id = item.Id, Caller="UserLeavePolicy" }) |
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id, Caller = "UserLeavePolicy" }) |
                         @*@Html.ActionLink("Details", "Details", new { id = item.Id }) |*@
                         @Html.ActionLink("Delete", "Delete", new { id = item.Id })
                       </td>

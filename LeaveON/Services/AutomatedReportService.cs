@@ -65,9 +65,9 @@ namespace LeaveON.Services
         //  var users = context.AspNetUsers.Where(y => y.CntryName != "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
         // users = users.Where(k => k.UserID == "2840417a-7247-44bf-bf71-0e98ae6bb956").ToList();
         //test
-        //  var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "20d7e891-0a70-420c-a7d8-528b546eede3"))
+       //   var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "5f6a7d78-64de-4ffe-ad16-8e113bed12c4" || y.Id== "a0cb991c-151d-4dad-aae1-979a3f82355b"))
         //live
-        var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true)
+       var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true)
         .Select(x => new EmailAndIDs
         {
           userId = x.BioStarEmpNum.Value,
@@ -141,41 +141,42 @@ namespace LeaveON.Services
     public Task GetMonthlyReportData(int month, int year, bool legitimacyCheckForReports)
     {
       string monthName = GetMonthName(month);
+      List<DepartmentName> departmentList = GetDepartmentList();
       var legitimacyCheckers = GetLegitemacyChckers();
-      var managerEmails = GetManagersIDs();
-      managerEmails = new List<string> {
-//      "c6d11b88-5ad0-4d7b-8c95-d5cd797e6e27",
-//"df758c75-435b-4f64-b2b8-b399699cd561",
-//"d7217d94-50fe-4c70-9f7e-6ef2b98cff3d",
-//"30ae5987-e7ea-45d5-8233-c1159f4f0b77",
-//"21c9c6d1-37fb-480c-9c41-ae20146f7cd4",
-//"7baffeb6-7cad-46ad-9418-493d86e1da75"
-//"4089e1a7-c664-45f4-bae1-70bfded98fcb",
-//"48975a00-55df-47e8-a846-dda16a2e4ec4",
-//"6c88b517-d020-411e-99ec-b25080d1af46",
-//"74ecdfe0-0ba9-4427-9b28-63e9443780e1",
-//"9a16e259-b4f2-4fd5-b880-e0fdcec2ddc6",
-//"def3465d-fdf0-470d-85a8-5eef943b3478",
-//"fc535852-9f0e-4192-9a27-1b76db8ed082"
+      List<ManagerDto> managerEmails = new List<ManagerDto>();
 
-      //  "21c9c6d1-37fb-480c-9c41-ae20146f7cd4"
- //"c2529cb2-be2b-4f03-8f31-4ccef6ad7a42",
- //"7e31c22d-e5c9-41e5-8ef6-f7c3488680f4",
- //"6b657d53-99ec-40fe-9490-632c239c4ec0"
-"19a879e3-370a-4cb3-9ec7-3d0c11467638",
-"4205cc46-0ecb-47d2-8081-5664bbd4314a",
-"65b4ee1e-9890-413f-ae28-d033bc098c9c",
-"b7c1df98-6431-4b3d-b819-dc9f58d804c5",
-"bee38c18-d259-44af-8a48-dd5a86b48dec",
-"d0691488-658f-4514-8213-ce79f6f3d45e",
-"dd8f6fa0-5f3b-443b-876e-9914ce0f9df5"
+
+         managerEmails = GetManagersIDs();
+
+      
+      List<string>  managerids = new List<string> {
+"04a6810a-4e58-4d42-ba05-77c24b732fbb",
+"0fb205e2-b783-4519-bb42-5e79caf14d4c",
+"15190594-377e-439f-8b15-716f12cdf427",
+"1ade6e65-50f4-4417-b67f-1120df49062b",
+"32c883f0-b81d-49c6-af49-e203fc081774",
+"49f15a18-dda0-4167-94c0-a4d61b14a47d",
+"506b1293-4c8f-42b4-852f-0a867f17a532",
+"5507d51e-6bbc-4ad7-bdd1-04e23cc9be27",
+"7bf7a1a5-c471-4945-abaa-36c13776b2b9",
+"8b09a910-1426-42c7-ac27-1a9c6fb6a198",
+"8baab32b-997a-485a-9825-b7235a4939ad",
+"937f949d-6991-4a24-b5b3-5005a03473a2",
+"98286b9f-38b4-4e26-9286-498e059b2d07",
+"c8c70a66-c1be-465b-8b99-d0671cf10610",
+"d065c6f0-e442-4717-a333-bc84c2513e52",
+"e3bffb60-614d-4fc3-bb0f-3d2a0f1ee089",
+"f04cb0fc-f550-422f-8400-dff319f0106c"
+
       };
 
+      managerEmails= GetManagersListById(managerids);
+      
       foreach (var managerEmail in managerEmails)
       {
         using (var context = new LeaveONEntities())
         {
-          var users = GetUserEmailsAndIDs(managerEmail);
+          var users = GetUserEmailsAndIDs(managerEmail.Id);
 
           if (users == null || users.Count == 0)
             continue;
@@ -378,7 +379,7 @@ namespace LeaveON.Services
               EmployeeName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().UserName : String.Empty,
               Department = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().DepartmentName : String.Empty,
               CountryName = userAttendanceMonth.Count > 0 ?  userAttendanceMonth.First().CountryName:String.Empty,
-              ManagerEmail = managerEmail,
+              ManagerEmail = managerEmail.Email,
 
               TotalDays = totalWorkDays,
               AbsentDays = absentYTD, // Absents (YTD)
@@ -402,6 +403,11 @@ namespace LeaveON.Services
               AnnualLeaves = annual.ToString()
             });
           }
+          string hRBPEmail = String.Empty;
+          if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
+          {
+            hRBPEmail = departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+          }
 
           GeneratePDFManager1(
               reportList,
@@ -410,7 +416,7 @@ namespace LeaveON.Services
               year,
               managerEmail,
               legitimacyCheckForReports,
-              legitimacyCheckers);
+              legitimacyCheckers, hRBPEmail);
         }
       }
 
@@ -1018,9 +1024,9 @@ namespace LeaveON.Services
         int totalWorkDays,
         string monthName,
         int year,
-        string managerEmail,
+        ManagerDto managerDetail,
         bool legitimacyCheckForReports,
-        List<EmailAndIDs> legitimacyCheckers)
+        List<EmailAndIDs> legitimacyCheckers, string hrBpEmail)
     {
       if (reportData == null || reportData.Count == 0)
       {
@@ -1030,15 +1036,15 @@ namespace LeaveON.Services
 
       using (var context = new LeaveONEntities())
       {
-        string managerEmailName = context.AspNetUsers
-            .Where(u => u.Id == managerEmail)
-            .Select(u => u.Email)
-            .FirstOrDefault();
+        //string managerEmailName = context.AspNetUsers
+            //.Where(u => u.Id == managerEmail)
+            //.Select(u => u.Email)
+            //.FirstOrDefault();
 
-        if (string.IsNullOrEmpty(managerEmailName))
+        if (string.IsNullOrEmpty(managerDetail.Email))
           return;
 
-        string managerName = managerEmailName.Split('@')[0].Replace('.', ' ');
+        string managerName = managerDetail.Email.Split('@')[0].Replace('.', ' ');
 
         SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
         {
@@ -1064,8 +1070,21 @@ namespace LeaveON.Services
         //}
         //else
         //{
-         // mail.Bcc.Add("esswaqas@hotmail.com");
-        mail.Bcc.Add("laiba.khan@intechww.com");
+        // mail.Bcc.Add("laiba.khan@intechww.com");
+        // TO
+        if (!String.IsNullOrEmpty(managerDetail.Email))
+        {
+          mail.To.Add("laiba.khan@intechww.com"); 
+        }
+        // CC
+        if (!String.IsNullOrEmpty(hrBpEmail))
+        {
+          mail.CC.Add("esswaqas@hotmail.com");
+        }
+
+        // BCC
+       // mail.Bcc.Add("laiba.khan@intechww.com");
+       //mail.Bcc.Add("esswaqas@hotmail.com");
 
         //}
 
@@ -2001,7 +2020,33 @@ namespace LeaveON.Services
       }
     }
 
-    private List<string> GetManagersIDs()
+    private List<DepartmentName> GetDepartmentList()
+    {
+      using (var context = new LeaveONEntities())
+      {
+       return  context.DepartmentNames.ToList();
+      }
+    }
+    private List<ManagerDto> GetManagersListById(List<string> list)
+    {
+      using (var context = new LeaveONEntities())
+      {
+       // return context.AspNetUsers.Where(u => list.Any(k=>k== u.Id )).ToList();
+        return context.AspNetUsers
+        .Where(u => list.Contains(u.Id))
+        .Select(u => new ManagerDto
+        {
+          Id = u.Id,
+          UserName = u.UserName,
+          Email = u.Email,
+          PhoneNumber = u.PhoneNumber,
+          ManagerName = u.ManagerName,
+          DepartmentName = u.DepartmentName
+        })
+        .ToList();
+      }   
+    }
+    private List<ManagerDto> GetManagersIDs()
     {
       using (var context = new LeaveONEntities())
       // using (var context = new LeaveONEntitiesTarget())
@@ -2011,10 +2056,17 @@ namespace LeaveON.Services
 
         // Fetch all users who have either ManagerID or Manager2ID
         var managersIDs = context.AspNetUsers
-                      .Where(u => !string.IsNullOrEmpty(u.ManagerID))
-                      .Select(u => u.ManagerID)
-                      .Distinct()
-                      .ToList();
+                      .Where(u => !string.IsNullOrEmpty(u.ManagerID)).Distinct().Select(u => new ManagerDto
+                      {
+                        Id = u.Id,
+                        UserName = u.UserName,
+                        Email = u.Email,
+                        PhoneNumber = u.PhoneNumber,
+                        ManagerName = u.ManagerName,
+                        DepartmentName=u.DepartmentName
+                      })
+        .ToList();
+                       
         //var managersIDs = context.AspNetUsers
         //  .Where(user => !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID))
         //  .SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
@@ -2043,13 +2095,13 @@ namespace LeaveON.Services
 
         // Exclude the specific manager ID
         var filteredManagersIDs = managersIDs
-            .Where(id => id != excludedManagerID)
+            .Where(h => h.Id != excludedManagerID)
             .ToList();
 
 
         foreach (var managerID in managersIDs)
         {
-          Console.WriteLine($"managerID => { managerID}");
+          Console.WriteLine($"managerID => { managerID.Id}");
         }
         return filteredManagersIDs;
       }
@@ -2129,6 +2181,15 @@ namespace LeaveON.Services
       }
     }
 
+  }
+  public class ManagerDto
+  {
+    public string Id { get; set; }
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public string PhoneNumber { get; set; }
+    public string ManagerName { get; set; }
+    public string DepartmentName { get; set; }
   }
 }
 

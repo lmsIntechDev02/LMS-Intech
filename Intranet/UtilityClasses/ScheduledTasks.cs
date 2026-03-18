@@ -207,7 +207,7 @@ namespace LeaveON.UtilityClasses
                                     AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
                                     if (aspNetUser == null && auth.Enabled == false)
                                     {
-                                   // InsertSyncLog(jobName, "asp Net User is null ", totalRecords, 1, 0, "", "continue", de);
+                                  //   InsertSyncLog(jobName, "asp Net User is null ", 0, 1, 0, "", "continue", de);
                                     continue;
                                     }
 
@@ -220,7 +220,7 @@ namespace LeaveON.UtilityClasses
                                         {
                                             insertedEmp += 1;
                                             InsertEmployee(de);
-                                       // InsertSyncLog(jobName, "Completed", totalRecords, 1, 0, "", "Insert", de);
+                                       // InsertSyncLog(jobName, "Completed", 0, 1, 0, "", "Insert", de);
 
                                     }
                                         catch (Exception ex)
@@ -249,12 +249,12 @@ namespace LeaveON.UtilityClasses
                                             //    aspNetUser.CntryName != Convert.ToString(de.Properties["co"].Value))
                                             //{
                                             UpdateEmployee(aspNetUser, de);
-                                      //  InsertSyncLog(jobName, "Completed", totalRecords, 0,1, "", "Update", de);
+                                       // InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
                                         //}
                                     }
                                         catch (Exception ex)
                                         {
-                                        InsertSyncLog(jobName, "Error", 0, 0, 1, ex.Message, "Update", de);
+                                       InsertSyncLog(jobName, "Error", 0, 0, 1, ex.Message, "Update", de);
                                         // Logged the errored data
                                         Log.Error("Updating AD user {@ADUser}", new
                                             {
@@ -279,6 +279,7 @@ namespace LeaveON.UtilityClasses
                              
                       }
 
+                        var dbDaprtmentList = db.DepartmentNames.ToList();
                     //-----------add department name which does not exist in LMS-DB------------
                     List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
                     foreach (string itm in distinctDepartmentNames)
@@ -292,7 +293,7 @@ namespace LeaveON.UtilityClasses
                     }
                     
                     //-------------remove department name which does not exist in AD-------------
-                    foreach (var itm in db.DepartmentNames.ToList())
+                    foreach (var itm in dbDaprtmentList)
                     {
                         string foundName = distinctDepartmentNames.FirstOrDefault(x => x == itm.Name);
                         if (string.IsNullOrEmpty(foundName))
@@ -355,6 +356,8 @@ namespace LeaveON.UtilityClasses
             catch (Exception ex)
             {
                 // Log the error in the SyncLog.txt file
+                InsertSyncLog(jobName, "Error in SyncAppWithAD", 0, 1, 0, ex.Message, "Error in SyncAppWithAD", null);
+              
                 throw new Exception($"Error in SyncAppWithAD: {ex.Message}", ex);
             }
 
@@ -412,7 +415,7 @@ namespace LeaveON.UtilityClasses
                 emp.IsActive = IsActive(de);
                 emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
                 emp.JoiningDate = whenCreated;
-                string dn = de.Properties["manager"].Value.ToString();
+                string dn =    de.Properties["manager"].Value != null?de.Properties["manager"].Value.ToString(): string.Empty;
 
                 int startIndex = dn.IndexOf("CN=") + 3;
                 int endIndex = dn.IndexOf(",", startIndex);

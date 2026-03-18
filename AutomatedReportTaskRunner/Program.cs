@@ -33,9 +33,7 @@ namespace AutomatedReportTaskRunner
             if (DateTime.Today.Day >= 26)
                 {
                     service.GetMonthlyReportData(today.Month, today.Year, false);
-
-               
-            }
+                       }
             else
             {
                 service.GetMonthlyReportData(month, year, false);

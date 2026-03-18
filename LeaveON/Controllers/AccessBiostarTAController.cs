@@ -2627,7 +2627,7 @@ namespace LeaveON.Controllers
       {
       try
       {
-        ViewBag.MonthSelectList = GetMonthSelectList();
+        //ViewBag.MonthSelectList = GetMonthSelectList();
         DateTime startDate, endDate;
 
         string userId = User.Identity.GetUserId();
@@ -2664,8 +2664,16 @@ namespace LeaveON.Controllers
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
                  .ToList();
-          ViewBag.Departments = departments;
-          ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers, "BioStarEmpNum", "UserName");
+          ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
+
+          var user = dbLeaveOn.AspNetUsers.ToList();
+          var userlist = user.Select(k => new AspNetUser
+          {
+            UserName = k.UserName.Split('@')[0].Replace('.', ' '),
+            BioStarEmpNum = k.BioStarEmpNum
+          }).ToList();
+
+          ViewBag.Employees = userlist;// new SelectList(userlist, "BioStarEmpNum", "UserName");
           ViewBag.SelectedEmployees = UserIds;
         }
         //else if (User.IsInRole("Manager") || User.IsInRole("User"))
@@ -2676,7 +2684,8 @@ namespace LeaveON.Controllers
           ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
 
           var employeesUnderManager = dbLeaveOn.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
-          ViewBag.Employees = new SelectList(employeesUnderManager, "BioStarEmpNum", "UserName");
+          ViewBag.Employees = employeesUnderManager;// new SelectList(employeesUnderManager, "BioStarEmpNum", "UserName");
+
           //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
           ViewBag.SelectedEmployees = UserIds;
         }
@@ -2736,20 +2745,34 @@ namespace LeaveON.Controllers
     {
       if (departmentNames == null || !departmentNames.Any())
       {
-        return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
+        //return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
+
+        ViewBag.Employees = new List<AspNetUser>();
+        return PartialView("_EmployeeList");
       }
 
-      var users = dbLeaveOn.AspNetUsers
-          .Where(u => departmentNames.Contains(u.DepartmentName))
-          .AsEnumerable()
-          .Select(u => new SelectListItem
-          {
-            Value = u.BioStarEmpNum.ToString(),
-            /* Text = u.UserName*/
-            Text = u.UserName.Split('@')[0].Replace('.', ' ')
-          }).OrderBy(i => i.Text).ToList();
+      //var user = dbLeaveOn.AspNetUsers
+      //    .Where(u => departmentNames.Contains(u.DepartmentName))
+      //    .AsEnumerable()
+      //    .Select(u => new SelectListItem
+      //    {
+      //      Value = u.BioStarEmpNum.ToString(),
+      //      /* Text = u.UserName*/
+      //      Text = u.UserName.Split('@')[0].Replace('.', ' ')
+      //    }).OrderBy(i => i.Text).ToList();
+
+      var user = dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)).ToList();
+      var userlist = user.Select(k => new AspNetUser
+      {
+        UserName = k.UserName.Split('@')[0].Replace('.', ' '),
+        BioStarEmpNum = k.BioStarEmpNum
+      }).ToList();
+
+      ViewBag.Employees = userlist;
       //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
-      return Json(users, JsonRequestBehavior.AllowGet);
+      //return Json(users, JsonRequestBehavior.AllowGet);
+
+      return PartialView("_EmployeeList");
     }
     private string CapitalizeName(string userName)
     {

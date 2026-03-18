@@ -2,104 +2,101 @@
 
 @{ ViewBag.Title = "Index";
   Layout = "~/Views/Shared/_Layout.cshtml"; }
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 <div>
 
+  <div class="row">
+
+    @if (User.IsInRole("Admin"))
+    {
+      // Department Dropdown for Admin (Multi-select)
+
+      <div id="divDep" class="form-group col-3">
+        <label class="font-weight-normal">Departments</label>
+        @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+      </div>
 
 
-  @if (User.IsInRole("Admin"))
-  {
-    // Department Dropdown for Admin (Multi-select)
-    //@Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments),
-    //    htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Admin (Multi-select)
-  <div id="listDepartments" class="dropdown-check-list">
-    <span class="anchor">Select Departments</span>
-    <ul class="items">
-      @foreach (var department in ViewBag.Departments as IEnumerable<SelectListItem>)
-        {
-      <li>
-        <label for="dept_@department.Value">
-          <input type="checkbox" value="@department.Value" id="dept_@department.Value" /> @department.Text
-        </label>
-      </li>
-        }
-    </ul>
-  </div>  @*    @Html.DropDownList("EmployeeList", new MultiSelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-    htmlAttributes: new { @class = "selectpicker", @id = "listEmployees", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+      <div class="col-3">
 
-  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-    <span class="anchor">Select Employees</span>
-    <ul class="items">
-    </ul>
-</div> }
-  else if (User.IsInRole("Manager") || User.IsInRole("User"))
-  {
-    // Department Dropdown for Manager (Single department, disabled)
-  @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-                       htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)
-    // Employee List with Checkboxes for Manager (multi-select)
-  <div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-    <span class="anchor">Select Employees</span>
-    <ul class="items">
-      <li>
-        <label for="selectAllEmployees">
-          <input type="checkbox" id="selectAllEmployees" checked  /> Select All Employees
-        </label>
-      </li>
-      @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
-        {
-          var username = employee.Text.Split('@')[0];
-          username = username.Replace(".", " ");
-      <li>
-        <label for="emp_@employee.Value">
-          <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked  /> @username
-        </label>
-      </li>
-        }
-    </ul>
-  </div> }
-  @*else if (User.IsInRole("User"))
-  {
-    // Department Dropdown for User (Single department, disabled)
-  @Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),
-             htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for User (Single user, disabled)
-  @Html.DropDownList("EmployeeList", new SelectList(ViewBag.Employees, "Value", "Text", ViewBag.SelectedEmployees),
-             htmlAttributes: new { @class = "selectpicker", @id = "selectedEmployees", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })}*@
+        <div id="ddlEmp">
+          @Html.Partial("_EmployeeList")
+        </div>
+
+      </div>
+    }
+    else if (User.IsInRole("Manager") || User.IsInRole("User"))
+    {
+
+      @*@Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),*
+      htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)*@
 
 
-  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+      <div id="divDep" class="form-group col-3">
+        <label class="font-weight-normal">Departments</label>
+        @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+      </div>
+      <div class="col-3">
+        <div id="ddlEmp">
+          @Html.Partial("_EmployeeList")
+        </div>
+        </div>
+        @*<div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
+          <span class="anchor">Select Employees</span>
+          <ul class="items">
+            <li>
+              <label for="selectAllEmployees">
+                <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
+              </label>
+            </li>
+            @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
+            {
+              var username = employee.Text.Split('@')[0];
+              username = username.Replace(".", " ");
+              <li>
+                <label for="emp_@employee.Value">
+                  <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked /> @username
+                </label>
+              </li>
+            }
+          </ul>
+        </div>*@}
 
-  @*<button id="load">Go</button>*@
+        <div class="align-self-center d-flex align-items-center gap-3 col-5 mt-3">
 
 
-  @*@Html.DropDownList("selectMonth", (IEnumerable<SelectListItem>)ViewBag.MonthSelectList, htmlAttributes: new { @class = "selectpicker", @id = "selectMonth", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })*@
+          @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
 
 
+          @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+          @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
 
-  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+          <button id="load" style="position: relative;">
+            <span class="button-text">Go</span>
+            <span class="loader" style="display: none;">Loading...</span>
+          </button>
 
+        </div>
+      </div>
+      <div class="row">
+        <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
+        @{ Html.RenderPartial("_UserData", Model); }
+      </div>
+    </div>
 
-  @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+@*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>*@
 
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
 
-  <button id="load" style="position: relative;">
-    <span class="button-text">Go</span>
-    <span class="loader" style="display: none;">Loading...</span>
-  </button>
-  <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
-  @{ Html.RenderPartial("_UserData", Model); }
-</div>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <script type="text/javascript">
   $(document).ready(function () {
+
     $('#datepickerStart').val('@ViewBag.StartDate');
     $('#datepickerEnd').val('@ViewBag.EndDate');
     $(".dropdown-check-list .anchor").click(function (e) {
@@ -107,6 +104,7 @@
       checkList.toggleClass('visible');
       e.stopPropagation();
     });
+
 
     // Initialize start date picker
     $('#datepickerStart').datepicker({
@@ -189,7 +187,8 @@
 
 
     // Load users based on the selected departments for Admin
-    $('#listDepartments input[type="checkbox"]').change(function () {
+    @*$('#listDepartments input[type="checkbox"]').change(function ()
+    {
       var selectedDepartments = [];
       $('#listDepartments input[type="checkbox"]:checked').each(function () {
         selectedDepartments.push($(this).val());
@@ -246,7 +245,7 @@
                 alert('Failed to load users');
             }
         });
-    });
+    });*@
 
     // Function to handle select all employees functionality
     function attachSelectAllEvent() {
@@ -258,7 +257,7 @@
 
     // Show alert if no employees exist
     $('#listEmployees .anchor').click(function () {
-      if ($('#listEmployees ul.items li').length === 1) { 
+      if ($('#listEmployees ul.items li').length === 1) {
         alert("Data Not Exist");
         $('#listEmployees ul.items').css('display', 'none');
       }
@@ -272,6 +271,38 @@
       $('#datepickerStart').prop('disabled', isDisabled);
       $('#datepickerEnd').prop('disabled', isDisabled);
     }
+    $('#listDepartments').on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+    var selectedDepartments = $(this).val(); // this is an array of selected values
+    console.log(selectedDepartments);
+
+    // If nothing is selected, send an empty array
+    if (!selectedDepartments) {
+        selectedDepartments = [];
+    }
+
+    $.ajax({
+        url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8', // important
+        data: JSON.stringify({ departmentNames: selectedDepartments }), // wrap array in object
+        success: function (data) {
+          //console.log('Users received:', data);
+        //  alert(data)
+
+
+          $("#ddlEmp").html(data)
+          $('#idEmployees').selectpicker('refresh')
+            // handle your data here
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+            alert('Failed to load users');
+        }
+    });
+});
+
+
+
 
     $('#load').click(function () {
       // Show the loader and hide the button text
@@ -286,13 +317,18 @@
             var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
             var requestData;
 
-          
+
+
 
             if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
-              var selectedEmployees = [];
-              $('#listEmployees input[type="checkbox"]:checked').each(function () {
-                selectedEmployees.push($(this).val());
-              });
+              //var selectedEmployees = [];
+              //$('#listEmployees input[type="checkbox"]:checked').each(function () {
+              //  selectedEmployees.push($(this).val());
+              //});
+
+              var selectedEmployees = $('#idEmployees option:selected').map(function () {
+                return $(this).val();
+              }).get();
 
               // Check if "on" is at index 0 and shift employee IDs
               if (selectedEmployees[0] === "on") {
@@ -300,22 +336,29 @@
               }
 
                 if (selectedEmployees.length === 0) {
-              if (userRole === "Admin") {
+                  if (userRole === "Admin")
+                  {
+
                 alert('Please select at least one department and one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
                 $("#wait").css("display", "none");
                 disableInputs(false);
                   return;
-              } else {
-                if ($('#listEmployees ul.items li').length === 1) { 
-                  alert("Data Not Exist");
-                  $('#listEmployees ul.items').css('display', 'none');
-                } else
+              }
+              else
+                  {
+
+                //if ($('#listEmployees ul.items li').length === 1) {
+                //  alert("Data Not Exist");
+                //  $('#listEmployees ul.items').css('display', 'none');
+                //} else
+
                 alert('Please select at least one employee.');
                 $('.loader').hide();
                 $('.button-text').show();
                 $("#wait").css("display", "none");
+
                 disableInputs(false);
                   return;
                   }
@@ -339,7 +382,9 @@
               }
 
               requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
-            } else if (userRole === "User") {
+            }
+            else if (userRole === "User")
+            {
               var employeeId = $('#selectedEmployees').val();
               requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
             }
@@ -496,7 +541,7 @@
   }
 
   .datepicker {
-    width: 250px;
+    /*width: 250px;*/
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -507,7 +552,10 @@
   .ui-datepicker {
     width: 250px;
   }
-  
+    .bootstrap-select.form-control{
+      border:1px solid  !important;
+      height:auto !important;
+    }
 
 </style>
 

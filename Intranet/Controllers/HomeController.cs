@@ -10,6 +10,7 @@ using System.Web.Mvc;
 
 namespace Intranet.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private LeaveONEntities db = new LeaveONEntities();
@@ -39,6 +40,7 @@ namespace Intranet.Controllers
           //  return Redirect("https://localhost:44380/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); // this is for testing
 
         }
+        
         public ActionResult Sync()
         {
             ScheduledTasks scheduledTasks = new ScheduledTasks();
@@ -46,13 +48,21 @@ namespace Intranet.Controllers
             {
                 scheduledTasks.SyncAppWithAD("Home Sync Task");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 scheduledTasks.InsertSyncLog("Home Sync Task Call", "error", 0, 0, 0, ex.Message, "Home Sync Task", null);
             }
-   
+
             ViewBag.Message = "Your application description page.";
             
+            return View();
+        }
+
+        public ActionResult TestSync()
+        {  
+
+            ViewBag.Message = "Your application description page.";
+
             return View();
         }
 

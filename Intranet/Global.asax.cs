@@ -21,28 +21,28 @@ namespace Intranet
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             //new ScheduledTasks().Experiment1();
-           new ScheduledTasks().InitTimerForScheduleTasks();
-         // new ScheduledTasks().SyncAppWithAD();
-            StartBackgroundTasks();
+         //  new ScheduledTasks().InitTimerForScheduleTasks();
+          //new ScheduledTasks().SyncAppWithAD("Global Call");
+           // StartBackgroundTasks();
         }
 
-        private static void StartBackgroundTasks()
-        {
-            Task.Run(() =>
-            {
-                try
-                {
-                    ScheduledTasks tasks = new ScheduledTasks();
-                    //tasks.InitTimerForScheduleTasks();
-                     tasks.SyncAppWithAD("Global Call");
-                }
-                catch (Exception ex)
-                {
-                    new ScheduledTasks().InsertSyncLog("Global Call","error",0,0,0, ex.Message, "Global Task",null);
-                    // log error
-                }
-            });
-        }
+        //private static void StartBackgroundTasks()
+        //{
+        //    Task.Run(() =>
+        //    {
+        //        try
+        //        {
+        //            ScheduledTasks tasks = new ScheduledTasks();
+        //            //tasks.InitTimerForScheduleTasks();
+        //             tasks.SyncAppWithAD("Global Call");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            new ScheduledTasks().InsertSyncLog("Global Call","error",0,0,0, ex.Message, "Global Task",null);
+        //            // log error
+        //        }
+        //    });
+        //}
         
         private void ConfigureLogging()
         {

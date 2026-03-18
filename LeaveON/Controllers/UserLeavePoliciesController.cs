@@ -506,14 +506,28 @@ namespace LeaveON.Controllers
 
           foreach (string itm in oldDeps)//get all employees of the deps, selected from UI
           {
-            dep = db.CountryNames.FirstOrDefault(x => x.Name == itm);
-            foreach (AspNetUser aspNetUser in dep.AspNetUsers)
-            {
-              //EmployeeList.Add(aspNetUser.Id);
-              aspNetUser.UserLeavePolicyId = null;
-              db.AspNetUsers.Attach(aspNetUser);
-              db.Entry(aspNetUser).Property(x => x.UserLeavePolicyId).IsModified = true;
-            }
+            
+            // dep = db.CountryNames.FirstOrDefault(x => !String.IsNullOrEmpty(x.Name) && !String.IsNullOrEmpty(itm) && itm.ToLower().Contains(x.Name.ToLower()));
+            if (!string.IsNullOrEmpty(itm))
+           {
+              dep = db.CountryNames.FirstOrDefault(x => x.Name == itm);
+              ////var names = itm.Split(',').Select(x => x.Trim().ToLower()).ToList();
+
+              //dep = db.CountryNames
+              //        .FirstOrDefault(x => !string.IsNullOrEmpty(x.Name) &&
+              //                             names.Contains(x.Name.ToLower()));
+              if (dep != null)
+              {
+                foreach (AspNetUser aspNetUser in dep.AspNetUsers)
+                {
+                  //EmployeeList.Add(aspNetUser.Id);
+                  aspNetUser.UserLeavePolicyId = null;
+                  db.AspNetUsers.Attach(aspNetUser);
+                  db.Entry(aspNetUser).Property(x => x.UserLeavePolicyId).IsModified = true;
+                }
+              }
+
+          }
           }
 
 
@@ -586,7 +600,15 @@ namespace LeaveON.Controllers
         db.UserLeavePolicyDetails.AddRange(userLeavePolicyDetail);
 
 
-        await db.SaveChangesAsync();
+        if(await db.SaveChangesAsync()>0)
+        {
+          TempData["success"] = "Record has benn updated successfully.";
+        }
+        else
+        {
+          TempData["error"] = "There is a problem to update the record.";
+        }
+
         await Utility.AdjustLeaveBalance(userLeavePolicy.Id);
         return RedirectToAction("Index");
       }
