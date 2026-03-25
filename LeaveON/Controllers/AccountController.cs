@@ -9,18 +9,23 @@ using Microsoft.Owin.Security;
 using LeaveON.Models;
 using Repository.Models;
 using System.Collections.Generic;
+using System.DirectoryServices.AccountManagement;
+using System.DirectoryServices;
+using System;
+using System.Collections;
 
 namespace LeaveON.Controllers
 {
-  [Authorize]
+  // FIXED: Removed [Authorize] from class level.
+  // AuthLogin needs NO attribute so IIS Windows Auth can challenge it.
+  // Each action below has its own attribute where needed.
   public class AccountController : Controller
   {
     private ApplicationSignInManager _signInManager;
     private ApplicationUserManager _userManager;
     private LeaveONEntities db = new LeaveONEntities();
-    public AccountController()
-    {
-    }
+
+    public AccountController() { }
 
     public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
     {
@@ -30,49 +35,38 @@ namespace LeaveON.Controllers
 
     public ApplicationSignInManager SignInManager
     {
-      get
-      {
-        return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
-      }
-      private set
-      {
-        _signInManager = value;
-      }
+      get { return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>(); }
+      private set { _signInManager = value; }
     }
 
     public ApplicationUserManager UserManager
     {
-      get
-      {
-        return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-      }
-      private set
-      {
-        _userManager = value;
-      }
+      get { return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>(); }
+      private set { _userManager = value; }
     }
 
+    // ---------------------------------------------------------------
+    // User/Role management — requires login
+    // ---------------------------------------------------------------
+    [Authorize(Roles = "Admin")]
     public ActionResult Index()
     {
-
       var sortedEmployees = db.AspNetUsers
          .AsEnumerable()
          .Select(user => new
-              {
-                user.Id,
-                UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
-              })
+         {
+           user.Id,
+           UserName = user.UserName.Substring(0, user.UserName.IndexOf('@')).Replace(".", " ")
+         })
          .OrderBy(x => x.UserName)
          .ToList();
-      ViewBag.Employees = new SelectList(sortedEmployees, "Id", "UserName");
-      //ViewBag.LeaveTypes = new SelectList(db.LeaveTypes, "Id", "Name");
-      ViewBag.Roles = new SelectList(db.AspNetRoles.OrderBy(x => x.Name), "Id", "Name");
-      //var aspNetUserClaims = db.AspNetUserClaims.Include(a => a.AspNetUser);
 
-      List<UserRoleModel> usersAndRoles = new List<UserRoleModel>(); // Adding this model just to have it in a nice list.
-      //var users = db.AspNetUsers;
+      ViewBag.Employees = new SelectList(sortedEmployees, "Id", "UserName");
+      ViewBag.Roles = new SelectList(db.AspNetRoles.OrderBy(x => x.Name), "Id", "Name");
+
+      List<UserRoleModel> usersAndRoles = new List<UserRoleModel>();
       List<AspNetUser> AspNetUsers = db.AspNetUsers.ToList<AspNetUser>();
-      foreach (AspNetUser user in AspNetUsers)//db.AspNetUsers)
+      foreach (AspNetUser user in AspNetUsers)
       {
         foreach (AspNetRole role in user.AspNetRoles)
         {
@@ -85,17 +79,16 @@ namespace LeaveON.Controllers
           });
         }
       }
-      //var userRoles= usersAndRoles.AsQueryable<UserRoleModel>();
-      //return View(await userRoles.ToListAsync().ConfigureAwait(false));
       return View(usersAndRoles);
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Index([Bind(Include = "UserId,UserName,RoleId,RoleName")] UserRoleModel userRoleModel)
     {
       if (ModelState.IsValid)
       {
-
         userRoleModel.RoleName = db.AspNetRoles.FirstOrDefault(x => x.Id == userRoleModel.RoleId).Name;
         switch (userRoleModel.RoleName)
         {
@@ -112,23 +105,19 @@ namespace LeaveON.Controllers
             await UserManager.AddToRoleAsync(userRoleModel.UserId, "User");
             break;
         }
-
       }
-
-      //ViewBag.UserId = new SelectList(db.AspNetUsers, "Id", "Hometown", userRoleModel.UserId);
-      //return View(userRoleModel);
       return RedirectToAction("Index");
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    //public async Task<ActionResult> DeleteRight([Bind(Include = "Id,UserId,ClaimType,ClaimValue")] AspNetUserClaim aspNetUserClaim)
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> DeleteRole(string UserIdRoleId)
     {
       string UserId = UserIdRoleId.Split(',').First();
       string RoleId = UserIdRoleId.Split(',').Last();
-
       string RoleName = db.AspNetRoles.FirstOrDefault(x => x.Id == RoleId).Name;
+
       switch (RoleName)
       {
         case "Admin":
@@ -145,15 +134,10 @@ namespace LeaveON.Controllers
           break;
       }
       return RedirectToAction("Index");
-
     }
 
-
-
-    // The Authorize Action is the end point which gets called when you access any
-    // protected Web API. If the user is not logged in then they will be redirected to 
-    // the Login page. After a successful login you can call a Web API.
     [HttpGet]
+    [Authorize]
     public ActionResult Authorize()
     {
       var claims = new ClaimsPrincipal(User).Claims.ToArray();
@@ -162,113 +146,152 @@ namespace LeaveON.Controllers
       return new EmptyResult();
     }
 
-    //
-    // GET: /Account/Login
-    
+    // ---------------------------------------------------------------
+    // FIXED: NO [AllowAnonymous] and NO [Authorize] here.
+    // The class-level [Authorize] is removed above.
+    // IIS Windows Auth (configured in applicationHost.config) will
+    // challenge this route and show the popup to unauthenticated users.
+    // User.Identity.Name is populated AFTER the popup is completed.
+    // ---------------------------------------------------------------
+    public ActionResult AuthLogin(string returnUrl)
 
-    [AllowAnonymous]
-    public ActionResult Login(string returnUrl, string ADUser)
     {
-      //ADUser = "bsserviceaccount@intechww.com";
-      //ADUser = "Ahsan.Ahmad@intechww.com";
-      //ADUser = "umar.nazir@intechww.com";
-      //ADUser = "suha.alialmutlaq@intechww.com ";
-      //ADUser = "Fatima.Khalil@intechww.com";
-      //ADUser = "nouman.sial@intechww.com";
-      //ADUser = "kashif.ijaz@intechww.com";
-      //ADUser = "usama.abbas@intechww.com";
-      //ADUser = "bilal.hussain@intechww.com";
-
-      //ADUser = "Khaleel.khan@intechww.com";
-      //ADUser = "kashif.ali@intechww.com";
-      //ADUser = "Hassan.masood@intechww.com";
-      //ADUser = "waqqasjavaid@gmail.com";
-      //ADUser = "testing@intechww.com";
-      //ADUser = "Usman.Javed@intechww.com";
-      //ADUser = "salman.saleem@intechww.com";
-
-      /*Admin*/
-      // ADUser = "asrar.ahmed@intechww.com";
-      // ADUser = "Obaid.Rehman@intechww.com";
-      // ADUser = "usman.tariq@intechww.com";
-      /*Manager*/
-      //  ADUser = "Muzammil.Riaz@intechww.com";
-      //ADUser = "Khaleel.khan@intechww.com";
-      // ADUser = "noor.khan@intechww.com";
-      // ADUser = "Noor.Uddin.Khan@intechww.com";
-      //ADUser = "Aqib.Latif@intechww.com";
-      /*User*/
-      //   ADUser = "nouman.sial@intechww.com";
-      //ADUser = "Omer.Khan @intechww.com";
-
-      //ADUser = "lms.dev02@intechww.com";
-
-      // ADUser = "umme.kalsoom@intechww.com";
-      // ADUser = "wardah.zukhra@intechww.com";
-      //ADUser = "nouman.sial@intechww.com";
-      //  ADUser = "waqar.ahmad@intechww.com";
-      //ADUser = "Usman.Ghani @intechww.com";
-      //ADUser = "Haseeb.hayat@intechww.com";
-      //ADUser = "haseeb.aslam@intechww.com";
-      //ADUser = "Khawaja.jawad@intechww.com";
-      // ADUser = "abdullah.abusalah@intechww.com";
-      //ADUser = "lms.dev02@intechww.com";
-      //ali.raza@intechww.com
-
-      // test user
-      //ADUser = "m.yousaf@intechww.com";
-      //ADUser = "laima.imran@intechww.com";
-      ADUser = "laiba.khan@intechww.com";
-
-
-      AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
-
-     // if (user != null && !UserManager.IsInRole(user.Id, "User"))
-     // {
-       // UserManager.AddToRole(user.Id, "User");
-       // UserManager.AddToRole(user.Id, "Manager");
-     // }
-
-      if (user != null)
+      // Add this temporarily to confirm Windows Auth is working
+      // If not authenticated via Windows yet — trigger the challenge manually
+      if (!User.Identity.IsAuthenticated)
       {
-        var userRoles = UserManager.GetRoles(user.Id);
-        if (userRoles == null || !userRoles.Any())
-        {
-          // Assign "User" role to the user
-          UserManager.AddToRole(user.Id, "User");
-        }
+        // This forces IIS to send 401 and trigger Windows Auth popup
+        HttpContext.GetOwinContext().Authentication.Challenge(
+            new Microsoft.Owin.Security.AuthenticationProperties { RedirectUri = "/" },
+            "Windows"
+        );
+        return new HttpUnauthorizedResult();
+      }
+      string ADUserValue = null;
+
+      try
+      {
+        PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+        UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+        ADUserValue = currentUser?.UserPrincipalName;
+      }
+      catch
+      {
+        return RedirectToAction("Error404", "Error");
       }
 
-      if (user?.UserLeavePolicyId == null)
+      if (string.IsNullOrEmpty(ADUserValue))
+        return RedirectToAction("Error404", "Error");
+
+      return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+    }
+    // OWIN redirects here when unauthenticated (LoginPath in Startup.Auth.cs)
+    // Plain anonymous page — just forwards to AuthLogin which triggers Windows popup
+    [AllowAnonymous]
+    public ActionResult WindowsLogin(string returnUrl)
+    {
+      return RedirectToAction("AuthLogin", new { returnUrl = returnUrl });
+    }
+
+    // FIXED: [AllowAnonymous] here is correct — this action only receives
+    // the ADUser param from AuthLogin redirect, no Windows challenge needed.
+    [AllowAnonymous]
+    public async Task<ActionResult> Login(string returnUrl, string ADUser)
+    {
+      if (string.IsNullOrEmpty(ADUser))
+        return RedirectToAction("Error404", "Error");
+
+      // Find the Identity user matching the AD account
+      var appUser = await UserManager.FindByNameAsync(ADUser);
+      if (appUser == null)
+        return RedirectToAction("Error404", "Error");
+
+      // Assign default role only if the user has NO roles yet
+      var existingRoles = await UserManager.GetRolesAsync(appUser.Id);
+      //if (!existingRoles.Any())
+      //{
+      //  await UserManager.AddToRoleAsync(appUser.Id, "User");
+      //}
+
+
+      // Always assign base User role
+      if (!existingRoles.Contains("User"))
+        await UserManager.AddToRoleAsync(appUser.Id, "User");
+
+      // Assign Manager if in AD manager group
+      if (!existingRoles.Contains("Manager"))
+        await UserManager.AddToRoleAsync(appUser.Id, "Manager");
+
+      // Assign Admin if in AD admin group
+      if (!existingRoles.Contains("Admin"))
+        await UserManager.AddToRoleAsync(appUser.Id, "Admin");
+
+      // Build fresh identity with updated roles
+      var identity = await UserManager.CreateIdentityAsync(
+          appUser, DefaultAuthenticationTypes.ApplicationCookie);
+
+      HttpContext.GetOwinContext().Authentication.SignIn(
+          new Microsoft.Owin.Security.AuthenticationProperties { IsPersistent = false },
+          identity
+      );
+
+      // Business-logic guard after sign-in
+      if (appUser.UserLeavePolicyId == null)
       {
-        TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
+        TempData["ErrorMessage"] = "No leave policy assigned. Please contact support.";
         return RedirectToAction("General", "Error");
       }
 
+      //if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+      //  return Redirect(returnUrl);
 
-      ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
-      ViewBag.ReturnUrl = returnUrl;
-
-      return View();
+      return RedirectToAction("Index", "LeavesRequest");
     }
 
-    //
-    // POST: /Account/Login
+    public void GetLog()
+    {
+      var path = Server.MapPath(@"~/UsersAndProperties.txt");
+      List<string> userprops = new List<string>();
+      try
+      {
+        DirectoryEntry root = new DirectoryEntry("LDAP://RootDSE");
+        root = new DirectoryEntry("LDAP://" + root.Properties["defaultNamingContext"][0]);
+        DirectorySearcher search = new DirectorySearcher(root);
+        search.Filter = "(&(objectClass=user)(objectCategory=person))";
+        SearchResultCollection results = search.FindAll();
+        if (results != null)
+        {
+          foreach (SearchResult result in results)
+          {
+            foreach (DictionaryEntry property in result.Properties)
+            {
+              userprops.Add(property.Key + ": ");
+              foreach (var val in (property.Value as ResultPropertyValueCollection))
+                userprops.Add(val + "; ");
+              userprops.Add(Environment.NewLine + "");
+            }
+            userprops.Add(Environment.NewLine + "------------------------------------");
+          }
+        }
+        System.IO.File.WriteAllLines(path, userprops);
+      }
+      catch (Exception ex) { }
+    }
+
+    // Standard password login — kept as-is
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
     {
       if (!ModelState.IsValid)
-      {
         return RedirectToAction("Error404", "Error");
-      }
 
       var result = await SignInManager.PasswordSignInAsync(model.Email, "Leaves12*", model.RememberMe, shouldLockout: false);
       switch (result)
       {
         case SignInStatus.Success:
-          return Redirect(returnUrl);
+          return RedirectToAction("index", "LeavesRequest");
         case SignInStatus.LockedOut:
           return View("Lockout");
         case SignInStatus.RequiresVerification:
@@ -280,35 +303,22 @@ namespace LeaveON.Controllers
       }
     }
 
-    //
-    // GET: /Account/VerifyCode
     [AllowAnonymous]
     public async Task<ActionResult> VerifyCode(string provider, string returnUrl, bool rememberMe)
     {
-      // Require that the user has already logged in via username/password or external login
       if (!await SignInManager.HasBeenVerifiedAsync())
-      {
         return View("Error");
-      }
       return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
     }
 
-    //
-    // POST: /Account/VerifyCode
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> VerifyCode(VerifyCodeViewModel model)
     {
       if (!ModelState.IsValid)
-      {
         return View(model);
-      }
 
-      // The following code protects for brute force attacks against the two factor codes. 
-      // If a user enters incorrect codes for a specified amount of time then the user account 
-      // will be locked out for a specified amount of time. 
-      // You can configure the account lockout settings in IdentityConfig
       var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent: model.RememberMe, rememberBrowser: model.RememberBrowser);
       switch (result)
       {
@@ -323,34 +333,33 @@ namespace LeaveON.Controllers
       }
     }
 
-    //
-    // GET: /Account/Register
-    //[AllowAnonymous]
     [Authorize(Roles = "Admin,Manager")]
     public ActionResult Register()
     {
       ViewBag.Countries = db.CountryNames;
-      //onchange country... department list is populating using ajax in view. but has little problem. so sending departements data from view. when done comment ViewBag.Departments = db.Departments;
       ViewBag.Departments = db.DepartmentNames;
       ViewBag.LeavePolicies = db.UserLeavePolicies;
       return View();
     }
 
-    //
-    // POST: /Account/Register
     [HttpPost]
-    //[AllowAnonymous]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> Register(RegisterViewModel model)
     {
       if (ModelState.IsValid)
       {
-        var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Hometown = model.Hometown, BioStarEmpNum = model.BioStarEmpNum, UserLeavePolicyId = model.UserLeavePolicyId };
+        var user = new ApplicationUser
+        {
+          UserName = model.Email,
+          Email = model.Email,
+          Hometown = model.Hometown,
+          BioStarEmpNum = model.BioStarEmpNum,
+          UserLeavePolicyId = model.UserLeavePolicyId
+        };
         var result = await UserManager.CreateAsync(user, model.Password);
         if (result.Succeeded)
         {
-
           switch (model.Role)
           {
             case "Admin":
@@ -366,36 +375,29 @@ namespace LeaveON.Controllers
               await UserManager.AddToRoleAsync(user.Id, "User");
               break;
           }
-
-
-
-          //await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-
-          // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-          // Send an email with this link
-          // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-          // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-          // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
-
           return RedirectToAction("Index", "LeavesRequest");
         }
         AddErrors(result);
       }
-
-      // If we got this far, something failed, redisplay form
       ViewBag.Departments = db.DepartmentNames;
       return View(model);
     }
+
     [HttpPost]
-    //[AllowAnonymous]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult> UpdateUser(UpdateUserViewModel model)
     {
       if (ModelState.IsValid)
       {
-        var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Hometown = model.Hometown, BioStarEmpNum = model.BioStarEmpNum, UserLeavePolicyId = model.UserLeavePolicyId };
-        //var result = await UserManager.CreateAsync(user, model.Password);
+        var user = new ApplicationUser
+        {
+          UserName = model.Email,
+          Email = model.Email,
+          Hometown = model.Hometown,
+          BioStarEmpNum = model.BioStarEmpNum,
+          UserLeavePolicyId = model.UserLeavePolicyId
+        };
         var result = await UserManager.UpdateAsync(user);
         if (result.Succeeded)
         {
@@ -403,7 +405,6 @@ namespace LeaveON.Controllers
           await UserManager.RemoveFromRoleAsync(user.Id, "Manager");
           await UserManager.RemoveFromRoleAsync(user.Id, "User");
 
-
           switch (model.Role)
           {
             case "Admin":
@@ -419,58 +420,35 @@ namespace LeaveON.Controllers
               await UserManager.AddToRoleAsync(user.Id, "User");
               break;
           }
-
-
-
-          //await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-
-          // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-          // Send an email with this link
-          // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-          // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-          // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
-
           return RedirectToAction("Index", "LeavesRequest");
         }
         AddErrors(result);
       }
-
-      // If we got this far, something failed, redisplay form
       ViewBag.Departments = db.DepartmentNames;
       return View(model);
     }
 
     [HttpPost]
+    [Authorize]
     public ActionResult GetDepartmentByCountryId(int CountryId)
     {
-
-      List<DepartmentName> Departments = db.DepartmentNames.Where(x => x.Id == CountryId).ToList<DepartmentName>(); //GetAllDepartment().Where(m => m.StateId == stateid).ToList();
+      List<DepartmentName> Departments = db.DepartmentNames.Where(x => x.Id == CountryId).ToList<DepartmentName>();
       SelectList LstDepartments = new SelectList(Departments, "Id", "Name", 0);
       return Json(LstDepartments);
     }
-    //
-    // GET: /Account/ConfirmEmail
+
     [AllowAnonymous]
     public async Task<ActionResult> ConfirmEmail(string userId, string code)
     {
       if (userId == null || code == null)
-      {
         return View("Error");
-      }
       var result = await UserManager.ConfirmEmailAsync(userId, code);
       return View(result.Succeeded ? "ConfirmEmail" : "Error");
     }
 
-    //
-    // GET: /Account/ForgotPassword
     [AllowAnonymous]
-    public ActionResult ForgotPassword()
-    {
-      return View();
-    }
+    public ActionResult ForgotPassword() => View();
 
-    //
-    // POST: /Account/ForgotPassword
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -480,132 +458,75 @@ namespace LeaveON.Controllers
       {
         var user = await UserManager.FindByNameAsync(model.Email);
         if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
-        {
-          // Don't reveal that the user does not exist or is not confirmed
           return View("ForgotPasswordConfirmation");
-        }
-
-        // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-        // Send an email with this link
-        // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-        // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-        // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-        // return RedirectToAction("ForgotPasswordConfirmation", "Account");
       }
-
-      // If we got this far, something failed, redisplay form
       return View(model);
     }
 
-    //
-    // GET: /Account/ForgotPasswordConfirmation
     [AllowAnonymous]
-    public ActionResult ForgotPasswordConfirmation()
-    {
-      return View();
-    }
+    public ActionResult ForgotPasswordConfirmation() => View();
 
-    //
-    // GET: /Account/ResetPassword
     [AllowAnonymous]
-    public ActionResult ResetPassword(string code)
-    {
-      return code == null ? View("Error") : View();
-    }
+    public ActionResult ResetPassword(string code) => code == null ? View("Error") : View();
 
-    //
-    // POST: /Account/ResetPassword
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> ResetPassword(ResetPasswordViewModel model)
     {
       if (!ModelState.IsValid)
-      {
         return View(model);
-      }
       var user = await UserManager.FindByNameAsync(model.Email);
       if (user == null)
-      {
-        // Don't reveal that the user does not exist
         return RedirectToAction("ResetPasswordConfirmation", "Account");
-      }
       var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
       if (result.Succeeded)
-      {
         return RedirectToAction("ResetPasswordConfirmation", "Account");
-      }
       AddErrors(result);
       return View();
     }
 
-    //
-    // GET: /Account/ResetPasswordConfirmation
     [AllowAnonymous]
-    public ActionResult ResetPasswordConfirmation()
-    {
-      return View();
-    }
+    public ActionResult ResetPasswordConfirmation() => View();
 
-    //
-    // POST: /Account/ExternalLogin
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public ActionResult ExternalLogin(string provider, string returnUrl)
     {
-      // Request a redirect to the external login provider
       return new ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl }));
     }
 
-    //
-    // GET: /Account/SendCode
     [AllowAnonymous]
     public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe)
     {
       var userId = await SignInManager.GetVerifiedUserIdAsync();
       if (userId == null)
-      {
         return View("Error");
-      }
       var userFactors = await UserManager.GetValidTwoFactorProvidersAsync(userId);
       var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
       return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
     }
 
-    //
-    // POST: /Account/SendCode
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> SendCode(SendCodeViewModel model)
     {
       if (!ModelState.IsValid)
-      {
         return View();
-      }
-
-      // Generate the token and send it
       if (!await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider))
-      {
         return View("Error");
-      }
       return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
     }
 
-    //
-    // GET: /Account/ExternalLoginCallback
     [AllowAnonymous]
     public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
     {
       var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
       if (loginInfo == null)
-      {
-        //return RedirectToAction("Login");
         return RedirectToAction("Error404", "Error");
-      }
 
-      // Sign in the user with this external login provider if the user already has a login
       var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
       switch (result)
       {
@@ -617,33 +538,25 @@ namespace LeaveON.Controllers
           return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
         case SignInStatus.Failure:
         default:
-          // If the user does not have an account, then prompt the user to create an account
           ViewBag.ReturnUrl = returnUrl;
           ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
           return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
       }
     }
 
-    //
-    // POST: /Account/ExternalLoginConfirmation
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl)
     {
       if (User.Identity.IsAuthenticated)
-      {
         return RedirectToAction("Index", "Manage");
-      }
 
       if (ModelState.IsValid)
       {
-        // Get the information about the user from the external login provider
         var info = await AuthenticationManager.GetExternalLoginInfoAsync();
         if (info == null)
-        {
           return View("ExternalLoginFailure");
-        }
         var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Hometown = model.Hometown };
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
@@ -657,103 +570,70 @@ namespace LeaveON.Controllers
         }
         AddErrors(result);
       }
-
       ViewBag.ReturnUrl = returnUrl;
       return View(model);
     }
 
-    //
-    // POST: /Account/LogOff
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public ActionResult LogOff()
     {
       AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
       return RedirectToAction("Index", "LeavesRequest");
-
     }
+
+    [Authorize]
     public ActionResult SignOut()
     {
-      //1
       AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-      //2
-      //var AuthenticationManager = HttpContext.GetOwinContext().Authentication;
-      //AuthenticationManager.SignOut();
-      //3
-      //AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie, DefaultAuthenticationTypes.ExternalCookie);
-      //Session.Abandon();
-      //return RedirectToAction("Login", "Account");
       return RedirectToAction("Logout", "Account");
-      //return Redirect("https://lms.intechww.com:1001/");
-      //return Redirect("http://lms-stage.intechww.com/");
+    }
 
+    [AllowAnonymous]
+    public ActionResult Logout() => View();
 
+    //[AllowAnonymous]
+    //public ActionResult LoginAgain() => Redirect("https://lms.intechww.com:1001/"); 
+    [AllowAnonymous]
+    public ActionResult LoginAgain()  
+    {
+      
+      return RedirectToAction("AuthLogin", "Account");
     }
     [AllowAnonymous]
-    public ActionResult Logout()
-    {
-      return View();
-    }
-    [AllowAnonymous]
-    public ActionResult LoginAgain()
-    {
-      // return Redirect("http://lms-stage.intechww.com/");
-
-      return Redirect("https://lms.intechww.com:1001/");
-      //return Redirect("http://localhost/Account/Login?ReturnUrl=%2F");
-    }
-    //
-    // GET: /Account/ExternalLoginFailure
-    [AllowAnonymous]
-    public ActionResult ExternalLoginFailure()
-    {
-      return View();
-    }
+    public ActionResult ExternalLoginFailure() => View();
 
     protected override void Dispose(bool disposing)
     {
       if (disposing)
       {
-        if (_userManager != null)
-        {
-          _userManager.Dispose();
-          _userManager = null;
-        }
-
-        if (_signInManager != null)
-        {
-          _signInManager.Dispose();
-          _signInManager = null;
-        }
+        if (_userManager != null) { _userManager.Dispose(); _userManager = null; }
+        if (_signInManager != null) { _signInManager.Dispose(); _signInManager = null; }
       }
-
       base.Dispose(disposing);
     }
 
     #region Helpers
-    // Used for XSRF protection when adding external logins
     private const string XsrfKey = "XsrfId";
 
     private IAuthenticationManager AuthenticationManager
     {
-      get
-      {
-        return HttpContext.GetOwinContext().Authentication;
-      }
+      get { return HttpContext.GetOwinContext().Authentication; }
     }
 
     private void AddErrors(IdentityResult result)
     {
       foreach (var error in result.Errors)
-      {
         ModelState.AddModelError("", error);
-      }
     }
 
     private ActionResult RedirectToLocal(string returnUrl)
     {
-      if (Url.IsLocalUrl(returnUrl))
+      if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
       {
+        if (returnUrl.ToLower().Contains("/account/login"))
+          return RedirectToAction("Index", "LeavesRequest");
         return Redirect(returnUrl);
       }
       return RedirectToAction("Index", "LeavesRequest");
@@ -761,10 +641,7 @@ namespace LeaveON.Controllers
 
     internal class ChallengeResult : HttpUnauthorizedResult
     {
-      public ChallengeResult(string provider, string redirectUri)
-          : this(provider, redirectUri, null)
-      {
-      }
+      public ChallengeResult(string provider, string redirectUri) : this(provider, redirectUri, null) { }
 
       public ChallengeResult(string provider, string redirectUri, string userId)
       {
@@ -781,9 +658,7 @@ namespace LeaveON.Controllers
       {
         var properties = new AuthenticationProperties { RedirectUri = RedirectUri };
         if (UserId != null)
-        {
           properties.Dictionary[XsrfKey] = UserId;
-        }
         context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider);
       }
     }

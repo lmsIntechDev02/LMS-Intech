@@ -323,6 +323,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\AnnualLeaveModel.cs" />
     <Compile Include="Models\ErrorViewModel.cs" />
+    <Compile Include="Models\Procedures\LeaveAbsentModel.cs" />
     <Compile Include="Models\RightsViewModel.cs" />
     <Compile Include="Models\UserLeavePolicyViewModel.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -2446,6 +2447,8 @@
     <Content Include="Views\LeavesResponse\LeaveReport.cshtml" />
     <Content Include="Views\LeavesResponse\_LeaveReport.cshtml" />
     <Content Include="Views\AccessBiostarTA\_EmployeeList.cshtml" />
+    <Content Include="Views\LeavesResponse\LeaveAbsentReport.cshtml" />
+    <Content Include="Views\LeavesResponse\_LeaveAbsentReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,6 +1,7 @@
-@model IEnumerable<LeaveON.UtilityClasses.TimeData>
+ 
+@model IEnumerable<LeaveON.Models.Procedures.LeaveAbsentModel>
 
-@{ ViewBag.Title = "Index";
+@{ ViewBag.Title = "Leave/Absent";
   Layout = "~/Views/Shared/_Layout.cshtml"; }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
@@ -10,58 +11,38 @@
 
     @if (User.IsInRole("Admin"))
     {
-      // Department Dropdown for Admin (Multi-select)
-
-      <div id="divDep" class="form-group col-3">
-        <label class="font-weight-normal">Departments</label>
-        @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
-      </div>
 
 
-      <div class="col-3">
-
-        <div id="ddlEmp">
-          @Html.Partial("_EmployeeList")
-        </div>
-
-      </div>
-    }
-    else if (User.IsInRole("Manager") || User.IsInRole("User"))
-    {
-
-      @*@Html.DropDownList("DepartmentList", new SelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartment),*
-        htmlAttributes: new { @class = "selectpicker", @id = "listDepartments", @disabled = "disabled", data_live_search = "true", data_actions_box = "true", data_done_button = "true" }) // User Dropdown for Manager (Multi-select)*@
+  <div id="divDep" class="form-group col-3">
+    <label class="font-weight-normal">Departments</label>
+    @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text"), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+  </div>
 
 
-      <div id="divDep" class="form-group col-3">
-        <label class="font-weight-normal">Departments</label>
-        @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
-      </div>
-      <div class="col-3">
-        <div id="ddlEmp">
-          @Html.Partial("_EmployeeList")
-        </div>
-      </div>
-      @*<div id="listEmployees" class="dropdown-check-list employee-dropdown-width">
-          <span class="anchor">Select Employees</span>
-          <ul class="items">
-            <li>
-              <label for="selectAllEmployees">
-                <input type="checkbox" id="selectAllEmployees" checked /> Select All Employees
-              </label>
-            </li>
-            @foreach (var employee in ViewBag.Employees as IEnumerable<SelectListItem>)
-            {
-              var username = employee.Text.Split('@')[0];
-              username = username.Replace(".", " ");
-              <li>
-                <label for="emp_@employee.Value">
-                  <input type="checkbox" class="employeeCheckbox" value="@employee.Value" name="employeeIds" id="emp_@employee.Value" checked /> @username
-                </label>
-              </li>
-            }
-          </ul>
-        </div>*@}
+          <div class="col-3">
+
+            <div id="ddlEmp">
+
+              @Html.Partial("~/Views/AccessBiostarTA/_EmployeeList.cshtml")
+            </div>
+
+          </div> }
+                else if (User.IsInRole("Manager") || User.IsInRole("User"))
+                {
+
+
+
+          <div id="divDep" class="form-group col-3">
+            <label class="font-weight-normal">Departments</label>
+            @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text", ViewBag.SelectedDepartments), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+          </div>
+                  <div class="col-3">
+                    <div id="ddlEmp">
+
+                      @Html.Partial("~/Views/AccessBiostarTA/_EmployeeList.cshtml")
+                    </div>
+                  </div>}
+
 
     <div class="d-flex align-items-center gap-3 col-5 form-group">
 
@@ -73,7 +54,7 @@
         @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
       </div>
 
-      @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+       
       <div>
         <div>
           <label class="font-weight-normal">End Date</label>
@@ -89,7 +70,7 @@
   </div>
   <div class="row">
     <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
-    @{ Html.RenderPartial("_UserData", Model); }
+    @{ Html.RenderPartial("_LeaveAbsentReport", Model); }
   </div>
 </div>
 
@@ -105,6 +86,8 @@
 <script type="text/javascript">
   $(document).ready(function () {
 
+
+    //$('.ddlMembershipCategory').selectpicker('val', OfferMembershipCategories);
     $('#datepickerStart').val('@ViewBag.StartDate');
     $('#datepickerEnd').val('@ViewBag.EndDate');
     $(".dropdown-check-list .anchor").click(function (e) {
@@ -174,111 +157,13 @@
       $('#datepickerEnd').prop('disabled', false);
     }
 
-    // Close dropdown when clicking outside
-    $(document).click(function (e) {
-      if (!$(e.target).closest('.dropdown-check-list').length) {
-        $(".dropdown-check-list").removeClass('visible');
-      }
-    })
-
-    // Handle Select All functionality
-    $('#selectAllEmployees').change(function () {
-      var isChecked = $(this).is(':checked');
-      $('#listEmployees .employeeCheckbox').prop('checked', isChecked);
-    });
-
-    // Handle individual checkbox changes to update "Select All" state
-    $('#listEmployees').on('change', '.employeeCheckbox', function () {
-      var allChecked = $('#listEmployees .employeeCheckbox').length === $('#listEmployees .employeeCheckbox:checked').length;
-      $('#selectAllEmployees').prop('checked', allChecked);
-    });
-
-
-    // Load users based on the selected departments for Admin
-    @*$('#listDepartments input[type="checkbox"]').change(function ()
-    {
-      var selectedDepartments = [];
-      $('#listDepartments input[type="checkbox"]:checked').each(function () {
-        selectedDepartments.push($(this).val());
-      });
-
-
-      if (selectedDepartments.length === 0) {
-        console.log('No departments selected.');
-        return;
-      }
+    
 
 
 
-      function capitalizeFirstLetterOfEachWord(str) {
-        return str.split(' ').map(function (word) {
-          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        }).join(' ');
-      }
 
-              $.ajax({
-            url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
-            type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ departmentNames: selectedDepartments }),
 
-            success: function (data) {
-              var employeeList = $("#listEmployees ul.items");
-              employeeList.empty();
 
-              // Add "Select All Employees" checkbox for the current department employees
-              var selectAllHtml = '<li><label for="selectAllEmployees"><input type="checkbox" id="selectAllEmployees" /> Select All Employees</label></li>';
-              employeeList.append(selectAllHtml);
-
-              $.each(data, function (index, item) {
-                var userName = capitalizeFirstLetterOfEachWord(item.Text);
-
-                  employeeList.append($('<li>').html(
-                    '<label for="emp_' + item.Value + '">' +
-                    '<input type="checkbox"  class="employeeCheckbox" value="' + item.Value + '" id="emp_' + item.Value + '" /> ' +
-                    userName +
-                    '</label>'
-                  ));
-              });
-
-              // Automatically select all employees if any department is selected
-              $('#selectAllEmployees').prop('checked', true);
-              $('#listEmployees input.employeeCheckbox').prop('checked', true);
-
-              // Re-attach change event for "Select All Employees"
-              attachSelectAllEvent();
-            },
-            error: function (xhr, status, error) {
-                console.error('Error:', error);
-                alert('Failed to load users');
-            }
-        });
-    });*@
-
-    // Function to handle select all employees functionality
-    function attachSelectAllEvent() {
-      $('#selectAllEmployees').change(function () {
-        var isChecked = $(this).is(':checked');
-        $('#listEmployees input[type="checkbox"]').prop('checked', isChecked);
-      });
-    }
-
-    // Show alert if no employees exist
-    $('#listEmployees .anchor').click(function () {
-      if ($('#listEmployees ul.items li').length === 1) {
-        alert("Data Not Exist");
-        $('#listEmployees ul.items').css('display', 'none');
-      }
-    });
-
-    // Function to disable or enable inputs
-    function disableInputs(isDisabled) {
-      $('#load').prop('disabled', isDisabled);
-      $('#listDepartments input[type="checkbox"]').prop('disabled', isDisabled);
-      $('#listEmployees input[type="checkbox"]').prop('disabled', isDisabled);
-      $('#datepickerStart').prop('disabled', isDisabled);
-      $('#datepickerEnd').prop('disabled', isDisabled);
-    }
     $('#listDepartments').on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
     var selectedDepartments = $(this).val(); // this is an array of selected values
     console.log(selectedDepartments);
@@ -286,8 +171,8 @@
     // If nothing is selected, send an empty array
     if (!selectedDepartments) {
         selectedDepartments = [];
-    }
-
+      }
+      debugger
     $.ajax({
         url: '@Url.Action("GetUsersByDepartments", "AccessBiostarTA")',
         type: 'POST',
@@ -313,11 +198,12 @@
 
 
     $('#load').click(function () {
+      debugger
       // Show the loader and hide the button text
       $('.loader').show();
       $('.button-text').hide();
       $("#wait").css("display", "block");
-      disableInputs(true);
+     // disableInputs(true);
 
             var reqMonthYear = $('#selectMonth').val();
             var startDate = $('#datepickerStart').val();
@@ -329,19 +215,14 @@
 
 
             if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
-              //var selectedEmployees = [];
-              //$('#listEmployees input[type="checkbox"]:checked').each(function () {
-              //  selectedEmployees.push($(this).val());
-              //});
+
 
               var selectedEmployees = $('#idEmployees option:selected').map(function () {
                 return $(this).val();
               }).get();
 
-              // Check if "on" is at index 0 and shift employee IDs
-              if (selectedEmployees[0] === "on") {
-                selectedEmployees.shift();
-              }
+
+
 
                 if (selectedEmployees.length === 0) {
                   if (userRole === "Admin")
@@ -357,10 +238,7 @@
               else
                   {
 
-                //if ($('#listEmployees ul.items li').length === 1) {
-                //  alert("Data Not Exist");
-                //  $('#listEmployees ul.items').css('display', 'none');
-                //} else
+
 
                 alert('Please select at least one employee.');
                 $('.loader').hide();
@@ -389,7 +267,7 @@
                 return;
               }
 
-              requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
+              requestData = { 'startDate': startDate, 'endDate': endDate, 'userIds': selectedEmployees };
             }
             else if (userRole === "User")
             {
@@ -400,16 +278,15 @@
               var employeeId = $('#listEmployees').val();
               requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId};
             }*@
-
+      
            // JSON.stringify(selectedEmployees)
               $.ajax({
-                url: "@Url.Action("UserData", "AccessBiostarTA")",
+                url: "@Url.Action("GetLeaveAbsentReport", "LeavesResponse")",
                 data: requestData,
                   type: "POST",
-                  success: function (data) {
+                success: function (data)
+                {
                     $("#NewData").html(data);
-                    //$('#listDepartments input[type="checkbox"]').prop('checked', false);
-                    //$('#listEmployees input[type="checkbox"]').prop('checked', false);
                   },
                   error: function (xhr, ajaxOptions, thrownError) {
                       alert('Data provided was not valid');
@@ -549,7 +426,7 @@
   }
 
   .datepicker {
-    /* width: 250px; */
+     width: 250px; 
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -562,14 +439,14 @@
     background: #f8f9fa;
     position: relative;
     top: 0px;
-  }
+  } 
   .ui-datepicker {
     width: 250px;
   }
     .bootstrap-select.form-control{
       border:1px solid  !important;
       height:auto !important;
-    }
+   
 
 </style>
 

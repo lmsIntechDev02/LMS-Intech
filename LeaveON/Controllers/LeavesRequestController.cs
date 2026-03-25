@@ -21,6 +21,7 @@ namespace LeaveON.Controllers
 {
 
   [Authorize(Roles = "Admin,Manager,User")]
+  //[Authorize(Roles = "DOMAIN\\Admin,DOMAIN\\Manager,DOMAIN\\User")]
   public class LeavesRequestController : Controller
   {
     private LeaveONEntities db = new LeaveONEntities();

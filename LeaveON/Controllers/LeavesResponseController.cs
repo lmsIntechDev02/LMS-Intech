@@ -11,6 +11,8 @@ using Repository.Models;
 using Microsoft.AspNet.Identity;
 using LeaveON.EmailSender;
 using LMS.Constants;
+using System.Data.SqlClient;
+using LeaveON.Models.Procedures;
 
 namespace LeaveON.Controllers
 {
@@ -614,8 +616,8 @@ namespace LeaveON.Controllers
       DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
       DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
       List<Leave> LstLeavesData = new List<Leave>();
-      TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
-      TimeSpan totalTimeAllUsers = TimeSpan.Zero;
+    //  TimeSpan totalWorkingHoursAllUsers = TimeSpan.Zero;
+      //TimeSpan totalTimeAllUsers = TimeSpan.Zero;
 
       // Fetch Leave data for each user
       foreach (string UserId in UserIds)
@@ -748,6 +750,145 @@ namespace LeaveON.Controllers
         throw (ex);
       }
 
+    }
+
+
+    public async Task<ActionResult> LeaveAbsentReport()
+    {
+      try
+      {
+        //ViewBag.MonthSelectList = GetMonthSelectList();
+        DateTime startDate, endDate;
+
+        string userId = User.Identity.GetUserId();
+        //IQueryable<Leave> LstAttendances = new IQueryable<Leave>();
+
+        List<Leave> LstLeaves = new List<Leave>();
+ 
+          // In case of empty parameters or first time
+          startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+          endDate = DateTime.Now;
+
+          //ViewBag.Employees = new SelectList(db.AspNetUsers, "BioStarEmpNum", "UserName").OrderBy(i => i.Text);
+
+        
+
+        //StartDate and EndDate for display
+        ViewBag.StartDate = startDate.ToString("dd-MMM-yyyy");
+        ViewBag.EndDate = endDate.ToString("dd-MMM-yyyy");
+
+        // Role-based data population
+        if (User.IsInRole("Admin"))
+        {
+          var departments = db.AspNetUsers
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Select(u => u.DepartmentName)
+                 .Distinct()
+                 .Select(d => new SelectListItem { Value = d, Text = d })
+                 .ToList();
+          ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
+
+          var user = db.AspNetUsers.ToList();
+          var userlist = user.Select(k => new AspNetUser
+          {
+            UserName = k.UserName.Split('@')[0].Replace('.', ' '),
+            BioStarEmpNum = k.BioStarEmpNum
+          }).ToList();
+
+          ViewBag.Employees = userlist;
+          // ViewBag.SelectedEmployees = UserIds;
+        }
+        //else if (User.IsInRole("Manager") || User.IsInRole("User"))
+        else if (User.IsInRole("Manager") || User.IsInRole("User"))
+        {
+
+          var managerDepartment = db.AspNetUsers
+     .Where(u => u.Id == userId)
+     .Select(u => u.DepartmentName)
+     .FirstOrDefault();
+
+          ViewBag.Departments = new SelectList(
+              new List<SelectListItem>
+              {
+        new SelectListItem
+        {
+            Value = managerDepartment,
+            Text = managerDepartment
+        }
+              },
+              "Value",
+              "Text"
+          );
+
+          ViewBag.SelectedDepartments = managerDepartment;
+          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
+          ViewBag.Employees = employeesUnderManager;
+
+          //;new SelectList(employeesUnderManager, "Id", "UserName");
+          //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
+          //ViewBag.SelectedEmployees = UserIds;
+        }
+        //if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+        //{
+        //  // Format the date range for querying
+        //  string formattedStartDate = startDate.ToString("dd-MM-yyyy");
+        //  string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+        //  //var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+        //  var User_Ids = UserIds.Select(id => id).ToList();
+
+        //  LstLeaves = await GetLeavesReport(formattedStartDate, formattedEndDate, User_Ids);
+
+
+        //}
+        //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
+       
+
+        //if (string.IsNullOrEmpty(StartDate) && string.IsNullOrEmpty(EndDate))
+        //{
+        //  return View();
+        //}
+        //else
+        //{
+        //  return PartialView("_LeaveReport", LstLeaves.OrderBy(i => i.DateCreated).ToList());
+        //}
+      }
+      catch (Exception ex)
+      {
+        throw (ex);
+      }
+      return View();
+
+    }
+
+    [HttpPost]
+    public async Task<ActionResult>  GetLeaveAbsentReport(string startDate, string endDate, List<string> userIds)
+    {
+      var sstartDate = new SqlParameter("@StartDate", startDate);
+      var sendDate = new SqlParameter("@EndDate", endDate);
+      var suserIds = new SqlParameter("@UserIds", userIds);
+      List<LeaveAbsentModel> list = new List<LeaveAbsentModel>();
+      try
+      {
+        string userId = string.Join(",", userIds);
+
+        var result = db.Database.SqlQuery<LeaveAbsentModel>(
+    "EXEC GetAbsentAttendanceReport @StartDate, @EndDate, @UserIds",
+    new SqlParameter("@StartDate", startDate),
+    new SqlParameter("@EndDate", endDate),
+    new SqlParameter("@UserIds", userId)
+).ToList();
+         list = result.OrderBy(i => i.DateCreated).ToList();
+      }
+
+      catch (Exception ex)
+      {
+        throw (ex);
+      }
+
+
+     
+
+      return PartialView("_LeaveAbsentReport", list);
     }
 
     public ActionResult GetUsersByDepartments(List<string> departmentNames)
