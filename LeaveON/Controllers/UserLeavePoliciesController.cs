@@ -190,6 +190,7 @@ namespace LeaveON.Controllers
         ViewBag.LeaveTypes = new SelectList(custLeaveTypes, "Id", "Name");
         var userLeavePolicyDetailsForCasualLeave = db.UserLeavePolicyDetails.FirstOrDefault(x => x.UserLeavePolicyId == userLeavePolicy.Id && x.LeaveTypeId == 1);
         userLeavePolicyViewModel.userLeavePolicy = userLeavePolicy;
+
         var leaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 1 && x.UserId == leaveUserId && x.UserLeavePolicyId == userLeavePolicy.Id);
         if (leaveBalance == null)
         {
