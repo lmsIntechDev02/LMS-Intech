@@ -245,7 +245,7 @@ namespace LeaveON.Controllers
       //if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
       //  return Redirect(returnUrl);
 
-      return RedirectToAction("Index", "LeavesRequest");
+      return RedirectToAction("Index", "Dashboard");
     }
 
     public void GetLog()

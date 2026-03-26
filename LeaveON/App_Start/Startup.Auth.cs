@@ -61,26 +61,7 @@ namespace LeaveON
       // });
 
       // new for window
-      app.UseCookieAuthentication(new CookieAuthenticationOptions
-      {
-        AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
-
-        // KEY FIX: LoginPath must NOT be AuthLogin
-        // AuthLogin is protected by Windows Auth (IIS level)
-        // OWIN cannot redirect to a Windows Auth protected path — it loops forever
-        // Instead point to a plain neutral route that immediately redirects to AuthLogin
-        LoginPath = new PathString("/Account/WindowsLogin"),
-
-        ExpireTimeSpan = TimeSpan.FromMinutes(60),
-        SlidingExpiration = true,
-
-        Provider = new CookieAuthenticationProvider
-        {
-          OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
-                        validateInterval: TimeSpan.FromMinutes(20),
-                        regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
-        }
-      });
+      
       // Use a cookie to temporarily store information about a user logging in with a third party login provider
       app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 
@@ -91,7 +72,19 @@ namespace LeaveON
       // Once you check this option, your second step of verification during the login process will be remembered on the device where you logged in from.
       // This is similar to the RememberMe option when you log in.
       //app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
-
+      app.UseCookieAuthentication(new CookieAuthenticationOptions
+      {
+        AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+        LoginPath = new PathString("/Account/WindowsLogin"), // neutral route
+        ExpireTimeSpan = TimeSpan.FromMinutes(60),
+        SlidingExpiration = true,
+        Provider = new CookieAuthenticationProvider
+        {
+          OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
+            validateInterval: TimeSpan.FromMinutes(20),
+            regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+        }
+      });
       // Enable the application to use bearer tokens to authenticate users
       app.UseOAuthBearerTokens(OAuthOptions);
 

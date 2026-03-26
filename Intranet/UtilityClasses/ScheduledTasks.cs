@@ -170,7 +170,7 @@ namespace LeaveON.UtilityClasses
                         List<string> countriesList = new List<string>();
 
 
-                        //  int totalRecords = AllIntechUsers.Count();
+                         // int totalRecords = AllIntechUsers.Count();
 
                         foreach (var result in AllIntechUsers)
                         {
