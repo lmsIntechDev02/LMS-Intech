@@ -2627,6 +2627,9 @@ namespace LeaveON.Controllers
       {
       try
       {
+
+
+        //string ddd = string.Join(",", UserIds);
         //ViewBag.MonthSelectList = GetMonthSelectList();
         DateTime startDate, endDate;
 
@@ -2666,7 +2669,7 @@ namespace LeaveON.Controllers
                  .ToList();
           ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
 
-          var user = dbLeaveOn.AspNetUsers.ToList();
+          var user = dbLeaveOn.AspNetUsers.Where(j=>j.BioStarEmpNum.HasValue).ToList();
           var userlist = user.Select(k => new AspNetUser
           {
             UserName = k.UserName.Split('@')[0].Replace('.', ' '),
@@ -2761,7 +2764,7 @@ namespace LeaveON.Controllers
       //      Text = u.UserName.Split('@')[0].Replace('.', ' ')
       //    }).OrderBy(i => i.Text).ToList();
 
-      var user = dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)).ToList();
+      var user = dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue).ToList();
       var userlist = user.Select(k => new AspNetUser
       {
         UserName = k.UserName.Split('@')[0].Replace('.', ' '),

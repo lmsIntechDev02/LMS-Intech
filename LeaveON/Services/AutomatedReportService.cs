@@ -56,6 +56,7 @@ namespace LeaveON.Services
       public string email { get; set; }
       public int? userLeavePolicyID { get; set; }
       public string UserID { get; set; }
+      public string EmployeeName { get; set; }
       public Nullable<System.DateTime> JoiningDate { get; set; }
     }
     public List<EmailAndIDs> GetUserEmailsAndIDs(string managerEmail)
@@ -65,18 +66,19 @@ namespace LeaveON.Services
         //  var users = context.AspNetUsers.Where(y => y.CntryName != "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
         // users = users.Where(k => k.UserID == "2840417a-7247-44bf-bf71-0e98ae6bb956").ToList();
         //test
-       //   var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "5f6a7d78-64de-4ffe-ad16-8e113bed12c4" || y.Id== "a0cb991c-151d-4dad-aae1-979a3f82355b"))
-        //live
-       var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true)
-        .Select(x => new EmailAndIDs
-        {
-          userId = x.BioStarEmpNum.Value,
-          email = x.Email,
-          userLeavePolicyID = x.UserLeavePolicyId,
-          UserID = x.Id,
-          JoiningDate = x.JoiningDate
-        })
-        .ToList();
+        var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "dc70c0b4-e445-43b5-8c24-1ab960c3f431"))
+      //live
+      // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true)
+      .Select(x => new EmailAndIDs
+      {
+        userId = x.BioStarEmpNum.Value,
+        email = x.Email,
+        userLeavePolicyID = x.UserLeavePolicyId,
+        UserID = x.Id,
+        JoiningDate = x.JoiningDate,
+        EmployeeName = x.EmpolyeeName
+      })
+      .ToList();
 
         return users;
       }
@@ -146,32 +148,17 @@ namespace LeaveON.Services
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
 
-         managerEmails = GetManagersIDs();
+      managerEmails = GetManagersIDs();
 
-      
-      List<string>  managerids = new List<string> {
-"04a6810a-4e58-4d42-ba05-77c24b732fbb",
-"0fb205e2-b783-4519-bb42-5e79caf14d4c",
-"15190594-377e-439f-8b15-716f12cdf427",
-"1ade6e65-50f4-4417-b67f-1120df49062b",
-"32c883f0-b81d-49c6-af49-e203fc081774",
-"49f15a18-dda0-4167-94c0-a4d61b14a47d",
-"506b1293-4c8f-42b4-852f-0a867f17a532",
-"5507d51e-6bbc-4ad7-bdd1-04e23cc9be27",
-"7bf7a1a5-c471-4945-abaa-36c13776b2b9",
-"8b09a910-1426-42c7-ac27-1a9c6fb6a198",
-"8baab32b-997a-485a-9825-b7235a4939ad",
-"937f949d-6991-4a24-b5b3-5005a03473a2",
-"98286b9f-38b4-4e26-9286-498e059b2d07",
-"c8c70a66-c1be-465b-8b99-d0671cf10610",
-"d065c6f0-e442-4717-a333-bc84c2513e52",
-"e3bffb60-614d-4fc3-bb0f-3d2a0f1ee089",
-"f04cb0fc-f550-422f-8400-dff319f0106c"
+
+      List<string> managerids = new List<string> {
+"75aedf88-2b2e-43a0-99fc-78cd00a8aa71"
+
 
       };
 
-      managerEmails= GetManagersListById(managerids);
-      
+      managerEmails = GetManagersListById(managerids);
+
       foreach (var managerEmail in managerEmails)
       {
         using (var context = new LeaveONEntities())
@@ -198,7 +185,7 @@ namespace LeaveON.Services
 
           var attendanceYear = context.AttendanceDatas
               .Where(a => userIds.Contains(a.UserID)
-                       && a.CreatedDate.HasValue )
+                       && a.CreatedDate.HasValue)
               .ToList();
 
           var leaves = context.Leaves
@@ -222,7 +209,7 @@ namespace LeaveON.Services
           List<EmployeeReportData> reportList = new List<EmployeeReportData>();
 
 
-          
+
           foreach (var user in users)
           {
             if (!user.userLeavePolicyID.HasValue)
@@ -238,16 +225,38 @@ namespace LeaveON.Services
                 .Where(a => a.BioStarEmpNum == userIdInt && a.CreatedDate >= user.JoiningDate)
                 .ToList();
 
-            if (userAttendanceMonth.Count() == 0)
-              continue;
 
+            List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
+            List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
+            if (workingMonthDateList.Count > userAttendanceMonth.Count)
+            {
+              var list = workingMonthDateList.Where(date => !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+
+              missedMonthAttendanceDateList.AddRange(list);
+            }
+
+            //if (userAttendanceMonth.Count() == 0)
+            //  continue;
+            //if (missedMonthAttendanceDateList.Count > 0)
+            //{
+            //  AttendanceData attand = new AttendanceData();
+            //  foreach(var item in missedMonthAttendanceDateList)
+            //  {
+            //    attand = new AttendanceData();
+            //    attand.BioStarEmpNum = userIdInt;
+            //    attand.CreatedDate = item;
+            //    //userAttendanceMonth.Add(attand);
+            //    attendanceYear.Add(attand);
+            //  }
+            //}
+           
             var userAttendanceYTD = attendanceYear
-                .Where(a => a.BioStarEmpNum == userIdInt 
+                .Where(a => a.BioStarEmpNum == userIdInt
 
                          && a.CreatedDate >= fiscalStart
                          && a.CreatedDate <= fiscalEnd && a.CreatedDate >= user.JoiningDate)
                 .ToList();
-          
+
 
             DateTime invalidDate = new DateTime(1, 1, 1);
 
@@ -275,7 +284,7 @@ namespace LeaveON.Services
                 .ToHashSet();
 
             var userLeavesYTD = leaves
-                  .Where(l =>l.UserId == user.UserID
+                  .Where(l => l.UserId == user.UserID
                            && (l.LeaveTypeId == 1 || l.LeaveTypeId == 2)
                            && l.IsAccepted1 == 1
                            && l.IsAccepted2 == 1
@@ -291,9 +300,9 @@ namespace LeaveON.Services
                            && l.EndDate <= fiscalEnd).ToList();
 
             int absentYTD = userAttendanceYTD.Count(a =>
-                a.IsAbsent == true 
+                a.IsAbsent == true
                 && !publicHolidays.Contains(a.CreatedDate.Value.Date)
-                && !absenteesYTD.Any(l => a.CreatedDate >= l.StartDate && a.CreatedDate <= l.EndDate) );
+                && !absenteesYTD.Any(l => a.CreatedDate >= l.StartDate && a.CreatedDate <= l.EndDate));
 
             decimal availedLeaveYTD = userLeavesYTD.Sum(l => (decimal)l.TotalDays);
 
@@ -310,7 +319,7 @@ namespace LeaveON.Services
 
             if (shortHoursYTD >= 8)
             {
-              shortDaysToCausalLeave =(int)shortHoursYTD / 8;
+              shortDaysToCausalLeave = (int)shortHoursYTD / 8;
               shortHoursYTD = shortHoursYTD % 8;
 
 
@@ -318,16 +327,24 @@ namespace LeaveON.Services
             }
 
 
-          // availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;  //comment becasue only  pick leave type ID=2 and 1
+            // availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;  //comment becasue only  pick leave type ID=2 and 1
             // if short hour >8  then go to absent
             //if (shortDaysToCausalLeave >= 8)
             //{
-              
+
 
             //  availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;
             //}
 
             int totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
+
+            //  this if user not mark attensance on  userAttendanceMonth then it will as absent
+            if (totalWorkDays > userAttendanceMonth.Count())
+            {
+              absentYTD += (totalWorkDays - userAttendanceMonth.Count());
+            }
+
+
 
             double totalWorkSeconds = userAttendanceMonth
                 .Where(a => a.TotalWorkHours.HasValue && a.TotalWorkHours.Value > 0)
@@ -359,12 +376,12 @@ namespace LeaveON.Services
                 .ToList();
             int casual = 0;
             int annual = 0;
-            if(policyDetail.Where(p => p.LeaveTypeId == 1).Count() > 0)
-               casual = (int)policyDetail.Where(p => p.LeaveTypeId == 1)?.Select(p => p.Allowed)?.FirstOrDefault();
-            if(policyDetail.Where(p => p.LeaveTypeId == 2).Count() > 0)
-                annual = (int)policyDetail.Where(p => p.LeaveTypeId == 2)?.Select(p => p.Allowed)?.FirstOrDefault();
+            if (policyDetail.Where(p => p.LeaveTypeId == 1).Count() > 0)
+              casual = (int)policyDetail.Where(p => p.LeaveTypeId == 1)?.Select(p => p.Allowed)?.FirstOrDefault();
+            if (policyDetail.Where(p => p.LeaveTypeId == 2).Count() > 0)
+              annual = (int)policyDetail.Where(p => p.LeaveTypeId == 2)?.Select(p => p.Allowed)?.FirstOrDefault();
 
-            if (workedMonths < 12 )
+            if (workedMonths < 12)
             {
               casual = (int)Math.Ceiling((casual / 12.0) * workedMonths);
               annual = (int)Math.Ceiling((annual / 12.0) * workedMonths);
@@ -376,20 +393,20 @@ namespace LeaveON.Services
             reportList.Add(new EmployeeReportData
             {
               EmployeeID = user.userId,
-              EmployeeName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().UserName : String.Empty,
+              EmployeeName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().UserName : user.EmployeeName,
               Department = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().DepartmentName : String.Empty,
-              CountryName = userAttendanceMonth.Count > 0 ?  userAttendanceMonth.First().CountryName:String.Empty,
+              CountryName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().CountryName : String.Empty,
               ManagerEmail = managerEmail.Email,
 
               TotalDays = totalWorkDays,
               AbsentDays = absentYTD, // Absents (YTD)
               AvailedLeave = (int)availedLeaveYTD, // Availed Leave (YTD)
 
-              TotalWorkHours = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Sum(a => a.TotalWorkHours):0,
-              TotalBreakHours = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Sum(a => a.BreakHours):0,
+              TotalWorkHours = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Sum(a => a.TotalWorkHours) : 0,
+              TotalBreakHours = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Sum(a => a.BreakHours) : 0,
 
-              LateArrivals = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Count(a => a.IsLateArrival == true):0,
-              EarlyDepartures = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Count(a => a.IsEarlyDeparture == true):0,
+              LateArrivals = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Count(a => a.IsLateArrival == true) : 0,
+              EarlyDepartures = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Count(a => a.IsEarlyDeparture == true) : 0,
 
               AverageTimeIn = avgTimeIn.ToString(@"hh\:mm"),
               AverageTimeOut = avgTimeOut.ToString(@"hh\:mm"),
@@ -1009,13 +1026,47 @@ namespace LeaveON.Services
                                           && x.OffDay <= endOfMonth)
                                   .ToList();
 
+
       // Subtract off days that are weekdays
-      foreach (var offDay in annualOffDays)
-      {
-        workingDays--;
-      }
+      workingDays = workingDays - annualOffDays.Count();
+      //foreach (var offDay in annualOffDays)
+      //{
+      //  workingDays--;
+      //}
 
       return workingDays;
+    }
+
+
+    public static List<DateTime> GetWorkingDayByMonth(int year, int month, int? userLeavePolicyID)
+    {
+      DateTime startOfMonth = new DateTime(year, month, 1);
+      DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+      List<DateTime> workingDates = new List<DateTime>();
+
+
+      for (DateTime date = startOfMonth; date <= endOfMonth; date = date.AddDays(1))
+      {
+        if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+        {
+          workingDates.Add(date);
+        }
+      }
+
+      var context = new LeaveONEntities();
+      // Get all off days for the user that fall within the specified month and year
+      var annualOffDays = context.AnnualOffDays
+                                  .Where(x => x.UserLeavePolicyId == userLeavePolicyID
+                                          && x.OffDay >= startOfMonth
+                                          && x.OffDay <= endOfMonth).Select(k => k.OffDay)
+                                  .ToList();
+
+
+      // Subtract off days that are weekdays
+      workingDates.RemoveAll(date => annualOffDays.Contains(date));
+
+      return workingDates;
     }
     // Generate Manager Report
 
@@ -1037,9 +1088,9 @@ namespace LeaveON.Services
       using (var context = new LeaveONEntities())
       {
         //string managerEmailName = context.AspNetUsers
-            //.Where(u => u.Id == managerEmail)
-            //.Select(u => u.Email)
-            //.FirstOrDefault();
+        //.Where(u => u.Id == managerEmail)
+        //.Select(u => u.Email)
+        //.FirstOrDefault();
 
         if (string.IsNullOrEmpty(managerDetail.Email))
           return;
@@ -1074,7 +1125,11 @@ namespace LeaveON.Services
         // TO
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-          mail.To.Add("laiba.khan@intechww.com"); 
+          //mail.To.Add("laiba.khan@intechww.com");
+
+
+
+          mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -1083,8 +1138,8 @@ namespace LeaveON.Services
         }
 
         // BCC
-       // mail.Bcc.Add("laiba.khan@intechww.com");
-       //mail.Bcc.Add("esswaqas@hotmail.com");
+        // mail.Bcc.Add("laiba.khan@intechww.com");
+        //mail.Bcc.Add("esswaqas@hotmail.com");
 
         //}
 
@@ -1781,11 +1836,11 @@ namespace LeaveON.Services
     public void GeneratePDFManager(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers, HashSet<string> sentEmails)
     {
 
-       if (reportData == null || reportData.Count == 0)
-    {
+      if (reportData == null || reportData.Count == 0)
+      {
         Console.WriteLine("No report data available. Skipping email generation.");
         return; // Exit the method if no data to process
-    }
+      }
       SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com")
       {
         UseDefaultCredentials = false,
@@ -1793,13 +1848,13 @@ namespace LeaveON.Services
         Port = 587,
         EnableSsl = true
       };
-       var groupedByManager = reportData
-      .GroupBy(data => string.IsNullOrEmpty(data.ManagerEmail) ? data.Manager2Email : data.ManagerEmail)
-      .ToList();
+      var groupedByManager = reportData
+     .GroupBy(data => string.IsNullOrEmpty(data.ManagerEmail) ? data.Manager2Email : data.ManagerEmail)
+     .ToList();
 
-   //   var groupedByManager = reportData
-   //.GroupBy(data => data.ManagerEmail)
-   //.ToList();
+      //   var groupedByManager = reportData
+      //.GroupBy(data => data.ManagerEmail)
+      //.ToList();
       //  var groupedByDepartment = reportData.GroupBy(emp => emp.Department.Trim()).ToList();
 
 
@@ -1845,7 +1900,7 @@ namespace LeaveON.Services
           mail.To.Add(new MailAddress(managerEmail));
           //mail.To.Add(new MailAddress("laiba.khan @intechww.com"));
 
-       }
+        }
 
         using (MemoryStream memoryStream = new MemoryStream())
         {
@@ -2024,14 +2079,14 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-       return  context.DepartmentNames.ToList();
+        return context.DepartmentNames.ToList();
       }
     }
     private List<ManagerDto> GetManagersListById(List<string> list)
     {
       using (var context = new LeaveONEntities())
       {
-       // return context.AspNetUsers.Where(u => list.Any(k=>k== u.Id )).ToList();
+        // return context.AspNetUsers.Where(u => list.Any(k=>k== u.Id )).ToList();
         return context.AspNetUsers
         .Where(u => list.Contains(u.Id))
         .Select(u => new ManagerDto
@@ -2044,7 +2099,7 @@ namespace LeaveON.Services
           DepartmentName = u.DepartmentName
         })
         .ToList();
-      }   
+      }
     }
     private List<ManagerDto> GetManagersIDs()
     {
@@ -2052,7 +2107,7 @@ namespace LeaveON.Services
       // using (var context = new LeaveONEntitiesTarget())
       {
         //var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
-        var allowedDepartments = new[] {"IS&T", "Human Resource" };
+        var allowedDepartments = new[] { "IS&T", "Human Resource" };
 
         // Fetch all users who have either ManagerID or Manager2ID
         var managersIDs = context.AspNetUsers
@@ -2063,10 +2118,10 @@ namespace LeaveON.Services
                         Email = u.Email,
                         PhoneNumber = u.PhoneNumber,
                         ManagerName = u.ManagerName,
-                        DepartmentName=u.DepartmentName
+                        DepartmentName = u.DepartmentName
                       })
         .ToList();
-                       
+
         //var managersIDs = context.AspNetUsers
         //  .Where(user => !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID))
         //  .SelectMany(user => new[] { user.ManagerID, user.Manager2ID }) // Select both IDs
@@ -2106,7 +2161,7 @@ namespace LeaveON.Services
         return filteredManagersIDs;
       }
     }
-   
+
     private List<string> GetManagerEmailByDepartment(string department)
     {
       using (var context = new LeaveONEntities())
