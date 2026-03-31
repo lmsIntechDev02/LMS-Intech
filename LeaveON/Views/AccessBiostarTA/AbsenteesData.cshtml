@@ -198,7 +198,7 @@
 
             $.ajax({
               type: 'POST',
-              url: "@Url.Action("GetUsersByDepartments", "AccessBiostarTA")",
+              url: "@Url.Action("GetUsersByDepartmentss", "AccessBiostarTA")",
               dataType: 'json',
               data: { 'DepartmentNames': selectedDepartments },
               success: function (data) {

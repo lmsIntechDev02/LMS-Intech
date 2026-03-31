@@ -2777,6 +2777,40 @@ namespace LeaveON.Controllers
 
       return PartialView("_EmployeeList");
     }
+    [HttpPost]
+    public ActionResult GetUsersByDepartmentss(List<string> departmentNames)
+    {
+      if (departmentNames == null || !departmentNames.Any())
+      {
+        //return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
+
+        ViewBag.Employees = new List<AspNetUser>();
+        return PartialView("_EmployeeList");
+      }
+
+      var users = dbLeaveOn.AspNetUsers
+          .Where(u => departmentNames.Contains(u.DepartmentName))
+          .AsEnumerable()
+          .Select(u => new SelectListItem
+          {
+            Value = u.BioStarEmpNum.ToString(),
+            /* Text = u.UserName*/
+            Text = u.UserName.Split('@')[0].Replace('.', ' ')
+          }).OrderBy(i => i.Text).ToList();
+
+      //var user = dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue).ToList();
+      //var userlist = user.Select(k => new AspNetUser
+      //{
+      //  UserName = k.UserName.Split('@')[0].Replace('.', ' '),
+      //  BioStarEmpNum = k.BioStarEmpNum
+      //}).ToList();
+
+      //ViewBag.Employees = userlist;
+      ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
+      return Json(users, JsonRequestBehavior.AllowGet);
+
+      //return PartialView("_EmployeeList");
+    }
     private string CapitalizeName(string userName)
     {
       if (string.IsNullOrEmpty(userName))
