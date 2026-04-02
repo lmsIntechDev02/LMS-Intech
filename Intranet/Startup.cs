@@ -25,10 +25,10 @@ namespace Intranet
 
             // Schedule your AD sync job
             // comment for testing
-            //RecurringJob.AddOrUpdate(
-            //    "AD-Sync-Job",
-            //    () => new ScheduledTasks().SyncAppWithAD("Hangfire Job"),
-            //    Cron.MinuteInterval(15));   // Change schedule if needed
+          //  RecurringJob.AddOrUpdate(
+          //      "AD-Sync-Job",
+           //     () => new ScheduledTasks().SyncAppWithAD("Hangfire Job"),
+            //    Cron.MinuteInterval(10));   // Change schedule if needed
         }
     }
 }

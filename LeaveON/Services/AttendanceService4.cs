@@ -48,9 +48,7 @@ namespace LeaveON.Services
         //.ToList();
         // commented for  Testing 
         List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x=> x.IsActive == true).ToList();
-        //mohsin.ali@intechww.com
-        //Emmanuel.Dakore@intechww.com
-        // Osaid.Hafeez@intechww.com
+        
 
         //for Testing 
         List<Int32> lsttest = new List<Int32>();
@@ -98,22 +96,24 @@ namespace LeaveON.Services
           }
 
             //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
-            //cmd.Parameters.AddWithValue("@UserId", UserId);
-            //cmd.Parameters.AddWithValue("@StartDate", startDate);
-            //cmd.Parameters.AddWithValue("@EndDate", endDate);
-            DateTime sstartDate = new DateTime(startDate.Year, startDate.Month, startDate.Day);  // 1 March 2026
-            DateTime eendDate = new DateTime(endDate.Year, endDate.Month, endDate.Day); // 31 March 2026
-            cmd = new SqlCommand(@"
-SELECT user_id, devdt, bsevtdt, DEVID, devnm
-FROM punchlog
-WHERE user_id = @UserId
-AND CONVERT(date, devdt) >= @StartDate
-AND CONVERT(date, devdt) <= @EndDate
-ORDER BY devdt", con);
-
+            cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") +   "' order by devdt", con);
             cmd.Parameters.AddWithValue("@UserId", UserId);
-            cmd.Parameters.AddWithValue("@StartDate", sstartDate.Date);
-            cmd.Parameters.AddWithValue("@EndDate", eendDate.Date);
+            cmd.Parameters.AddWithValue("@StartDate", startDate);
+
+            //cmd.Parameters.AddWithValue("@EndDate", endDate);
+            //DateTime sstartDate = new DateTime(startDate.Year, startDate.Month, startDate.Day);  // 1 March 2026
+            //DateTime eendDate = new DateTime(endDate.Year, endDate.Month, endDate.Day); // 31 March 2026
+//            cmd = new SqlCommand(@"
+//SELECT user_id, devdt, bsevtdt, DEVID, devnm
+//FROM punchlog
+//WHERE user_id = @UserId
+//AND CONVERT(date, devdt) >= @StartDate
+//AND CONVERT(date, devdt) <= @EndDate
+//ORDER BY devdt", con);
+
+//            cmd.Parameters.AddWithValue("@UserId", UserId);
+//            cmd.Parameters.AddWithValue("@StartDate", sstartDate.Date);
+//            cmd.Parameters.AddWithValue("@EndDate", eendDate.Date);
             dr = cmd.ExecuteReader();
           string UserName = string.Empty;
           //processing

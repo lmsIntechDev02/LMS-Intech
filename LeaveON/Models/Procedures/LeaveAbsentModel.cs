@@ -16,7 +16,7 @@ namespace LeaveON.Models.Procedures
     public DateTime LeaveStartDate { get; set; }
     public DateTime LeaveEndDate { get; set; }
     public string Status { get; set; }
-    public int TotalDays { get; set; }
+    public decimal TotalDays { get; set; }
     public string Reason { get; set; }
     public string LineManager1 { get; set; }
     public string LineManager2 { get; set; }

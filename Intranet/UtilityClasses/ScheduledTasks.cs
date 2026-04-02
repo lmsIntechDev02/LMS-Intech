@@ -199,6 +199,7 @@ namespace LeaveON.UtilityClasses
                                 departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
                                 countriesList.Add(Convert.ToString(de.Properties["co"].Value));
 
+
                                 if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
                                 {
 
@@ -284,9 +285,14 @@ namespace LeaveON.UtilityClasses
                         List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
                         foreach (string itm in distinctDepartmentNames)
                         {
+                            //if(String.IsNullOrEmpty(itm))
+                            //    continue;
                             DepartmentName departmentName = db.DepartmentNames.FirstOrDefault(x => x.Name == itm);
+                           
+
                             if (departmentName == null && !string.IsNullOrEmpty(itm.Trim()))
                             {
+                                InsertSyncLog(jobName, "Insert", 0, 0, 1, itm, "DepartmentName", null);
                                 departmentName = new DepartmentName() { Name = itm };
                                 db.DepartmentNames.Add(departmentName);
                             }
@@ -298,6 +304,7 @@ namespace LeaveON.UtilityClasses
                             string foundName = distinctDepartmentNames.FirstOrDefault(x => x == itm.Name);
                             if (string.IsNullOrEmpty(foundName))
                             {
+                                InsertSyncLog(jobName, "Delete", 0, 0, 1, itm.Name, "DepartmentName", null);
                                 db.DepartmentNames.Remove(itm);
                             }
                         }
@@ -306,6 +313,7 @@ namespace LeaveON.UtilityClasses
                         List<string> distinctCountriesNames = countriesList.Distinct().ToList();
                         foreach (string itm in distinctCountriesNames)
                         {
+                            
                             CountryName countryName = db.CountryNames.FirstOrDefault(x => x.Name == itm);
                             if (countryName == null && !string.IsNullOrEmpty(itm.Trim()))
                             {
