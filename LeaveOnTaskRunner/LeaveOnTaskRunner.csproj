@@ -85,6 +85,10 @@
       <Project>{edf3d4f6-c46e-42ef-aa38-118574709bfb}</Project>
       <Name>LeaveON</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Repository\Repository.csproj">
+      <Project>{E65CBC04-25CA-456C-AC4E-B22009B0773E}</Project>
+      <Name>Repository</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">

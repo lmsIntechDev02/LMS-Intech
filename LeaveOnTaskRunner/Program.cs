@@ -1,6 +1,9 @@
 ﻿using LeaveON.Services;
+using LeaveON.UtilityClasses;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +17,7 @@ namespace LeaveOnTaskRunner
 
         {
             //// Calculate 'yesterday'
-            DateTime yesterday = DateTime.Today.AddDays(-1);
+            DateTime yesterday = DateTime.Today.AddDays(-2);
             DateTime today = DateTime.Today;
 
             //// Initialize the service
@@ -34,11 +37,11 @@ namespace LeaveOnTaskRunner
             //DateTime endDate = new DateTime(2026, 02, 11);
 
             // testing
-            DateTime startDate = new DateTime(2026, 03, 30);
-            DateTime endDate = new DateTime(2026, 03, 30);
+           // DateTime startDate = new DateTime(2026, 03, 30);
+            //DateTime endDate = new DateTime(2026, 03, 30);
 
-            // DateTime startDate = yesterday;
-            // DateTime endDate = today;
+             DateTime startDate = yesterday;
+            DateTime endDate = today;
 
 
 
@@ -50,12 +53,23 @@ namespace LeaveOnTaskRunner
             // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
             // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
 
-          //  for (int i = 12; i < 28; i++)//9 copm
-           //{
+            //  for (int i = 12; i < 28; i++)//9 copm
+            //{
             //   DateTime startDate = new DateTime(2026, 3, i);
-             //  DateTime endDate = startDate; // same date, no need to recreate
-                await service.ConnectToDBandReturnAttendanceData(startDate, endDate);
-               //Console.WriteLine("Running Break Hours Service..." +i);
+            //  DateTime endDate = startDate; // same date, no need to recreate
+             var userLsit=  await service.GetUserActiveList();
+     
+            Stopwatch overallStopwatch;
+            SqlConnection con;
+            List<TimeData> LstTimeData;
+            AspnetUser
+            foreach (var user in userLsit)
+            {
+                service.NewMethod1(startDate, endDate, out overallStopwatch, out con, out LstTimeData);
+            }
+            service.service
+                 await service.ConnectToDBandReturnAttendanceData(startDate, endDate);
+                //Console.WriteLine("Running Break Hours Service..." +i);
 
                 await breakHours.ConnectToDBandFillBreakHours(startDate, endDate);
           // }

@@ -2789,7 +2789,7 @@ namespace LeaveON.Controllers
       }
 
       var users = dbLeaveOn.AspNetUsers
-          .Where(u => departmentNames.Contains(u.DepartmentName) && u.IsActive == true)
+          .Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue && u.IsActive == true)
           .AsEnumerable()
           .Select(u => new SelectListItem
           {

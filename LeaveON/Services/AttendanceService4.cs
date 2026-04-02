@@ -24,63 +24,85 @@ namespace LeaveON.Services
 
 
     //public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
-    public async Task<List<TimeData>> ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
+
+    public async Task<List<AspNetUser>> GetUserActiveList()
+    {
+      List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.BioStarEmpNum.HasValue )
+        //.Select( x=>
+        //new UserList
+        //{
+        //  BioUserID=x.BioStarEmpNum,
+        //  UserID=x.Id,
+        //  employeeName=x.EmpolyeeName,
+        //  IsActive=x.IsActive
+        //}
+        //)
+        .ToList();
+      return users;
+    }
+    public async Task<List<TimeData>> ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate, ref SqlConnection con, ref List<TimeData>  LstTimeData, Stopwatch overallStopwatch)
 
     {
       try
       {
-        var overallStopwatch = Stopwatch.StartNew();
-        Console.WriteLine("Connecting to database...");
-        string countryName = string.Empty;
-        string previousCountryName = string.Empty;
-        string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
-        SqlConnection con = new SqlConnection(connection);
-        SqlCommand cmd;
-        SqlDataReader dr;
-        List<TimeData> LstTimeData = new List<TimeData>();
-        TimeSpan TotalTime = new TimeSpan();
-        TimeSpan TotalWorkingHours = new TimeSpan();
-        List<string> logg = new List<string>();
+        //Stopwatch overallStopwatch;
+       // SqlConnection con;
+      //  List<TimeData> LstTimeData;
+     //   NewMethod1(startDate, endDate, out overallStopwatch, out con, out LstTimeData);
 
-        //  List<AspNetUser> users = dbLeaveOn.AspNetUsers
-        //.Where(u => u.CntryName != null &&
-        //    (u.CntryName.ToLower() == "pakistan" || u.CntryName.ToLower() == "iraq"))
-        //.ToList();
-        // commented for  Testing 
-        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x=> x.IsActive == true).ToList();
-        
+        return NewMethod(overallStopwatch, con, ref LstTimeData);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("An error occurred while saving changes: " + ex.Message);
+        if (ex.InnerException != null)
+        {
+          Console.WriteLine("Inner exception: " + ex.InnerException.Message);
+        }
+        throw; // important
+      }
+    }
 
-        //for Testing 
-        List<Int32> lsttest = new List<Int32>();
-        //lsttest.Add(3180);
-        //lsttest.Add(2406);  
-        //lsttest.Add(2828);
-        //lsttest.Add(7143);
-        lsttest.Add(2029);
+    public List<TimeData> NewMethod1(DateTime startDate, DateTime endDate,  AspNetUser  aspNetUser )
+    {
+      Stopwatch overallStopwatch;
+      SqlConnection con;
+      List<TimeData> LstTimeData;
+      overallStopwatch = Stopwatch.StartNew();
+      Console.WriteLine("Connecting to database...");
+      string countryName = string.Empty;
+      string previousCountryName = string.Empty;
+      string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
+      con = new SqlConnection(connection);
+      SqlCommand cmd;
+      SqlDataReader dr;
+      LstTimeData = new List<TimeData>();
+      TimeSpan TotalTime = new TimeSpan();
+      TimeSpan TotalWorkingHours = new TimeSpan();
+      List<string> logg = new List<string>();
+
+      List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.BioStarEmpNum.HasValue).ToList();
+
+
+
+
+
+      // List<BreakHour> LstBreakHours = new List<BreakHour>();
+      try
+      {
+        con.Open();
+      }
+      catch (SqlException ex)
+      {
+        Console.WriteLine("❌ Failed to open BioStar DB connection");
+        Console.WriteLine(ex.Message);
+        throw;
+      }
+
        
-        //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => lsttest.Any(k=>k== u.BioStarEmpNum) ).ToList();
        
-        List<int> userIds = users
-                  .Where(x => x.BioStarEmpNum.HasValue)
-                  .Select(x => x.BioStarEmpNum.Value)
-                  .ToList();
-        //List<int> userIds1 = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
-
-        List<BreakHour> LstBreakHours = new List<BreakHour>();
         try
         {
-          con.Open();
-        }
-        catch (SqlException ex)
-        {
-          Console.WriteLine("❌ Failed to open BioStar DB connection");
-          Console.WriteLine(ex.Message);
-          throw;
-        }
-
-        foreach (var aspNetUser in users)
-        {
-          try { 
           Console.WriteLine($"Processing data for Employee: {aspNetUser.UserName} (ID: {aspNetUser.BioStarEmpNum})");
           //int UserId = aspNetUser.BioStarEmpNum.Value;
           int UserId;
@@ -95,26 +117,11 @@ namespace LeaveON.Services
             throw;
           }
 
-            //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
-            cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") +   "' order by devdt", con);
-            cmd.Parameters.AddWithValue("@UserId", UserId);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-
-            //cmd.Parameters.AddWithValue("@EndDate", endDate);
-            //DateTime sstartDate = new DateTime(startDate.Year, startDate.Month, startDate.Day);  // 1 March 2026
-            //DateTime eendDate = new DateTime(endDate.Year, endDate.Month, endDate.Day); // 31 March 2026
-//            cmd = new SqlCommand(@"
-//SELECT user_id, devdt, bsevtdt, DEVID, devnm
-//FROM punchlog
-//WHERE user_id = @UserId
-//AND CONVERT(date, devdt) >= @StartDate
-//AND CONVERT(date, devdt) <= @EndDate
-//ORDER BY devdt", con);
-
-//            cmd.Parameters.AddWithValue("@UserId", UserId);
-//            cmd.Parameters.AddWithValue("@StartDate", sstartDate.Date);
-//            cmd.Parameters.AddWithValue("@EndDate", eendDate.Date);
-            dr = cmd.ExecuteReader();
+          //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
+          cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
+          cmd.Parameters.AddWithValue("@UserId", UserId);
+          cmd.Parameters.AddWithValue("@StartDate", startDate);
+          dr = cmd.ExecuteReader();
           string UserName = string.Empty;
           //processing
           UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
@@ -547,152 +554,140 @@ namespace LeaveON.Services
             }
           }
         }
-      catch (Exception ex)
-      {
-        Console.WriteLine("Error while processing user");
-        Console.WriteLine($"UserName: {aspNetUser.UserName}");
-        Console.WriteLine($"BioStarEmpNum: {aspNetUser.BioStarEmpNum}");
-        Console.WriteLine(ex.Message);
-        continue;
-      }
-      }
-;
-
-        ////to avaid showing current month all data which is not happend yet
-        LstTimeData = LstTimeData.Where(itm => itm.Date <= DateTime.Now.Date).ToList();
-
-        // Group by EmployeeNumber and Date to get distinct entries
-        var distinctTimeData = LstTimeData
-            .GroupBy(x => new { x.EmployeeNumber, x.Date.Date }) // Group by EmployeeNumber and Date
-            .Select(g => g.FirstOrDefault()) // Select the first occurrence of each group
-            .ToList();
-
-
-        foreach (var item in distinctTimeData)
-        {
-          var value = dbLeaveOn.AttendanceDatas;
-          // Check if the user arrives after 9:30 AM
-          bool lateArrival = item.TimeIn != DateTime.MinValue && item.TimeIn.TimeOfDay > new TimeSpan(9, 30, 0);
-          item.isLateArrival = lateArrival;
-          bool earlyDeparture = item.TimeOut != DateTime.MinValue && item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
-          item.isEarlyDeparture = earlyDeparture;
-          // Check if an attendance record already exists for this user on the same date
-          Console.WriteLine("distinctTimeData: " + item.EmployeeName + " for a: " + item.EmployeeNumber + " " + item.Date);
-
-          bool exists = dbLeaveOn.AttendanceDatas
-              .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
-                          DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
-          // find existing record
-          var existingRecord = dbLeaveOn.AttendanceDatas
-              .FirstOrDefault(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
-                                    DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
-
-          //if (!exists)
-          if (existingRecord != null)
-          {
-            // Update existing record 
-            try
-            {
-              existingRecord.UserName = item.EmployeeName;
-              existingRecord.DepartmentName = item.Department;
-              existingRecord.UserLeavePolicyID = item.Policy;
-              existingRecord.FirstPunchIn = item.TimeIn;
-              existingRecord.LastPunchOut = item.TimeOut;
-              existingRecord.TotalWorkHours = item.WorkingHours.TotalSeconds > 0 ? (long)item.WorkingHours.TotalSeconds : 0;
-              existingRecord.BreakHours = item.TotalTime.TotalSeconds > item.WorkingHours.TotalSeconds ? 
-                (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds) : 0;
-              existingRecord.IsLateArrival = item.isLateArrival;
-              existingRecord.IsEarlyDeparture = item.isEarlyDeparture;
-              existingRecord.IsAbsent = item.isAbsent;
-              existingRecord.IsLeave = item.leaveTypeID != 0 ? true : false;
-              existingRecord.LeaveTypeID = item.leaveTypeID;
-              existingRecord.LeaveType = item.leaveType;
-              existingRecord.CountryName = item.CountryName;
-              existingRecord.TimeZone = item.TimeZone;
-              existingRecord.ManagerEmail = item.ManagerEmail;
-              existingRecord.Manager2Email = item.Manager2Email;
-              existingRecord.ManagerId = item.ManagerID;
-              existingRecord.Manager2Id = item.Manager2ID;
-              existingRecord.UserID = item.UserID;
-
-
-              Console.WriteLine("Updated existing attendance for user: " + existingRecord.UserName + " date: " + existingRecord.CreatedDate);
-            }
-            catch (Exception ex)
-            {
-              Console.WriteLine("Error updating AttendanceData: " + ex.Message);
-            }
-          }
-          else
-          {
-            // Add new record
-            try
-            {
-              AttendanceData attendanceDataToFill = new AttendanceData
-              {
-                BioStarEmpNum = item.EmployeeNumber,
-                UserName = item.EmployeeName,
-                DepartmentName = item.Department,
-                UserLeavePolicyID = item.Policy,
-                CreatedDate = item.Date,
-                FirstPunchIn = item.TimeIn,
-                LastPunchOut = item.TimeOut,
-                TotalWorkHours = (long)item.WorkingHours.TotalSeconds,
-                BreakHours = (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds),
-                IsLateArrival = item.isLateArrival,
-                IsEarlyDeparture = item.isEarlyDeparture,
-                IsAbsent = item.isAbsent,
-                IsLeave = item.leaveTypeID != 0 ? true : false,
-                LeaveTypeID = item.leaveTypeID,
-                LeaveType = item.leaveType,
-                CountryName = item.CountryName,
-                TimeZone = item.TimeZone,
-                ManagerEmail = item.ManagerEmail,
-                Manager2Email = item.Manager2Email,
-                ManagerId = item.ManagerID,
-                Manager2Id = item.Manager2ID,
-                UserID = item.UserID,
-              };
-              dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
-              Console.WriteLine("Added the user: " + attendanceDataToFill.UserName + " for a: " + attendanceDataToFill.CreatedDate);
-            }
-            catch (Exception ex)
-            {
-              Console.WriteLine("Error adding AttendanceData: " + ex.Message);
-            }
-          }
-        }
-
-        try
-        {
-          Console.WriteLine("Saved");
-          //
-          dbLeaveOn.SaveChanges();
-          //Console.Read();
-        }
-        catch (DbEntityValidationException dbEx)
-        {
-          foreach (var validationErrors in dbEx.EntityValidationErrors)
-          {
-            foreach (var validationError in validationErrors.ValidationErrors)
-            {
-              Console.WriteLine("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
-            }
-          }
-        }
         catch (Exception ex)
         {
-          Console.WriteLine("An error occurred while saving changes: " + ex.Message);
-          if (ex.InnerException != null)
+          Console.WriteLine("Error while processing user");
+          Console.WriteLine($"UserName: {aspNetUser.UserName}");
+          Console.WriteLine($"BioStarEmpNum: {aspNetUser.BioStarEmpNum}");
+          Console.WriteLine(ex.Message);
+          //continue;
+        }
+      
+    }
+
+    public List<TimeData> NewMethod(Stopwatch overallStopwatch,ref SqlConnection con, ref List<TimeData> LstTimeData)
+    {
+      ////to avaid showing current month all data which is not happend yet
+      LstTimeData = LstTimeData.Where(itm => itm.Date <= DateTime.Now.Date).ToList();
+
+      // Group by EmployeeNumber and Date to get distinct entries
+      var distinctTimeData = LstTimeData
+          .GroupBy(x => new { x.EmployeeNumber, x.Date.Date }) // Group by EmployeeNumber and Date
+          .Select(g => g.FirstOrDefault()) // Select the first occurrence of each group
+          .ToList();
+
+
+      foreach (var item in distinctTimeData)
+      {
+        var value = dbLeaveOn.AttendanceDatas;
+        // Check if the user arrives after 9:30 AM
+        bool lateArrival = item.TimeIn != DateTime.MinValue && item.TimeIn.TimeOfDay > new TimeSpan(9, 30, 0);
+        item.isLateArrival = lateArrival;
+        bool earlyDeparture = item.TimeOut != DateTime.MinValue && item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
+        item.isEarlyDeparture = earlyDeparture;
+        // Check if an attendance record already exists for this user on the same date
+        Console.WriteLine("distinctTimeData: " + item.EmployeeName + " for a: " + item.EmployeeNumber + " " + item.Date);
+
+        bool exists = dbLeaveOn.AttendanceDatas
+            .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
+                        DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
+        // find existing record
+        var existingRecord = dbLeaveOn.AttendanceDatas
+            .FirstOrDefault(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
+                                  DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
+
+        //if (!exists)
+        if (existingRecord != null)
+        {
+          // Update existing record 
+          try
           {
-            Console.WriteLine("Inner exception: " + ex.InnerException.Message);
+            existingRecord.UserName = item.EmployeeName;
+            existingRecord.DepartmentName = item.Department;
+            existingRecord.UserLeavePolicyID = item.Policy;
+            existingRecord.FirstPunchIn = item.TimeIn;
+            existingRecord.LastPunchOut = item.TimeOut;
+            existingRecord.TotalWorkHours = item.WorkingHours.TotalSeconds > 0 ? (long)item.WorkingHours.TotalSeconds : 0;
+            existingRecord.BreakHours = item.TotalTime.TotalSeconds > item.WorkingHours.TotalSeconds ?
+              (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds) : 0;
+            existingRecord.IsLateArrival = item.isLateArrival;
+            existingRecord.IsEarlyDeparture = item.isEarlyDeparture;
+            existingRecord.IsAbsent = item.isAbsent;
+            existingRecord.IsLeave = item.leaveTypeID != 0 ? true : false;
+            existingRecord.LeaveTypeID = item.leaveTypeID;
+            existingRecord.LeaveType = item.leaveType;
+            existingRecord.CountryName = item.CountryName;
+            existingRecord.TimeZone = item.TimeZone;
+            existingRecord.ManagerEmail = item.ManagerEmail;
+            existingRecord.Manager2Email = item.Manager2Email;
+            existingRecord.ManagerId = item.ManagerID;
+            existingRecord.Manager2Id = item.Manager2ID;
+            existingRecord.UserID = item.UserID;
+
+
+            Console.WriteLine("Updated existing attendance for user: " + existingRecord.UserName + " date: " + existingRecord.CreatedDate);
+          }
+          catch (Exception ex)
+          {
+            Console.WriteLine("Error updating AttendanceData: " + ex.Message);
           }
         }
+        else
+        {
+          // Add new record
+          try
+          {
+            AttendanceData attendanceDataToFill = new AttendanceData
+            {
+              BioStarEmpNum = item.EmployeeNumber,
+              UserName = item.EmployeeName,
+              DepartmentName = item.Department,
+              UserLeavePolicyID = item.Policy,
+              CreatedDate = item.Date,
+              FirstPunchIn = item.TimeIn,
+              LastPunchOut = item.TimeOut,
+              TotalWorkHours = (long)item.WorkingHours.TotalSeconds,
+              BreakHours = (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds),
+              IsLateArrival = item.isLateArrival,
+              IsEarlyDeparture = item.isEarlyDeparture,
+              IsAbsent = item.isAbsent,
+              IsLeave = item.leaveTypeID != 0 ? true : false,
+              LeaveTypeID = item.leaveTypeID,
+              LeaveType = item.leaveType,
+              CountryName = item.CountryName,
+              TimeZone = item.TimeZone,
+              ManagerEmail = item.ManagerEmail,
+              Manager2Email = item.Manager2Email,
+              ManagerId = item.ManagerID,
+              Manager2Id = item.Manager2ID,
+              UserID = item.UserID,
+            };
+            dbLeaveOn.AttendanceDatas.Add(attendanceDataToFill);
+            Console.WriteLine("Added the user: " + attendanceDataToFill.UserName + " for a: " + attendanceDataToFill.CreatedDate);
+          }
+          catch (Exception ex)
+          {
+            Console.WriteLine("Error adding AttendanceData: " + ex.Message);
+          }
+        }
+      }
 
-        con.Close();
-        overallStopwatch.Stop(); // Stop the overall timer
-        Console.WriteLine($"Total execution time for ConnectToDBandFillAttendanceData: {overallStopwatch.ElapsedMilliseconds} ms");
-        return LstTimeData;
+      try
+      {
+        Console.WriteLine("Saved");
+        //
+        dbLeaveOn.SaveChanges();
+        //Console.Read();
+      }
+      catch (DbEntityValidationException dbEx)
+      {
+        foreach (var validationErrors in dbEx.EntityValidationErrors)
+        {
+          foreach (var validationError in validationErrors.ValidationErrors)
+          {
+            Console.WriteLine("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
+          }
+        }
       }
       catch (Exception ex)
       {
@@ -701,8 +696,12 @@ namespace LeaveON.Services
         {
           Console.WriteLine("Inner exception: " + ex.InnerException.Message);
         }
-        throw; // important
       }
+
+      con.Close();
+      overallStopwatch.Stop(); // Stop the overall timer
+      Console.WriteLine($"Total execution time for ConnectToDBandFillAttendanceData: {overallStopwatch.ElapsedMilliseconds} ms");
+      return LstTimeData;
     }
 
     private DateTime ConvertToCountryTimeZoneNew(DateTime dateTime, string timeZone)
@@ -746,6 +745,8 @@ namespace LeaveON.Services
       public string Details { get; set; }
     }
 
+
+   
     private TimeData TimeDataCreated(
    string UserName,
    int BioStarEmpNum,
@@ -793,7 +794,7 @@ namespace LeaveON.Services
       };
     }
 
-    private TimeData LeaveANDAbsentTimeData(
+  private TimeData LeaveANDAbsentTimeData(
   string UserName,
   int BioStarEmpNum,
   string timeZone,
@@ -831,5 +832,13 @@ namespace LeaveON.Services
       };
     }
 
+  }
+
+  public class UserList
+  {
+    public string employeeName { get; set; }
+    public bool? IsActive { get; set; }
+    public string UserID { get; set; }
+    public int? BioUserID { get; set; }
   }
 }
