@@ -14,7 +14,7 @@ namespace LeaveOnTaskRunner
 
         {
             //// Calculate 'yesterday'
-            DateTime yesterday = DateTime.Today.AddDays(-1);
+            DateTime yesterday = DateTime.Today.AddDays(-2);
             DateTime today = DateTime.Today;
 
             //// Initialize the service
@@ -34,11 +34,11 @@ namespace LeaveOnTaskRunner
             //DateTime endDate = new DateTime(2026, 02, 11);
 
             // testing
-            DateTime startDate = new DateTime(2026, 03, 30);
-            DateTime endDate = new DateTime(2026, 03, 30);
+           // DateTime startDate = new DateTime(2026, 03, 30);
+           // DateTime endDate = new DateTime(2026, 03, 30);
 
-            // DateTime startDate = yesterday;
-            // DateTime endDate = today;
+             DateTime startDate = yesterday;
+             DateTime endDate = today;
 
 
 
@@ -50,15 +50,15 @@ namespace LeaveOnTaskRunner
             // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
             // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
 
-          //  for (int i = 12; i < 28; i++)//9 copm
-           //{
-            //   DateTime startDate = new DateTime(2026, 3, i);
-             //  DateTime endDate = startDate; // same date, no need to recreate
+           // for (int i = 21; i < 28; i++)//9 copm
+          //{
+              // DateTime startDate = new DateTime(2026, 02, i);
+              // DateTime endDate = startDate; // same date, no need to recreate
                 await service.ConnectToDBandReturnAttendanceData(startDate, endDate);
                //Console.WriteLine("Running Break Hours Service..." +i);
 
                 await breakHours.ConnectToDBandFillBreakHours(startDate, endDate);
-          // }
+         //}
 
 
 
