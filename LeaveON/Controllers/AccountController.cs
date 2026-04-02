@@ -153,51 +153,104 @@ namespace LeaveON.Controllers
     // challenge this route and show the popup to unauthenticated users.
     // User.Identity.Name is populated AFTER the popup is completed.
     // ---------------------------------------------------------------
-  
-    
+
+
+
+    // FIXED: [AllowAnonymous] here is correct — this action only receives
+    // the ADUser param from AuthLogin redirect, no Windows challenge needed.
+    public ActionResult AuthLogin(string returnUrl)
+
+    {
+      // Add this temporarily to confirm Windows Auth is working
+      // If not authenticated via Windows yet — trigger the challenge manually
+      if (!User.Identity.IsAuthenticated)
+      {
+        // This forces IIS to send 401 and trigger Windows Auth popup
+        HttpContext.GetOwinContext().Authentication.Challenge(
+            new Microsoft.Owin.Security.AuthenticationProperties { RedirectUri = "/" },
+            "Windows"
+        );
+        return new HttpUnauthorizedResult();
+      }
+      string ADUserValue = null;
+
+      try
+      {
+        PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+        UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+        ADUserValue = currentUser?.UserPrincipalName;
+      }
+      catch
+      {
+        return RedirectToAction("Error404", "Error");
+      }
+
+      if (string.IsNullOrEmpty(ADUserValue))
+        return RedirectToAction("Error404", "Error");
+
+      return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+    }
+    // OWIN redirects here when unauthenticated (LoginPath in Startup.Auth.cs)
+    // Plain anonymous page — just forwards to AuthLogin which triggers Windows popup
+    [AllowAnonymous]
+    public ActionResult WindowsLogin(string returnUrl)
+    {
+      return RedirectToAction("AuthLogin", new { returnUrl = returnUrl });
+    }
 
     // FIXED: [AllowAnonymous] here is correct — this action only receives
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
     [AllowAnonymous]
-    public ActionResult Login(string returnUrl, string ADUser)
+    public async Task<ActionResult> Login(string returnUrl, string ADUser)
     {
-     
+      if (string.IsNullOrEmpty(ADUser))
+        return RedirectToAction("Error404", "Error");
 
-      // test user
-      //ADUser = "m.yousaf@intechww.com";
-      //ADUser = "laima.imran@intechww.com";
-      ADUser = "laiba.khan@intechww.com";
-      /// ADUser = "Muhammad.Ahmad@intechww.com";
+      // Find the Identity user matching the AD account
+      var appUser = await UserManager.FindByNameAsync(ADUser);
+      if (appUser == null)
+        return RedirectToAction("Error404", "Error");
 
-      AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
+      // Assign default role only if the user has NO roles yet
+      var existingRoles = await UserManager.GetRolesAsync(appUser.Id);
+      //if (!existingRoles.Any())
+      //{
+      //  await UserManager.AddToRoleAsync(appUser.Id, "User");
+      //}
 
-      // if (user != null && !UserManager.IsInRole(user.Id, "User"))
-      // {
-      // UserManager.AddToRole(user.Id, "User");
-      // UserManager.AddToRole(user.Id, "Manager");
-      // }
 
-      if (user != null)
+      // Always assign base User role
+      if (!existingRoles.Contains("User"))
+        await UserManager.AddToRoleAsync(appUser.Id, "User");
+
+      // Assign Manager if in AD manager group
+      if (!existingRoles.Contains("Manager"))
+        await UserManager.AddToRoleAsync(appUser.Id, "Manager");
+
+      // Assign Admin if in AD admin group
+      if (!existingRoles.Contains("Admin"))
+        await UserManager.AddToRoleAsync(appUser.Id, "Admin");
+
+      // Build fresh identity with updated roles
+      var identity = await UserManager.CreateIdentityAsync(
+          appUser, DefaultAuthenticationTypes.ApplicationCookie);
+
+      HttpContext.GetOwinContext().Authentication.SignIn(
+          new Microsoft.Owin.Security.AuthenticationProperties { IsPersistent = false },
+          identity
+      );
+
+      // Business-logic guard after sign-in
+      if (appUser.UserLeavePolicyId == null)
       {
-        var userRoles = UserManager.GetRoles(user.Id);
-        if (userRoles == null || !userRoles.Any())
-        {
-          // Assign "User" role to the user
-          UserManager.AddToRole(user.Id, "User");
-        }
-      }
-
-      if (user?.UserLeavePolicyId == null)
-      {
-        TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
+        TempData["ErrorMessage"] = "No leave policy assigned. Please contact support.";
         return RedirectToAction("General", "Error");
       }
 
+      //if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+      //  return Redirect(returnUrl);
 
-      ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
-      ViewBag.ReturnUrl = returnUrl;
-
-      return View();
+      return RedirectToAction("Index", "Dashboard");
     }
 
 
