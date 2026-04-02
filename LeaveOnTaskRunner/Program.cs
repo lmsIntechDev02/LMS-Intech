@@ -58,17 +58,27 @@ namespace LeaveOnTaskRunner
             //   DateTime startDate = new DateTime(2026, 3, i);
             //  DateTime endDate = startDate; // same date, no need to recreate
              var userLsit=  await service.GetUserActiveList();
-     
-            Stopwatch overallStopwatch;
-            SqlConnection con;
-            List<TimeData> LstTimeData;
-            AspnetUser
+
+            SqlConnection con = new SqlConnection(connection);
+            con.Open();
+
+            List<TimeData> finalList = new List<TimeData>();
+
             foreach (var user in userLsit)
             {
-                service.NewMethod1(startDate, endDate, out overallStopwatch, out con, out LstTimeData);
+                List<TimeData> userData;
+
+                service.GetUserAttendancData(startDate, endDate, con, user, out userData);
+
+                finalList.AddRange(userData);
             }
-            service.service
-                 await service.ConnectToDBandReturnAttendanceData(startDate, endDate);
+
+            con.Close();
+            if (finalList.Count() > 0)
+            {
+
+                await service.ConnectToDBandReturnAttendanceData(finalList);
+            }
                 //Console.WriteLine("Running Break Hours Service..." +i);
 
                 await breakHours.ConnectToDBandFillBreakHours(startDate, endDate);
