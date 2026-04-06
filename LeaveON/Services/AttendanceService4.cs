@@ -349,6 +349,8 @@ namespace LeaveON.Services
             Date = date,
             Status = "Weekend",
             TimeZone = timeZone,
+            Policy= policy,
+            Department= aspNetUser.DepartmentName,
             CountryName = countryName
           });
         }
@@ -371,7 +373,10 @@ namespace LeaveON.Services
             Date = date,
             Status = holiday != null ? holiday.Description : "Absent",
             isAbsent = holiday == null,
+            
             TimeZone = timeZone,
+            Policy = policy,
+            Department = aspNetUser.DepartmentName,
             CountryName = countryName
           });
         }

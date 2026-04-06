@@ -66,7 +66,7 @@ namespace LeaveOnTaskRunner
 
            // IConfiguration config = builder.Build();
 
-            string connection = "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
+            string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
             var userLsit=  await service.GetUserActiveList();
             userLsit = userLsit.Where(k => k.BioStarEmpNum == 2950).ToList();
 
@@ -100,7 +100,7 @@ namespace LeaveOnTaskRunner
                 catch (Exception ex)
                 {
                     InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
-                          0, 0, "User Loop", "Attendance job", 0);
+                          0, 0, ex.Message.ToString(), "Attendance job", 0);
                 }
                 try
                 {
@@ -109,7 +109,7 @@ namespace LeaveOnTaskRunner
                 catch (Exception ex)
                 {
                     InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
-                           0, 0, "User Loop", "Attendance job", 0);
+                           0, 0, ex.Message.ToString(), "Breake job", 0);
                 }
             
             }
