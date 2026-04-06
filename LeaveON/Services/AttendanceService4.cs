@@ -272,6 +272,115 @@ namespace LeaveON.Services
         DateTime currentTime = ConvertToCountryTimeZoneNew(current.DevDt, timeZone);
         DateTime nextTime = ConvertToCountryTimeZoneNew(next.DevDt, timeZone);
 
+        string shortCountryName = records[i].DevNm.ToString().Substring(0, 3);
+
+        if (records[i].DevNm.ToString().Substring(0, 4) == "NG-L")
+        {
+          timeZone = "W. Central Africa Standard Time";
+          countryName = "Nigeria Lagos";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "NG-P")
+        {
+          timeZone = "W. Central Africa Standard Time";
+          countryName = "Nigeria Port Harcourt";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "IN01")
+        {
+          timeZone = "Pakistan Standard Time";
+          countryName = "Pakistan";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "IN03")
+        {
+          timeZone = "W. Central Africa Standard Time";
+          countryName = "Nigeria";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "IN04")
+        {
+          timeZone = "W. Central Africa Standard Time";
+          countryName = "Angola";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "IN05")
+        {
+          timeZone = "Arab Standard Time";
+          countryName = "Saudi Arabia";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "IN07")
+        {
+          timeZone = "Arab Standard Time";
+          countryName = "Iraq";
+        }
+        else if (records[i].DevNm.ToString().Substring(0, 4) == "IN08")
+        {
+          timeZone = "Arab Standard Time";
+          countryName = "United Arab Emirates";
+        }
+        else
+        {
+          switch (shortCountryName)
+          {
+            case "PK ":
+              timeZone = "Pakistan Standard Time";
+              countryName = "Pakistan";
+              break;
+            case "PAK":
+              timeZone = "Pakistan Standard Time";
+              countryName = "Pakistan";
+              break;
+            case "UAE":
+              timeZone = "Arab Standard Time";
+              countryName = "United Arab Emirates";
+              break;
+            case "KSA":
+              timeZone = "Arab Standard Time";
+              countryName = "Saudi Arabia";
+              break;
+            case "GBR":
+              timeZone = "GMT Standard Time";
+              countryName = "United Kingdom";
+              break;
+            case "USA":
+              timeZone = "Central Standard Time";
+              countryName = "United States";
+              break;
+            case "NGA":
+              timeZone = "W. Central Africa Standard Time";
+              countryName = "Nigeria";
+              break;
+            case "NG-":
+              timeZone = "W. Central Africa Standard Time";
+              countryName = "Nigeria";
+              break;
+            case "EGY":
+              timeZone = "Egypt Standard Time";
+              countryName = "Egypt";
+              break;
+            case "IRQ":
+              timeZone = "Arabic Standard Time";
+              countryName = "Iraq";
+              break;
+            case "OMN":
+              timeZone = "Arabian Standard Time";
+              countryName = "Oman";
+              break;
+            case "QAT":
+              timeZone = "Arab Standard Time";
+              countryName = "Qatar";
+              break;
+            case "AGO":
+              timeZone = "W. Central Africa Standard Time";
+              countryName = "Angola";
+              break;
+            case "KAZ":
+              timeZone = "West Asia Standard Time";
+              countryName = "Kazakhstan";
+              break;
+            // Add more cases for other countries
+            default:
+              timeZone = aspNetUser.CountryName.TimeZone; // Or handle the default case based on your requirements
+              countryName = aspNetUser.CountryName.Name;
+              break;
+          }
+        }
         // new day detected
         if (currentTime.Date != currentDay)
         {
