@@ -57,6 +57,8 @@ namespace LeaveON.Services
       public int? userLeavePolicyID { get; set; }
       public string UserID { get; set; }
       public string EmployeeName { get; set; }
+      public string DepartmentName { get; set; }
+
       public Nullable<System.DateTime> JoiningDate { get; set; }
     }
     public List<EmailAndIDs> GetUserEmailsAndIDs(string managerEmail)
@@ -68,7 +70,7 @@ namespace LeaveON.Services
         //test
        // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "dc70c0b4-e445-43b5-8c24-1ab960c3f431"))
       //live
-       var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true)
+       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true )
       .Select(x => new EmailAndIDs
       {
         userId = x.BioStarEmpNum.Value,
@@ -76,7 +78,8 @@ namespace LeaveON.Services
         userLeavePolicyID = x.UserLeavePolicyId,
         UserID = x.Id,
         JoiningDate = x.JoiningDate,
-        EmployeeName = x.EmpolyeeName
+        EmployeeName = x.EmpolyeeName,
+        DepartmentName= x.DepartmentName
       })
       .ToList();
 
@@ -150,66 +153,17 @@ namespace LeaveON.Services
 
       managerEmails = GetManagersIDs();
 
+      List<string> managerids = new List<string>();
+      if (managerEmails.Any())
+      {
+        managerids = managerEmails.GroupBy(k=>k.Id).Select(k => k.FirstOrDefault().Id).ToList();
+      }
 
-      List<string> managerids = new List<string> {
-"003e1dd6-aa34-490d-af18-f74d7cca10f3",
-"04a6810a-4e58-4d42-ba05-77c24b732fbb",
-"0fb205e2-b783-4519-bb42-5e79caf14d4c",
-"15190594-377e-439f-8b15-716f12cdf427",
-"15ae5055-da80-4844-be52-f12aa50a6002",
-"19a879e3-370a-4cb3-9ec7-3d0c11467638",
-"1ade6e65-50f4-4417-b67f-1120df49062b",
-"1ef7f0d9-0152-4caf-809f-8a135ee18d79",
-"21c9c6d1-37fb-480c-9c41-ae20146f7cd4",
-"26c1d691-bccb-44c7-b15e-14a2a4c4d337",
-"2840417a-7247-44bf-bf71-0e98ae6bb956",
-"294cc063-9386-4cb5-b0fd-ee300d7be5bf",
-"2f88d8cf-2eef-4a3e-b7ca-dc8928d9fbbe",
-"3149366d-d9d5-4cf3-a63a-46eecfdbd9d1",
-"32c883f0-b81d-49c6-af49-e203fc081774",
-"3a76b8ce-6c0b-47fb-8397-8c8edcf90db8",
-"4205cc46-0ecb-47d2-8081-5664bbd4314a",
-"49f15a18-dda0-4167-94c0-a4d61b14a47d",
-"506b1293-4c8f-42b4-852f-0a867f17a532",
-"5507d51e-6bbc-4ad7-bdd1-04e23cc9be27",
-"5c1022c7-5cd7-4e7f-a3c9-c1deb6027359",
-"5f6a7d78-64de-4ffe-ad16-8e113bed12c4",
-"65b4ee1e-9890-413f-ae28-d033bc098c9c",
-"6e1e108e-fa14-4058-ad65-ad7c3341d653",
-"6ff2ae24-c4b4-4890-91b5-6a58ec9a44bb",
-"75aedf88-2b2e-43a0-99fc-78cd00a8aa71",
-"7baffeb6-7cad-46ad-9418-493d86e1da75",
-"7bf7a1a5-c471-4945-abaa-36c13776b2b9",
-"8b09a910-1426-42c7-ac27-1a9c6fb6a198",
-"8baab32b-997a-485a-9825-b7235a4939ad",
-"8c8095dc-29e5-4509-a31f-9584bbd3d847",
-"8fdb7d04-514f-46af-b575-7b2134ba368b",
-"937f949d-6991-4a24-b5b3-5005a03473a2",
-"98286b9f-38b4-4e26-9286-498e059b2d07",
-"a287ee62-3623-4a91-937e-238e75996505",
-"a3c5e26e-e73e-43a4-89de-83bd15f37afe",
-"a76cdeb9-032c-4947-b845-c430302acb0f",
-"ac63291f-eb31-4ce6-acb0-34ff3c33d104",
-"b7c1df98-6431-4b3d-b819-dc9f58d804c5",
-"bd11df28-0429-4aeb-a7b2-0cc6b87a9350",
-"bee38c18-d259-44af-8a48-dd5a86b48dec",
-"c3d01cb6-ae79-4b21-a6dd-6a7bc3a768a8",
-"c8c70a66-c1be-465b-8b99-d0671cf10610",
-"d065c6f0-e442-4717-a333-bc84c2513e52",
-"d0691488-658f-4514-8213-ce79f6f3d45e",
-"d13b2ff7-cb58-4fde-aa23-1f14bbc5e737",
-"d35e75d0-e4b5-4c32-81d6-dd84fcbc86e7",
-"dd8f6fa0-5f3b-443b-876e-9914ce0f9df5",
-"e3bffb60-614d-4fc3-bb0f-3d2a0f1ee089",
-"e787e6c8-1640-414f-a146-bb83f949bc83",
-"e86d95e6-9110-4f9a-a7a7-00d071fcfa25",
-"eaa2cb8b-5a4e-494b-8b5c-0817faf13721",
-"ec7c8117-7de6-4124-8dc8-6336a9758a50",
-"f04cb0fc-f550-422f-8400-dff319f0106c",
-"f4779e82-1129-4bc4-89e0-c6f837c22706"
+      //managerids = new List<string>
+      //      {
+      //"c2529cb2-be2b-4f03-8f31-4ccef6ad7a42"
 
-
-      };
+      //      };
 
       managerEmails = GetManagersListById(managerids);
 
@@ -324,6 +278,7 @@ namespace LeaveON.Services
 
             TimeSpan avgTimeIn = validPunchIns.Any()
                 ? TimeSpan.FromSeconds(validPunchIns.Average())
+
                 : TimeSpan.Zero;
 
             TimeSpan avgTimeOut = validPunchOuts.Any()
@@ -395,7 +350,7 @@ namespace LeaveON.Services
             //  this if user not mark attensance on  userAttendanceMonth then it will as absent
             if (totalWorkDays > userAttendanceMonth.Count())
             {
-              absentYTD += (totalWorkDays - userAttendanceMonth.Count());
+            // absentYTD += (totalWorkDays - userAttendanceMonth.Count());
             }
 
 
@@ -444,11 +399,23 @@ namespace LeaveON.Services
             int assignedLeaveQuota = casual + annual;
             int availableLeave = assignedLeaveQuota - (int)availedLeaveYTD;
 
+
+
+            string empname = string.Empty;
+
+            if (!String.IsNullOrEmpty(user.EmployeeName))
+            {
+              empname = user.EmployeeName;
+            }
+            else
+            {
+              empname = !String.IsNullOrEmpty(user.EmployeeName)? user.email.Split('@')[0].Replace('.', ' '): string.Empty;
+            }
             reportList.Add(new EmployeeReportData
             {
               EmployeeID = user.userId,
-              EmployeeName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().UserName : user.EmployeeName,
-              Department = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().DepartmentName : String.Empty,
+              EmployeeName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().UserName : empname,
+              Department = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().DepartmentName : user.DepartmentName,
               CountryName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().CountryName : String.Empty,
               ManagerEmail = managerEmail.Email,
 
@@ -477,7 +444,7 @@ namespace LeaveON.Services
           string hRBPEmail = String.Empty;
           if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
           {
-            hRBPEmail = departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+            hRBPEmail = "";// departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
           }
 
           GeneratePDFManager1(
@@ -2157,15 +2124,18 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       // using (var context = new LeaveONEntitiesTarget())
-      {
-        //var allowedDepartments = new[] { "Human Resource", "Finance", "IS&T", "iCSG" };
-        var allowedDepartments = new[] { "IS&T", "Human Resource" };
 
+      {
+        //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
+        // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
+        var allowedDepartments = new[] { "Electricall solutions", "digital solutions", "cybersecurity" };
+
+        //string dep = "FINANCE & ACCOUNTS";
         // Fetch all users who have either ManagerID or Manager2ID
         var managersIDs = context.AspNetUsers
-                      .Where(u => !string.IsNullOrEmpty(u.ManagerID)).Distinct().Select(u => new ManagerDto
+                      .Where(u => !string.IsNullOrEmpty(u.ManagerID) && !string.IsNullOrEmpty(u.DepartmentName) &&(allowedDepartments.Any(k=>k.ToLower()==u.DepartmentName.ToLower())  )).Distinct().Select(u => new ManagerDto
                       {
-                        Id = u.Id,
+                        Id = u.ManagerID,
                         UserName = u.UserName,
                         Email = u.Email,
                         PhoneNumber = u.PhoneNumber,
@@ -2198,19 +2168,19 @@ namespace LeaveON.Services
         //.ToList();
 
         // Manager ID to exclude
-        var excludedManagerID = "708ada81-4409-48a0-905b-769b7b0da6b0";
+       // var excludedManagerID = "708ada81-4409-48a0-905b-769b7b0da6b0";
 
         // Exclude the specific manager ID
-        var filteredManagersIDs = managersIDs
-            .Where(h => h.Id != excludedManagerID)
-            .ToList();
+        //var filteredManagersIDs = managersIDs
+          //  .Where(h => h.Id != excludedManagerID)
+          //  .ToList();
 
 
-        foreach (var managerID in managersIDs)
-        {
-          Console.WriteLine($"managerID => { managerID.Id}");
-        }
-        return filteredManagersIDs;
+        //foreach (var managerID in managersIDs)
+        //{
+        //  Console.WriteLine($"managerID => { managerID.Id}");
+        //}
+        return managersIDs.Distinct().ToList();
       }
     }
 

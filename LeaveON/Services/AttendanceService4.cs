@@ -47,23 +47,27 @@ namespace LeaveON.Services
         //    (u.CntryName.ToLower() == "pakistan" || u.CntryName.ToLower() == "iraq"))
         //.ToList();
         // commented for  Testing 
-        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x=> x.IsActive == true).ToList();
+
+        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.BioStarEmpNum==2950).ToList();
+
+        //live
+       // List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x=> x.IsActive == true && x.BioStarEmpNum.HasValue && x.BioStarEmpNum.Value>0).ToList();
         
 
         //for Testing 
-        List<Int32> lsttest = new List<Int32>();
+       // List<Int32> lsttest = new List<Int32>();
         //lsttest.Add(3180);
         //lsttest.Add(2406);  
         //lsttest.Add(2828);
         //lsttest.Add(7143);
-        lsttest.Add(2029);
+       // lsttest.Add(2029);
        
         //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => lsttest.Any(k=>k== u.BioStarEmpNum) ).ToList();
        
-        List<int> userIds = users
-                  .Where(x => x.BioStarEmpNum.HasValue)
-                  .Select(x => x.BioStarEmpNum.Value)
-                  .ToList();
+        //List<int> userIds = users
+        //          .Where(x => x.BioStarEmpNum.HasValue)
+        //          .Select(x => x.BioStarEmpNum.Value)
+        //          .ToList();
         //List<int> userIds1 = users.Select(x => x.BioStarEmpNum.Value).ToList<int>();
 
         List<BreakHour> LstBreakHours = new List<BreakHour>();
@@ -95,8 +99,8 @@ namespace LeaveON.Services
             throw;
           }
 
-            //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
-            cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") +   "' order by devdt", con);
+            cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and devdt BETWEEN '" + startDate.ToString("yyyy-MM-dd") + "' AND '" + endDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
+            //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") +   "' order by devdt", con);
             cmd.Parameters.AddWithValue("@UserId", UserId);
             cmd.Parameters.AddWithValue("@StartDate", startDate);
 

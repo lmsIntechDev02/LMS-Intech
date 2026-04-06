@@ -702,7 +702,7 @@ namespace LeaveON.Controllers
         if (User.IsInRole("Admin"))
         {
           var departments = db.AspNetUsers
-                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive == true && u.BioStarEmpNum.HasValue)
                  .Select(u => u.DepartmentName)
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
@@ -715,7 +715,7 @@ namespace LeaveON.Controllers
         else if (User.IsInRole("Manager") || User.IsInRole("User"))
         {
 
-          var managerDepartment = db.AspNetUsers.FirstOrDefault(u => u.Id == userId).DepartmentName;
+          var managerDepartment = db.AspNetUsers.FirstOrDefault(u => u.Id == userId && u.IsActive == true && u.BioStarEmpNum.HasValue).DepartmentName;
           ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
 
           var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
@@ -781,14 +781,14 @@ namespace LeaveON.Controllers
         if (User.IsInRole("Admin"))
         {
           var departments = db.AspNetUsers
-                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive==true && u.BioStarEmpNum.HasValue)
                  .Select(u => u.DepartmentName)
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
                  .ToList();
           ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
 
-          var user = db.AspNetUsers.ToList();
+          var user = new List<AspNetUser>(); //db.AspNetUsers.Where(k=>k.IsActive == true && k.BioStarEmpNum.HasValue).ToList();
           var userlist = user.Select(k => new AspNetUser
           {
             UserName = k.UserName.Split('@')[0].Replace('.', ' '),

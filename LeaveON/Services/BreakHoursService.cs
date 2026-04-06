@@ -34,7 +34,8 @@ namespace LeaveON.Services
         SqlCommand cmd;
         SqlDataReader dr;
         List<string> logg = new List<string>();
-        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x=> x.IsActive == true && x.BioStarEmpNum.HasValue).ToList();
+        //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.BioStarEmpNum.HasValue && x.BioStarEmpNum.Value > 0).ToList();
+        List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.BioStarEmpNum == 2950).ToList();
         //List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "Omer.Khan@intechww.com").ToList();
 
         List<BreakHour> LstBreakHours = new List<BreakHour>();
@@ -51,11 +52,11 @@ namespace LeaveON.Services
           int UserId = aspNetUser.BioStarEmpNum.Value;
 
           // Query optimized to reduce repetitive queries
-          //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
-          cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
+          cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
+          //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
           cmd.Parameters.AddWithValue("@UserId", UserId);
           cmd.Parameters.AddWithValue("@StartDate", startDate);
-          //cmd.Parameters.AddWithValue("@EndDate", endDate);
+          cmd.Parameters.AddWithValue("@EndDate", endDate);
           dr = cmd.ExecuteReader();
 
           List<PunchLog> punchLogs = new List<PunchLog>();

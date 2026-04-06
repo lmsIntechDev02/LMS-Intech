@@ -167,7 +167,7 @@ namespace LeaveON.Controllers
       //ADUser = "m.yousaf@intechww.com";
       //ADUser = "laima.imran@intechww.com";
       ADUser = "laiba.khan@intechww.com";
-      /// ADUser = "Muhammad.Ahmad@intechww.com";
+      // ADUser = "Muhammad.Ahmad@intechww.com";
 
       AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
 

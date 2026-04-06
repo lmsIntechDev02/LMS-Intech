@@ -2661,14 +2661,14 @@ namespace LeaveON.Controllers
         if (User.IsInRole("Admin"))
         {
           var departments = dbLeaveOn.AspNetUsers
-                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.BioStarEmpNum.HasValue )
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.BioStarEmpNum.HasValue && u.IsActive==true )
                  .Select(u => u.DepartmentName)
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
                  .ToList();
           ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
 
-          var user = dbLeaveOn.AspNetUsers.Where(j=>j.BioStarEmpNum.HasValue && j.IsActive==true).ToList();
+          var user = new List<AspNetUser>(); //dbLeaveOn.AspNetUsers.Where(j=>j.BioStarEmpNum.HasValue && j.IsActive==true).ToList();
           var userlist = user.Select(k => new AspNetUser
           {
             UserName = k.UserName.Split('@')[0].Replace('.', ' '),
@@ -3222,7 +3222,7 @@ namespace LeaveON.Controllers
           if (User.IsInRole("Admin"))
           {
             var departments = dbLeaveOn.AspNetUsers
-                   .Where(u => !string.IsNullOrEmpty(u.DepartmentName))
+                   .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive == true && u.BioStarEmpNum.HasValue)
                    .Select(u => u.DepartmentName)
                    .Distinct()
                    .Select(d => new SelectListItem { Value = d, Text = d })

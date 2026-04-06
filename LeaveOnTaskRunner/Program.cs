@@ -14,7 +14,7 @@ namespace LeaveOnTaskRunner
 
         {
             //// Calculate 'yesterday'
-            DateTime yesterday = DateTime.Today.AddDays(-2);
+            DateTime yesterday = DateTime.Today.AddDays(-3);
             DateTime today = DateTime.Today;
 
             //// Initialize the service
@@ -34,11 +34,11 @@ namespace LeaveOnTaskRunner
             //DateTime endDate = new DateTime(2026, 02, 11);
 
             // testing
-           // DateTime startDate = new DateTime(2026, 03, 30);
-           // DateTime endDate = new DateTime(2026, 03, 30);
+            DateTime startDate = new DateTime(2026, 02, 28);
+            DateTime endDate = new DateTime(2026, 04, 01);
 
-             DateTime startDate = yesterday;
-             DateTime endDate = today;
+            // DateTime startDate = yesterday;
+            // DateTime endDate = today;
 
 
 
