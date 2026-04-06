@@ -188,7 +188,7 @@ namespace LeaveON.Services
       }
     }
 
-    public void GetUserAttendancData(
+    public int GetUserAttendancData(
     DateTime startDate,
     DateTime endDate,
     SqlConnection con,                      // pass connection from outside
@@ -198,24 +198,32 @@ namespace LeaveON.Services
     {
       LstTimeData = new List<TimeData>();
 
-      if (aspNetUser == null || !aspNetUser.BioStarEmpNum.HasValue)
-        return;
+     
 
       int userId = aspNetUser.BioStarEmpNum.Value;
 
       Console.WriteLine($"Processing: {aspNetUser.UserName} ({userId})");
 
-      SqlCommand cmd = new SqlCommand(@"
-        SELECT user_id, devdt, bsevtdt, DEVID, devnm 
-        FROM punchlog 
-        WHERE user_id = @UserId 
-        AND CONVERT(date, devdt) >= @StartDate
-        AND CONVERT(date, devdt) <= @EndDate
-        ORDER BY devdt", con);
+      //SqlCommand cmd = new SqlCommand(@"
+      //  SELECT user_id, devdt, bsevtdt, DEVID, devnm 
+      //  FROM punchlog 
+      //  WHERE user_id = @UserId 
+      //  AND CONVERT(date, devdt) >= @StartDate
+      //  AND CONVERT(date, devdt) <= @EndDate
+      //  ORDER BY devdt", con);
+
+      //cmd.Parameters.AddWithValue("@UserId", userId);
+      //cmd.Parameters.AddWithValue("@StartDate", startDate.Date);
+      //cmd.Parameters.AddWithValue("@EndDate", endDate.Date);
+
+      SqlCommand cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
+
+      // cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id =" + UserId + " and  convert(date, devdt)= '" + startDate.ToString("yyyy-MM-dd") + "' order by devdt", con);
 
       cmd.Parameters.AddWithValue("@UserId", userId);
-      cmd.Parameters.AddWithValue("@StartDate", startDate.Date);
-      cmd.Parameters.AddWithValue("@EndDate", endDate.Date);
+      cmd.Parameters.AddWithValue("@StartDate", startDate);
+      cmd.Parameters.AddWithValue("@EndDate", endDate);
+      
 
       List<AttendanceRecord> records = new List<AttendanceRecord>();
 
@@ -236,7 +244,7 @@ namespace LeaveON.Services
       }
 
       if (records.Count == 0)
-        return;
+        return 0;
 
       string userName = aspNetUser.UserName.Contains("@")
           ? aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ")
@@ -368,6 +376,8 @@ namespace LeaveON.Services
           });
         }
       }
+
+      return 1;
     }
     private void AddTimeData(
     List<TimeData> list,
