@@ -350,7 +350,7 @@ namespace LeaveON.Services
             //  this if user not mark attensance on  userAttendanceMonth then it will as absent
             if (totalWorkDays > userAttendanceMonth.Count())
             {
-            // absentYTD += (totalWorkDays - userAttendanceMonth.Count());
+                 absentYTD += (totalWorkDays - userAttendanceMonth.Count());
             }
 
 
@@ -2128,7 +2128,7 @@ namespace LeaveON.Services
       {
         //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
-        var allowedDepartments = new[] { "Electricall solutions", "digital solutions", "cybersecurity" };
+        var allowedDepartments = new[] { "Automation Solutions", "Electricall solutions", "digital solutions", "cybersecurity" };
 
         //string dep = "FINANCE & ACCOUNTS";
         // Fetch all users who have either ManagerID or Manager2ID
