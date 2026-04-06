@@ -85,7 +85,17 @@ namespace LeaveOnTaskRunner
 
                 InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
                            1, 0, "Start Job", "Sync User Atendance", 0);
-            
+
+            DateTime lstartDate = new DateTime(2026, 2, 28);
+            DateTime lendDate = startDate.AddMonths(1).AddDays(-1);
+
+            for (DateTime date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                Console.WriteLine(date.ToString("yyyy-MM-dd"));
+
+                // Your logic here
+             
+
             foreach (var user in userLsit)
             {
 
@@ -125,7 +135,7 @@ namespace LeaveOnTaskRunner
             {
                 await breakHours.ConnectToDBandFillBreakHours(breakeHourList);
             }
-            // }
+             }
 
 
 

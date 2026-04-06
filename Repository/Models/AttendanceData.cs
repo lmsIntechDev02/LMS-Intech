@@ -40,7 +40,5 @@ namespace Repository.Models
         public string Manager2Id { get; set; }
         public string Devnm { get; set; }
         public string TimeZone { get; set; }
-    
-        public virtual AspNetUser AspNetUser { get; set; }
     }
 }

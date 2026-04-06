@@ -91,7 +91,9 @@
                                 @Html.DisplayFor(modelItem => item.Department)
                               </td>
                               <td>
-                                @{TimeSpan offDayTimeForCountry = TimeSpan.Parse("00.00:00");
+
+                                @Html.DisplayFor(modelItem => item.TimeZone)
+                                @*@{TimeSpan offDayTimeForCountry = TimeSpan.Parse("00.00:00");
                                   if (item.WorkingHours != offDayTimeForCountry)
                                   {
                                     @Html.DisplayFor(modelItem => item.TimeZone)
@@ -100,7 +102,7 @@
                                   {
                                     <text>-</text>
                                   }
-                                }
+                                }*@
                               </td>
                               <td>
                                 @Html.DisplayFor(modelItem => item.Policy)

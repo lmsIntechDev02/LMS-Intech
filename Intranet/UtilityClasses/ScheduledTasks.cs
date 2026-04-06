@@ -137,7 +137,7 @@ namespace LeaveON.UtilityClasses
                         /////////////find in app database
 
                         var AllIntechUsers = searcher.FindAll(); //876
-                        List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true).ToList<AspNetUser>(); //893
+                        List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true).ToList<AspNetUser>(); //893
 
                         //-------
                         //int cntr = 0;
@@ -205,8 +205,25 @@ namespace LeaveON.UtilityClasses
 
                                 }
 
-                                AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
-                                if (aspNetUser == null && auth.Enabled == false)
+                                // AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
+                                int bioStarValue = 0;
+                                var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
+
+                                if (rawValue != null && long.TryParse(rawValue.ToString(), out long val))
+                                {
+                                    if (val >= int.MinValue && val <= int.MaxValue)
+                                    {
+                                        bioStarValue = (int)val;
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.BioStarEmpNum== bioStarValue);
+
+                                if ((aspNetUser == null && auth.Enabled == false) || bioStarValue==0)
                                 {
                                     //   InsertSyncLog(jobName, "asp Net User is null ", 0, 1, 0, "", "continue", de);
                                     continue;
@@ -426,7 +443,7 @@ namespace LeaveON.UtilityClasses
             emp.LockoutEnabled = true;
             emp.AccessFailedCount = 0;
             emp.DateCreated = DateTime.Now;
-
+            emp.IsNew =  true;
             emp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
             emp.CntryName = Convert.ToString(de.Properties["co"].Value);
             emp.IsActive = IsActive(de);

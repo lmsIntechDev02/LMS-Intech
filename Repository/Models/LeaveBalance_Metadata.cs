@@ -31,7 +31,9 @@ namespace Repository.Models
                 int leaveTypeId = leave.LeaveTypeId;
                 decimal UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId.Value;
                 //LeaveBalance leaveBalance= leave.AspNetUser.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LeaveTypeId && x.UserId == UserId);
-                UserLeavePolicyDetail userLeavePolicyDetail = leave.AspNetUser.UserLeavePolicy.UserLeavePolicyDetails.FirstOrDefault(x => x.UserLeavePolicyId == UserLeavePolicyId && x.LeaveTypeId == leaveTypeId);
+
+                 
+                UserLeavePolicyDetail userLeavePolicyDetail = leave.AspNetUser.UserLeavePolicyDetails.FirstOrDefault(x => x.UserLeavePolicyId == UserLeavePolicyId && x.LeaveTypeId == leaveTypeId);
                 if (userLeavePolicyDetail==null)
                 {
                     Balance = 0;

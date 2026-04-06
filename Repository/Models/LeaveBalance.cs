@@ -23,8 +23,8 @@ namespace Repository.Models
         public Nullable<int> UserLeavePolicyId { get; set; }
         public Nullable<int> HoursTaken { get; set; }
     
-        public virtual AspNetUser AspNetUser { get; set; }
         public virtual LeaveType LeaveType { get; set; }
         public virtual UserLeavePolicy UserLeavePolicy { get; set; }
+        public virtual AspNetUser AspNetUser { get; set; }
     }
 }
