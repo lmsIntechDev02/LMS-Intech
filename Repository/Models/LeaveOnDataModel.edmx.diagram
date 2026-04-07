@@ -29,6 +29,7 @@
         <EntityTypeShape EntityType="LeaveONModels.AttendanceData" Width="1.5" PointX="8.375" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.BreakHour" Width="1.5" PointX="7.5" PointY="28.375" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.AspNetUser" Width="1.5" PointX="0.75" PointY="16.75" />
+        <EntityTypeShape EntityType="LeaveONModels.HR_Monthly_Leaves_Report" Width="1.5" PointX="10.875" PointY="0.75" />
         <AssociationConnector Association="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" />
         <AssociationConnector Association="LeaveONModels.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" />
         <AssociationConnector Association="LeaveONModels.FK_BreakHours_User" />

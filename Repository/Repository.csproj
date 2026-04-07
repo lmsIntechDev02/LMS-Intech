@@ -88,6 +88,9 @@
     <Compile Include="Models\DepartmentName.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\HR_Monthly_Leaves_Report.cs">
+      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Leave.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>

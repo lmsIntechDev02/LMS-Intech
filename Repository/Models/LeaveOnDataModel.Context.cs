@@ -42,5 +42,6 @@ namespace Repository.Models
         public virtual DbSet<AttendanceData> AttendanceDatas { get; set; }
         public virtual DbSet<BreakHour> BreakHours { get; set; }
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+        public virtual DbSet<HR_Monthly_Leaves_Report> HR_Monthly_Leaves_Report { get; set; }
     }
 }

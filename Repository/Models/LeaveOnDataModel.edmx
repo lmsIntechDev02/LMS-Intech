@@ -248,6 +248,35 @@
           <Property Name="Allowed" Type="int" />
           <Property Name="CountryId" Type="int" />
         </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="HR_Monthly_Leaves_Report">
+          <Key>
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="StartDate" />
+            <PropertyRef Name="EndDate" />
+            <PropertyRef Name="HrManager" />
+            <PropertyRef Name="ManagerOne" />
+            <PropertyRef Name="ManagerTwo" />
+          </Key>
+          <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="LeaveType" Type="nvarchar" MaxLength="256" />
+          <Property Name="Reason" Type="nvarchar" MaxLength="500" />
+          <Property Name="StartDate" Type="datetime" Nullable="false" />
+          <Property Name="EndDate" Type="datetime" Nullable="false" />
+          <Property Name="TotalDays" Type="decimal" Precision="6" Scale="1" />
+          <Property Name="EmergencyContact" Type="nvarchar" MaxLength="500" />
+          <Property Name="HrManager" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="ManagerOne" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="ManagerTwo" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="IsAcceptedHr" Type="int" />
+          <Property Name="IsAccepted1" Type="int" />
+          <Property Name="IsAccepted2" Type="int" />
+          <Property Name="RemarksHr" Type="nvarchar" MaxLength="128" />
+          <Property Name="Remarks1" Type="nvarchar" MaxLength="500" />
+          <Property Name="Remarks2" Type="nvarchar" MaxLength="500" />
+          <Property Name="DateCreated" Type="datetime" />
+        </EntityType>
         <Association Name="FK_AnnualOffDays_UserLeavePolicy">
           <End Role="UserLeavePolicy" Type="Self.UserLeavePolicy" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -452,6 +481,27 @@
           <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicy" EntityType="Self.UserLeavePolicy" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicyDetail" EntityType="Self.UserLeavePolicyDetail" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="HR_Monthly_Leaves_Report" EntityType="Self.HR_Monthly_Leaves_Report" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [HR_Monthly_Leaves_Report].[UserName] AS [UserName], 
+    [HR_Monthly_Leaves_Report].[LeaveType] AS [LeaveType], 
+    [HR_Monthly_Leaves_Report].[Reason] AS [Reason], 
+    [HR_Monthly_Leaves_Report].[StartDate] AS [StartDate], 
+    [HR_Monthly_Leaves_Report].[EndDate] AS [EndDate], 
+    [HR_Monthly_Leaves_Report].[TotalDays] AS [TotalDays], 
+    [HR_Monthly_Leaves_Report].[EmergencyContact] AS [EmergencyContact], 
+    [HR_Monthly_Leaves_Report].[HrManager] AS [HrManager], 
+    [HR_Monthly_Leaves_Report].[ManagerOne] AS [ManagerOne], 
+    [HR_Monthly_Leaves_Report].[ManagerTwo] AS [ManagerTwo], 
+    [HR_Monthly_Leaves_Report].[IsAcceptedHr] AS [IsAcceptedHr], 
+    [HR_Monthly_Leaves_Report].[IsAccepted1] AS [IsAccepted1], 
+    [HR_Monthly_Leaves_Report].[IsAccepted2] AS [IsAccepted2], 
+    [HR_Monthly_Leaves_Report].[RemarksHr] AS [RemarksHr], 
+    [HR_Monthly_Leaves_Report].[Remarks1] AS [Remarks1], 
+    [HR_Monthly_Leaves_Report].[Remarks2] AS [Remarks2], 
+    [HR_Monthly_Leaves_Report].[DateCreated] AS [DateCreated]
+    FROM [dbo].[HR_Monthly_Leaves_Report] AS [HR_Monthly_Leaves_Report]</DefiningQuery>
+          </EntitySet>
           <AssociationSet Name="FK_AnnualOffDays_UserLeavePolicy" Association="Self.FK_AnnualOffDays_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
             <End Role="AnnualOffDays" EntitySet="AnnualOffDays" />
@@ -559,6 +609,7 @@
           <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
           <EntitySet Name="BreakHours" EntityType="LeaveONModels.BreakHour" />
           <EntitySet Name="AspNetUsers" EntityType="LeaveONModels.AspNetUser" />
+          <EntitySet Name="HR_Monthly_Leaves_Report" EntityType="LeaveONModels.HR_Monthly_Leaves_Report" />
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AspNetUserClaim" EntitySet="AspNetUserClaims" />
@@ -953,6 +1004,33 @@
           <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
         </EntityType>
+        <EntityType Name="HR_Monthly_Leaves_Report">
+          <Key>
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="StartDate" />
+            <PropertyRef Name="EndDate" />
+            <PropertyRef Name="HrManager" />
+            <PropertyRef Name="ManagerOne" />
+            <PropertyRef Name="ManagerTwo" />
+          </Key>
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="LeaveType" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Reason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="EndDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="TotalDays" Type="Decimal" Precision="6" Scale="1" />
+          <Property Name="EmergencyContact" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="HrManager" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerOne" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerTwo" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="IsAcceptedHr" Type="Int32" />
+          <Property Name="IsAccepted1" Type="Int32" />
+          <Property Name="IsAccepted2" Type="Int32" />
+          <Property Name="RemarksHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks1" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+        </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -1305,6 +1383,29 @@
                 <ScalarProperty Name="Hometown" ColumnName="Hometown" />
                 <ScalarProperty Name="BioStarEmpNum" ColumnName="BioStarEmpNum" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="HR_Monthly_Leaves_Report">
+            <EntityTypeMapping TypeName="LeaveONModels.HR_Monthly_Leaves_Report">
+              <MappingFragment StoreEntitySet="HR_Monthly_Leaves_Report">
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="Remarks2" ColumnName="Remarks2" />
+                <ScalarProperty Name="Remarks1" ColumnName="Remarks1" />
+                <ScalarProperty Name="RemarksHr" ColumnName="RemarksHr" />
+                <ScalarProperty Name="IsAccepted2" ColumnName="IsAccepted2" />
+                <ScalarProperty Name="IsAccepted1" ColumnName="IsAccepted1" />
+                <ScalarProperty Name="IsAcceptedHr" ColumnName="IsAcceptedHr" />
+                <ScalarProperty Name="ManagerTwo" ColumnName="ManagerTwo" />
+                <ScalarProperty Name="ManagerOne" ColumnName="ManagerOne" />
+                <ScalarProperty Name="HrManager" ColumnName="HrManager" />
+                <ScalarProperty Name="EmergencyContact" ColumnName="EmergencyContact" />
+                <ScalarProperty Name="TotalDays" ColumnName="TotalDays" />
+                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="Reason" ColumnName="Reason" />
+                <ScalarProperty Name="LeaveType" ColumnName="LeaveType" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
