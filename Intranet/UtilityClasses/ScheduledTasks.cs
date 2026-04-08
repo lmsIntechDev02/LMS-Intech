@@ -585,6 +585,7 @@ namespace LeaveON.UtilityClasses
 
                     dbUser.EmpolyeeName = empolyeeName;
                 }
+            dbUser.IsNew = true;
             db.Entry(dbUser).Property(x => x.IsActive).IsModified = true;
             db.Entry(dbUser).Property(x => x.DepartmentName).IsModified = true;
             db.Entry(dbUser).Property(x => x.CntryName).IsModified = true;
@@ -595,6 +596,7 @@ namespace LeaveON.UtilityClasses
             db.Entry(dbUser).Property(x => x.ManagerName).IsModified = true;
             db.Entry(dbUser).Property(x => x.ManagerID).IsModified = true;
             db.Entry(dbUser).Property(x => x.EmpolyeeName).IsModified = true;
+            db.Entry(dbUser).Property(x => x.IsNew).IsModified = true;
             db.SaveChanges();
            
 
