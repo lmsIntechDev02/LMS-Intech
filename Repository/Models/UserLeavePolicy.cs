@@ -20,6 +20,7 @@ namespace Repository.Models
             this.AnnualOffDays = new HashSet<AnnualOffDay>();
             this.LeaveBalances = new HashSet<LeaveBalance>();
             this.UserLeavePolicyDetails = new HashSet<UserLeavePolicyDetail>();
+            this.AspNetUsers = new HashSet<AspNetUser>();
         }
     
         public int Id { get; set; }
@@ -43,5 +44,7 @@ namespace Repository.Models
         public virtual ICollection<LeaveBalance> LeaveBalances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
     }
 }

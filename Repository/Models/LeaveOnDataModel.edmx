@@ -58,6 +58,14 @@
           <Property Name="ProviderKey" Type="nvarchar" MaxLength="128" Nullable="false" />
           <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
         </EntityType>
+        <EntityType Name="AspNetUserRoles">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="RoleId" Type="nvarchar" MaxLength="128" Nullable="false" />
+        </EntityType>
         <EntityType Name="AspNetUsers">
           <Key>
             <PropertyRef Name="Id" />
@@ -291,6 +299,30 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_AspNetUsers_CountryNames">
+          <End Role="CountryNames" Type="Self.CountryNames" Multiplicity="0..1" />
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CountryNames">
+              <PropertyRef Name="Name" />
+            </Principal>
+            <Dependent Role="AspNetUsers">
+              <PropertyRef Name="CntryName" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_UserLeavePolicy">
+          <End Role="UserLeavePolicy" Type="Self.UserLeavePolicy" Multiplicity="0..1" />
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserLeavePolicy">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers">
+              <PropertyRef Name="UserLeavePolicyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_BreakHours_User">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
           <End Role="BreakHours" Type="Self.BreakHours" Multiplicity="*" />
@@ -300,6 +332,18 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
             </Principal>
             <Dependent Role="BreakHours">
               <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CountryNames_CountryNames">
+          <End Role="CountryNames" Type="Self.CountryNames" Multiplicity="1" />
+          <End Role="CountryNames1" Type="Self.CountryNames" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="CountryNames">
+              <PropertyRef Name="Name" />
+            </Principal>
+            <Dependent Role="CountryNames1">
+              <PropertyRef Name="Name" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -327,6 +371,34 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="AspNetUserLogins">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId">
+          <End Role="AspNetRoles" Type="Self.AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
               <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
@@ -470,6 +542,7 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <EntitySet Name="AspNetRoles" EntityType="Self.AspNetRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserClaims" EntityType="Self.AspNetUserClaims" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserLogins" EntityType="Self.AspNetUserLogins" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AttendanceData" EntityType="Self.AttendanceData" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BreakHours" EntityType="Self.BreakHours" Schema="dbo" store:Type="Tables" />
@@ -506,9 +579,21 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
             <End Role="AnnualOffDays" EntitySet="AnnualOffDays" />
           </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_CountryNames" Association="Self.FK_AspNetUsers_CountryNames">
+            <End Role="CountryNames" EntitySet="CountryNames" />
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_UserLeavePolicy" Association="Self.FK_AspNetUsers_UserLeavePolicy">
+            <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+          </AssociationSet>
           <AssociationSet Name="FK_BreakHours_User" Association="Self.FK_BreakHours_User">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="BreakHours" EntitySet="BreakHours" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CountryNames_CountryNames" Association="Self.FK_CountryNames_CountryNames">
+            <End Role="CountryNames" EntitySet="CountryNames" />
+            <End Role="CountryNames1" EntitySet="CountryNames" />
           </AssociationSet>
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -517,6 +602,14 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <AssociationSet Name="FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUserLogins" EntitySet="AspNetUserLogins" />
+          </AssociationSet>
+          <AssociationSet Name="FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId" Association="Self.FK_dbo_AspNetUserRoles_dbo_AspNetRoles_RoleId">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId" Association="Self.FK_dbo_AspNetUserRoles_dbo_AspNetUsers_UserId">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
           </AssociationSet>
           <AssociationSet Name="FK_Leave_AspNetUsers" Association="Self.FK_Leave_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
@@ -566,7 +659,6 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
         <EntityContainer Name="LeaveONEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="AnnualLeaveManagers" EntityType="LeaveONModels.AnnualLeaveManager" />
           <EntitySet Name="AnnualOffDays" EntityType="LeaveONModels.AnnualOffDay" />
-          <EntitySet Name="AspNetRoles" EntityType="LeaveONModels.AspNetRole" />
           <EntitySet Name="AspNetUserClaims" EntityType="LeaveONModels.AspNetUserClaim" />
           <EntitySet Name="AspNetUserLogins" EntityType="LeaveONModels.AspNetUserLogin" />
           <EntitySet Name="CountryNames" EntityType="LeaveONModels.CountryName" />
@@ -608,8 +700,9 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <EntitySet Name="sysdiagrams" EntityType="LeaveONModels.sysdiagram" />
           <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
           <EntitySet Name="BreakHours" EntityType="LeaveONModels.BreakHour" />
-          <EntitySet Name="AspNetUsers" EntityType="LeaveONModels.AspNetUser" />
           <EntitySet Name="HR_Monthly_Leaves_Report" EntityType="LeaveONModels.HR_Monthly_Leaves_Report" />
+          <EntitySet Name="AspNetRoles" EntityType="LeaveONModels.AspNetRole" />
+          <EntitySet Name="AspNetUsers" EntityType="LeaveONModels.AspNetUser" />
           <AssociationSet Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" Association="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AspNetUserClaim" EntitySet="AspNetUserClaims" />
@@ -617,6 +710,14 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <AssociationSet Name="FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" Association="LeaveONModels.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AspNetUserLogin" EntitySet="AspNetUserLogins" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_CountryNames" Association="LeaveONModels.FK_AspNetUsers_CountryNames">
+            <End Role="CountryName" EntitySet="CountryNames" />
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_UserLeavePolicy" Association="LeaveONModels.FK_AspNetUsers_UserLeavePolicy">
+            <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
           <AssociationSet Name="FK_BreakHours_User" Association="LeaveONModels.FK_BreakHours_User">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
@@ -638,6 +739,14 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="LeaveBalance" EntitySet="LeaveBalances" />
           </AssociationSet>
+          <AssociationSet Name="FK_CountryNames_CountryNames" Association="LeaveONModels.FK_CountryNames_CountryNames">
+            <End Role="CountryName" EntitySet="CountryNames" />
+            <End Role="CountryName1" EntitySet="CountryNames" />
+          </AssociationSet>
+          <AssociationSet Name="AspNetUserRoles" Association="LeaveONModels.AspNetUserRoles">
+            <End Role="AspNetRole" EntitySet="AspNetRoles" />
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -655,13 +764,6 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="UserLeavePolicyId" Type="Int32" />
           <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_AnnualOffDays_UserLeavePolicy" FromRole="AnnualOffDay" ToRole="UserLeavePolicy" />
-        </EntityType>
-        <EntityType Name="AspNetRole">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="AspNetUserClaim">
           <Key>
@@ -693,6 +795,9 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="TimeZone" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="UserLeavePolicies" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="CountryName" ToRole="UserLeavePolicy" />
+          <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_CountryNames" FromRole="CountryName" ToRole="AspNetUser" />
+          <NavigationProperty Name="CountryNames1" Relationship="LeaveONModels.FK_CountryNames_CountryNames" FromRole="CountryName" ToRole="CountryName1" />
+          <NavigationProperty Name="CountryName1" Relationship="LeaveONModels.FK_CountryNames_CountryNames" FromRole="CountryName1" ToRole="CountryName" />
         </EntityType>
         <EntityType Name="DepartmentName">
           <Key>
@@ -788,6 +893,7 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="UserLeavePolicy" ToRole="CountryName" />
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="LeaveBalance" />
           <NavigationProperty Name="UserLeavePolicyDetails" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="UserLeavePolicyDetail" />
+          <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="AspNetUser" />
         </EntityType>
         <EntityType Name="UserLeavePolicyDetail">
           <Key>
@@ -958,6 +1064,41 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <Property Name="PunchOut" Type="DateTime" Precision="3" Nullable="false" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_BreakHours_User" FromRole="BreakHour" ToRole="AspNetUser" />
         </EntityType>
+        <EntityType Name="HR_Monthly_Leaves_Report">
+          <Key>
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="StartDate" />
+            <PropertyRef Name="EndDate" />
+            <PropertyRef Name="HrManager" />
+            <PropertyRef Name="ManagerOne" />
+            <PropertyRef Name="ManagerTwo" />
+          </Key>
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="LeaveType" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="Reason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="EndDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="TotalDays" Type="Decimal" Precision="6" Scale="1" />
+          <Property Name="EmergencyContact" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="HrManager" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerOne" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="ManagerTwo" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="IsAcceptedHr" Type="Int32" />
+          <Property Name="IsAccepted1" Type="Int32" />
+          <Property Name="IsAccepted2" Type="Int32" />
+          <Property Name="RemarksHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks1" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="AspNetRole">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetRole" ToRole="AspNetUser" />
+        </EntityType>
         <EntityType Name="AspNetUser">
           <Key>
             <PropertyRef Name="Id" />
@@ -998,38 +1139,14 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
           <Property Name="IsNew" Type="Boolean" />
           <NavigationProperty Name="AspNetUserClaims" Relationship="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUser" ToRole="AspNetUserClaim" />
           <NavigationProperty Name="AspNetUserLogins" Relationship="LeaveONModels.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUser" ToRole="AspNetUserLogin" />
+          <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_AspNetUsers_CountryNames" FromRole="AspNetUser" ToRole="CountryName" />
+          <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_AspNetUsers_UserLeavePolicy" FromRole="AspNetUser" ToRole="UserLeavePolicy" />
           <NavigationProperty Name="BreakHours" Relationship="LeaveONModels.FK_BreakHours_User" FromRole="AspNetUser" ToRole="BreakHour" />
           <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="Leaves1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
-        </EntityType>
-        <EntityType Name="HR_Monthly_Leaves_Report">
-          <Key>
-            <PropertyRef Name="UserName" />
-            <PropertyRef Name="StartDate" />
-            <PropertyRef Name="EndDate" />
-            <PropertyRef Name="HrManager" />
-            <PropertyRef Name="ManagerOne" />
-            <PropertyRef Name="ManagerTwo" />
-          </Key>
-          <Property Name="UserName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="LeaveType" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="Reason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="EndDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="TotalDays" Type="Decimal" Precision="6" Scale="1" />
-          <Property Name="EmergencyContact" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="HrManager" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="ManagerOne" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="ManagerTwo" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="IsAcceptedHr" Type="Int32" />
-          <Property Name="IsAccepted1" Type="Int32" />
-          <Property Name="IsAccepted2" Type="Int32" />
-          <Property Name="RemarksHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="Remarks1" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="Remarks2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetRoles" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
         </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="1">
@@ -1056,6 +1173,30 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
             </Principal>
             <Dependent Role="AspNetUserLogin">
               <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_CountryNames">
+          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="0..1" />
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CountryName">
+              <PropertyRef Name="Name" />
+            </Principal>
+            <Dependent Role="AspNetUser">
+              <PropertyRef Name="CntryName" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_UserLeavePolicy">
+          <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="0..1" />
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserLeavePolicy">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUser">
+              <PropertyRef Name="UserLeavePolicyId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1123,6 +1264,22 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_CountryNames_CountryNames">
+          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="1" />
+          <End Type="LeaveONModels.CountryName" Role="CountryName1" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="CountryName">
+              <PropertyRef Name="Name" />
+            </Principal>
+            <Dependent Role="CountryName1">
+              <PropertyRef Name="Name" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="AspNetUserRoles">
+          <End Type="LeaveONModels.AspNetRole" Role="AspNetRole" Multiplicity="*" />
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1143,14 +1300,6 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
                 <ScalarProperty Name="UserLeavePolicyId" ColumnName="UserLeavePolicyId" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="OffDay" ColumnName="OffDay" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="AspNetRoles">
-            <EntityTypeMapping TypeName="LeaveONModels.AspNetRole">
-              <MappingFragment StoreEntitySet="AspNetRoles">
-                <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -1346,6 +1495,37 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="HR_Monthly_Leaves_Report">
+            <EntityTypeMapping TypeName="LeaveONModels.HR_Monthly_Leaves_Report">
+              <MappingFragment StoreEntitySet="HR_Monthly_Leaves_Report">
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="Remarks2" ColumnName="Remarks2" />
+                <ScalarProperty Name="Remarks1" ColumnName="Remarks1" />
+                <ScalarProperty Name="RemarksHr" ColumnName="RemarksHr" />
+                <ScalarProperty Name="IsAccepted2" ColumnName="IsAccepted2" />
+                <ScalarProperty Name="IsAccepted1" ColumnName="IsAccepted1" />
+                <ScalarProperty Name="IsAcceptedHr" ColumnName="IsAcceptedHr" />
+                <ScalarProperty Name="ManagerTwo" ColumnName="ManagerTwo" />
+                <ScalarProperty Name="ManagerOne" ColumnName="ManagerOne" />
+                <ScalarProperty Name="HrManager" ColumnName="HrManager" />
+                <ScalarProperty Name="EmergencyContact" ColumnName="EmergencyContact" />
+                <ScalarProperty Name="TotalDays" ColumnName="TotalDays" />
+                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="Reason" ColumnName="Reason" />
+                <ScalarProperty Name="LeaveType" ColumnName="LeaveType" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetRoles">
+            <EntityTypeMapping TypeName="LeaveONModels.AspNetRole">
+              <MappingFragment StoreEntitySet="AspNetRoles">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="AspNetUsers">
             <EntityTypeMapping TypeName="LeaveONModels.AspNetUser">
               <MappingFragment StoreEntitySet="AspNetUsers">
@@ -1386,29 +1566,14 @@ warning 6002: The table/view 'LeaveON-Test.dbo.HR_Monthly_Leaves_Report' does no
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="HR_Monthly_Leaves_Report">
-            <EntityTypeMapping TypeName="LeaveONModels.HR_Monthly_Leaves_Report">
-              <MappingFragment StoreEntitySet="HR_Monthly_Leaves_Report">
-                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
-                <ScalarProperty Name="Remarks2" ColumnName="Remarks2" />
-                <ScalarProperty Name="Remarks1" ColumnName="Remarks1" />
-                <ScalarProperty Name="RemarksHr" ColumnName="RemarksHr" />
-                <ScalarProperty Name="IsAccepted2" ColumnName="IsAccepted2" />
-                <ScalarProperty Name="IsAccepted1" ColumnName="IsAccepted1" />
-                <ScalarProperty Name="IsAcceptedHr" ColumnName="IsAcceptedHr" />
-                <ScalarProperty Name="ManagerTwo" ColumnName="ManagerTwo" />
-                <ScalarProperty Name="ManagerOne" ColumnName="ManagerOne" />
-                <ScalarProperty Name="HrManager" ColumnName="HrManager" />
-                <ScalarProperty Name="EmergencyContact" ColumnName="EmergencyContact" />
-                <ScalarProperty Name="TotalDays" ColumnName="TotalDays" />
-                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="Reason" ColumnName="Reason" />
-                <ScalarProperty Name="LeaveType" ColumnName="LeaveType" />
-                <ScalarProperty Name="UserName" ColumnName="UserName" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
+          <AssociationSetMapping Name="AspNetUserRoles" TypeName="LeaveONModels.AspNetUserRoles" StoreEntitySet="AspNetUserRoles">
+            <EndProperty Name="AspNetUser">
+              <ScalarProperty Name="Id" ColumnName="UserId" />
+            </EndProperty>
+            <EndProperty Name="AspNetRole">
+              <ScalarProperty Name="Id" ColumnName="RoleId" />
+            </EndProperty>
+          </AssociationSetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
