@@ -20,7 +20,7 @@ namespace LeaveON.Services
                                                  543734917, 538205733, 538205730};
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
-    LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
+   // LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
 
 
     public   List<BreakHour> GetBreakHoursForUser(

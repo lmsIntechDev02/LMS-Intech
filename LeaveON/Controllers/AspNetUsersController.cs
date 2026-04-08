@@ -155,13 +155,13 @@ namespace LeaveON.Controllers
         var managerExists = db.AspNetUsers.Any(user => user.Id == aspNetUser.ManagerID || user.Id == aspNetUser.Manager2ID);
         if (!managerExists)
         {
-          var newManager = new Manager
-          {
-            UserID = aspNetUser.ManagerID,
-            UserName = aspNetUser.ManagerName,
-            Email = aspNetUser.ManagerEmail
-          };
-          db.Managers.Add(newManager);
+          //var newManager = new Manager
+          //{
+          //  UserID = aspNetUser.ManagerID,
+          //  UserName = aspNetUser.ManagerName,
+          //  Email = aspNetUser.ManagerEmail
+          //};
+          //db.Managers.Add(newManager);
         }
       }
 
@@ -173,13 +173,13 @@ namespace LeaveON.Controllers
 
         if (!manager2Exists)
         {
-          var newManager2 = new Manager
-          {
-            UserID = aspNetUser.Manager2ID,
-            UserName = aspNetUser.Manager2Name,
-            Email = aspNetUser.Manager2Email
-          };
-          db.Managers.Add(newManager2);
+          //var newManager2 = new Manager
+          //{
+          //  UserID = aspNetUser.Manager2ID,
+          //  UserName = aspNetUser.Manager2Name,
+          //  Email = aspNetUser.Manager2Email
+          //};
+          //db.Managers.Add(newManager2);
         }
       }
       if (ModelState.IsValid)

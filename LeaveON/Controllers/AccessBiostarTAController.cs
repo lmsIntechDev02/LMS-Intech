@@ -512,8 +512,9 @@ namespace LeaveON.Controllers
             }
 
             //  Check public holiday (AnnualOffDays table)
+            var userDetail = dbLeaveOn.AspNetUsers.FirstOrDefault(k => k.BioStarEmpNum == record.BioStarEmpNum);
             bool isPublicHoliday = dbLeaveOn.AnnualOffDays.Any(h =>
-                h.UserLeavePolicyId == record.AspNetUser.UserLeavePolicyId &&
+                h.UserLeavePolicyId == userDetail.UserLeavePolicyId &&
                 h.OffDay == record.CreatedDate.Value
             );
 

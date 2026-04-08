@@ -105,7 +105,7 @@ namespace LeaveON.UtilityClasses
         {
             try
             {
-                SyncAppWithAD("Task Scheduler call");
+               /// SyncAppWithAD("Task Scheduler call");
             }
             catch (Exception ex)
             {
@@ -137,8 +137,8 @@ namespace LeaveON.UtilityClasses
                         /////////////find in app database
 
                         var AllIntechUsers = searcher.FindAll(); //876
-                        List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true).ToList<AspNetUser>(); //893
-
+                                                                 //  List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
+                        List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true ).ToList<AspNetUser>(); //893
                         //-------
                         //int cntr = 0;
                         //int non = 0;
@@ -169,8 +169,8 @@ namespace LeaveON.UtilityClasses
                         List<string> departmentsList = new List<string>();
                         List<string> countriesList = new List<string>();
 
-
-                         // int totalRecords = AllIntechUsers.Count();
+                        string conn = db.Database.Connection.ConnectionString;
+                        // int totalRecords = AllIntechUsers.Count();
 
                         foreach (var result in AllIntechUsers)
                         {
@@ -196,8 +196,7 @@ namespace LeaveON.UtilityClasses
                                 counter += 1;
 
 
-                                departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
-                                countriesList.Add(Convert.ToString(de.Properties["co"].Value));
+                              
 
 
                                 if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
@@ -215,12 +214,12 @@ namespace LeaveON.UtilityClasses
                                     {
                                         bioStarValue = (int)val;
                                     }
-                                    else
-                                    {
-                                        continue;
-                                    }
+                                    //else
+                                    //{
+                                    //    continue;
+                                    //}
                                 }
-
+                              
                                 AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.BioStarEmpNum== bioStarValue);
 
                                 if ((aspNetUser == null && auth.Enabled == false) || bioStarValue==0)
@@ -228,7 +227,12 @@ namespace LeaveON.UtilityClasses
                                     //   InsertSyncLog(jobName, "asp Net User is null ", 0, 1, 0, "", "continue", de);
                                     continue;
                                 }
-
+                                departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
+                                countriesList.Add(Convert.ToString(de.Properties["co"].Value));
+                                if (bioStarValue == 1793)
+                                {
+                                
+                                }
                                 if (aspNetUser == null && auth.Enabled != false)
                                 {//Insert
                                  //it means if user is created before "01/01/2019" then totaDays will be in minus. so not add very old users. only add new users. which are after "01/01/2019"
@@ -445,7 +449,7 @@ namespace LeaveON.UtilityClasses
             emp.DateCreated = DateTime.Now;
             emp.IsNew =  true;
             emp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
-            emp.CntryName = Convert.ToString(de.Properties["co"].Value);
+            //emp.CntryName = Convert.ToString(de.Properties["co"].Value);
             emp.IsActive = IsActive(de);
             emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
             emp.JoiningDate = whenCreated;
@@ -465,9 +469,10 @@ namespace LeaveON.UtilityClasses
                 .FirstOrDefault(u =>
                     !string.IsNullOrEmpty(u.UserName) &&
                     u.UserName.Split('@')[0].ToLower() == normalizedManagerName);
-            emp.ManagerName = managerNameFromAD;
+           
             if (managerData != null)
             {
+                emp.ManagerName = managerNameFromAD;
                 emp.ManagerEmail = managerData.UserName;
                 emp.ManagerID = managerData.Id;
             }
@@ -480,7 +485,7 @@ namespace LeaveON.UtilityClasses
 
         private void UpdateEmployee(AspNetUser oldEmp, DirectoryEntry de)
         {
-            var dbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == oldEmp.Id);
+            var dbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == oldEmp.Id && !(x.IsDeleted==true));
             //return;0.
             //AspNetUser emp;
             //emp = new AspNetUser();
@@ -505,7 +510,7 @@ namespace LeaveON.UtilityClasses
                     managerNameFromAD = endIndex > 0 ? dn.Substring(startIndex, endIndex - startIndex) : dn.Substring(startIndex);
 
 
-                    if (dbUser.ManagerName != managerNameFromAD)
+                    if (dbUser.ManagerName != managerNameFromAD )
                     {
 
                         string normalizedManagerName = managerNameFromAD
@@ -537,10 +542,12 @@ namespace LeaveON.UtilityClasses
                                 u.UserName.Split('@')[0].ToLower() == normalizedManagerName);
                         dbUser.ManagerName = managerNameFromAD;
 
+
                         if (managerData != null)
                         {
                             dbUser.ManagerID = managerData.Id;
                             dbUser.ManagerEmail = managerData.UserName;
+                            dbUser.ManagerName = managerData.EmpolyeeName;
                         }
                     }
                 }
