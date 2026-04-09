@@ -68,7 +68,7 @@ namespace LeaveOnTaskRunner
 
             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
             var userLsit=  await service.GetUserActiveList();
-            userLsit = userLsit.Where(k => k.BioStarEmpNum == 2950).ToList();
+           // userLsit = userLsit.Where(k => k.BioStarEmpNum == 2950).ToList();
 
             SqlConnection con = new SqlConnection(connection);
             con.Open();
@@ -86,16 +86,17 @@ namespace LeaveOnTaskRunner
                 InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
                            1, 0, "Start Job", "Sync User Atendance", 0);
 
-            DateTime lstartDate = new DateTime(2026, 2, 28);
-            DateTime lendDate = startDate.AddMonths(1).AddDays(-1);
+            DateTime lsstartDate = new DateTime(2026, 2, 28);
+            DateTime lsendDate = new DateTime(2026, 4, 1);
 
-            for (DateTime date = startDate; date <= endDate; date = date.AddDays(1))
+            for (DateTime date = lsstartDate; date <= lsendDate; date = date.AddDays(1))
             {
                 Console.WriteLine(date.ToString("yyyy-MM-dd"));
 
                 // Your logic here
-             
 
+                startDate = date;
+                endDate = date.AddDays(2);
             foreach (var user in userLsit)
             {
 

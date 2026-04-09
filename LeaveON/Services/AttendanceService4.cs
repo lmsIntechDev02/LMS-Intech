@@ -26,7 +26,7 @@ namespace LeaveON.Services
 
     public async Task<List<AspNetUser>> GetUserActiveList()
     {
-     return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true).ToList();
+     return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted !=true).ToList();
     }
 
     //public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)

@@ -15,20 +15,20 @@ namespace Intranet
         {
             // Configure Hangfire storage
             GlobalConfiguration.Configuration
-                .UseSqlServerStorage("DefaultConnection");
+               .UseSqlServerStorage("DefaultConnection");
 
             // Start Hangfire server
-          app.UseHangfireServer();
+            app.UseHangfireServer();
 
             // Enable dashboard
-          app.UseHangfireDashboard("/hangfire");
+           app.UseHangfireDashboard("/hangfire");
 
             // Schedule your AD sync job
             // comment for testing
-           /// RecurringJob.AddOrUpdate(
-             //   "AD-Sync-Job",
-             //   () => new ScheduledTasks().SyncAppWithAD("Hangfire Job"),
-             //   Cron.MinuteInterval(2));   // Change schedule if needed
+            RecurringJob.AddOrUpdate(
+                "AD-Sync-Job",
+                () => new ScheduledTasks().SyncAppWithAD("Hangfire Job"),
+                Cron.MinuteInterval(10));   // Change schedule if needed
         }
     }
 }
