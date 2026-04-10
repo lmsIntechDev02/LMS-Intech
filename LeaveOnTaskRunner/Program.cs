@@ -40,11 +40,11 @@ namespace LeaveOnTaskRunner
             //DateTime endDate = new DateTime(2026, 02, 11);
 
             // testing
-            DateTime startDate = new DateTime(2026, 02, 28);
-           DateTime endDate = new DateTime(2026, 04, 01);
+          //  DateTime startDate = new DateTime(2026, 02, 28);
+          // DateTime endDate = new DateTime(2026, 04, 01);
 
-           //  DateTime startDate = yesterday;
-           // DateTime endDate = today;
+          DateTime startDate = yesterday;
+           DateTime endDate = today;
 
 
 
@@ -68,7 +68,7 @@ namespace LeaveOnTaskRunner
 
             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
             var userLsit=  await service.GetUserActiveList();
-            userLsit = userLsit.Where(k => k.BioStarEmpNum == 2696).ToList();
+           // userLsit = userLsit.Where(k => k.BioStarEmpNum == 2696).ToList();
 
             SqlConnection con = new SqlConnection(connection);
             con.Open();
@@ -86,17 +86,17 @@ namespace LeaveOnTaskRunner
                 InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
                            1, 0, "Start Job", "Sync User Atendance", 0);
 
-            DateTime lsstartDate = new DateTime(2026, 03, 30);
-            DateTime lsendDate = new DateTime(2026, 4, 1);
+          //  startDate = new DateTime(2026, 4, 01);
+          //  endDate = new DateTime(2026, 4, 03);
 
-            for (DateTime date = lsstartDate; date <= lsendDate; date = date.AddDays(1))
-            {
-                Console.WriteLine(date.ToString("yyyy-MM-dd"));
+          //  for (DateTime date = lsstartDate; date <= lsendDate; date = date.AddDays(1))
+           // {
+               // Console.WriteLine(date.ToString("yyyy-MM-dd"));
 
                 // Your logic here
 
-                startDate = date;
-                endDate = date.AddDays(2);
+               // startDate = date;
+             //   endDate = date.AddDays(2);
             foreach (var user in userLsit)
             {
 
@@ -136,7 +136,7 @@ namespace LeaveOnTaskRunner
             {
                 await breakHours.ConnectToDBandFillBreakHours(breakeHourList);
             }
-             }
+           //  }
 
 
 
