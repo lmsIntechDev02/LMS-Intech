@@ -107,7 +107,7 @@ namespace LeaveOnTaskRunner
                     //   finalList.AddRange(userData);
 
 
-                    List<TimeData> userData = service.GetEmployeeAttendacne(startDate, endDate, userData);
+                   userData = service.GetEmployeeAttendacne(startDate, endDate, userData);
 
 
                 }

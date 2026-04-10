@@ -189,7 +189,7 @@ namespace LeaveON.Services
     }
 
 
-    private Task<List<TimeData>> GetEmployeeAttendacne(DateTime rstartDate , DateTime rendDate,  AspNetUser aspNetUser)
+    public Task<List<TimeData>> GetEmployeeAttendacne(DateTime rstartDate , DateTime rendDate,  AspNetUser aspNetUser)
     {
 
           string formattedStartDate = rstartDate.ToString("dd-MM-yyyy");
