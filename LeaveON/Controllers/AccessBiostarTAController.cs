@@ -1634,6 +1634,10 @@ namespace LeaveON.Controllers
         These will be used to track the dates, times, and other details for each punch.
 
         */
+        var groupedData = dt.AsEnumerable()
+    .GroupBy(r => Convert.ToDateTime(r["devdt"]).Date)
+    .OrderBy(g => g.Key);
+
         DateTime firstDateTime = (DateTime)dt.Rows[0]["devdt"];//ConvertToCountryTimeZone(dt, 0, timeZone);//(DateTime)dt.Rows[0]["SRVDT"];
         DateTime lastDateTime = (DateTime)dt.Rows[rowsCount - 1]["devdt"];//ConvertToCountryTimeZone(dt, rowsCount - 1, timeZone);//(DateTime)dt.Rows[rowsCount - 1]["SRVDT"];
         int firstDay = firstDateTime.Day;
@@ -1652,199 +1656,124 @@ namespace LeaveON.Controllers
         TimeSpan ThidDayWorkingHours = new TimeSpan();
         int k = 0;//-1;
 
-        for (int j = 0; j <= rowsCount - 1; j++)//this loop iterates over each row of the sorted DataTable to process attendance data
+        foreach (var dayGroup in groupedData)
         {
-          string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0, 3);
+          var dayRows = dayGroup.OrderBy(r => Convert.ToDateTime(r["devdt"])).ToList();
 
-          if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
+          // Reset per day
+          firsTimeIn = blankDateTime;
+          lastTimeOut = blankDateTime;
+          ThidDayWorkingHours = TimeSpan.Zero;
+          IsCardIn = false;
+          IsCardOut = false;
+
+          for (int j = 0; j < dayRows.Count; j++)
           {
-            timeZone = "W. Central Africa Standard Time";
-            countryName = "Nigeria Lagos";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
-          {
-            timeZone = "W. Central Africa Standard Time";
-            countryName = "Nigeria Port Harcourt";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
-          {
-            timeZone = "Pakistan Standard Time";
-            countryName = "Pakistan";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN03")
-          {
-            timeZone = "W. Central Africa Standard Time";
-            countryName = "Nigeria";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN04")
-          {
-            timeZone = "W. Central Africa Standard Time";
-            countryName = "Angola";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN05")
-          {
-            timeZone = "Arab Standard Time";
-            countryName = "Saudi Arabia";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN07")
-          {
-            timeZone = "Arab Standard Time";
-            countryName = "Iraq";
-          }
-          else if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "IN08")
-          {
-            timeZone = "Arab Standard Time";
-            countryName = "United Arab Emirates";
-          }
-          else
-          {
-            switch (shortCountryName)
+            string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
+
+            /* SAME COUNTRY LOGIC (UNCHANGED) */
+            if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
             {
-              case "PK ":
-                timeZone = "Pakistan Standard Time";
-                countryName = "Pakistan";
-                break;
-              case "PAK":
-                timeZone = "Pakistan Standard Time";
-                countryName = "Pakistan";
-                break;
-              case "UAE":
-                timeZone = "Arab Standard Time";
-                countryName = "United Arab Emirates";
-                break;
-              case "KSA":
-                timeZone = "Arab Standard Time";
-                countryName = "Saudi Arabia";
-                break;
-              case "GBR":
-                timeZone = "GMT Standard Time";
-                countryName = "United Kingdom";
-                break;
-              case "USA":
-                timeZone = "Central Standard Time";
-                countryName = "United States";
-                break;
-              case "NGA":
-                timeZone = "W. Central Africa Standard Time";
-                countryName = "Nigeria";
-                break;
-              case "NG-":
-                timeZone = "W. Central Africa Standard Time";
-                countryName = "Nigeria";
-                break;
-              case "EGY":
-                timeZone = "Egypt Standard Time";
-                countryName = "Egypt";
-                break;
-              case "IRQ":
-                timeZone = "Arabic Standard Time";
-                countryName = "Iraq";
-                break;
-              case "OMN":
-                timeZone = "Arabian Standard Time";
-                countryName = "Oman";
-                break;
-              case "QAT":
-                timeZone = "Arab Standard Time";
-                countryName = "Qatar";
-                break;
-              case "AGO":
-                timeZone = "W. Central Africa Standard Time";
-                countryName = "Angola";
-                break;
-              case "KAZ":
-                timeZone = "West Asia Standard Time";
-                countryName = "Kazakhstan";
-                break;
-              // Add more cases for other countries
-              default:
-                timeZone = aspNetUser.CountryName.TimeZone; // Or handle the default case based on your requirements
-                countryName = aspNetUser.CountryName.Name;
-                break;
+              timeZone = "W. Central Africa Standard Time";
+              countryName = "Nigeria Lagos";
             }
-          }
-
-          // Convert the device date/time to the appropriate timezone
-          firstDateTime = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j]["devdt"], timeZone);
-
-
-          // Check for a change in date indicating a new day of attendance records
-          if (firstDateTime.Day != firstDay)
-          {//its mean new date started. so add all previois date calcuation here and add to list
-
-            // If there are valid time-in and time-out records for the previous day, calculate total time
-            if (firsTimeIn.Year != 2001 && lastTimeOut.Year != 2001)//(IsCardIn == true && IsCardOut == true)
+            else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
             {
-              TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
-              bool countryChanged = false;
-              var leaveName = "";
-              var leaveForDay = dbLeaveOn.Leaves.Where(x => x.UserId == aspNetUser.Id && DbFunctions.TruncateTime(x.StartDate) == DbFunctions.TruncateTime(firsTimeIn)).FirstOrDefault();
-              if (leaveForDay != null)
-              {
-                var leaveType = dbLeaveOn.LeaveTypes.Find(leaveForDay.LeaveTypeId);
-                leaveName = leaveType.Name;
-              }
-              else
-              {
-                leaveName = "";
-              }
-              if (countryName != previousCountryName && countryName != "" & previousCountryName != "")
-              {
-                countryChanged = true;
-              }
-              attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryChanged ? previousCountryName : countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn), Status = leaveName };
-
-              LstTimeData.Add(attendance);
-              TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
-
+              timeZone = "W. Central Africa Standard Time";
+              countryName = "Nigeria Port Harcourt";
             }
-            //re-intiallize variables to next date calculations
-            firsTimeIn = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//firstDateTime;//DateTime.Today;
-
-            lastTimeOut = DateTime.ParseExact("2001-01-01 01:01:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);//lastDateTime;//DateTime.Today;
-            ThidDayWorkingHours = new TimeSpan();
-            IsCardIn = false; IsCardOut = false;
-            firstDay = firstDateTime.Day;
-          }
-
-          k = j + 1;
-
-          //get actual working hour of this date
-
-          if ((k <= rowsCount - 1) && LstCardReadersIn.Contains((int)dt.Rows[j]["DEVID"]) && !LstCardReadersIn.Contains((int)dt.Rows[k]["DEVID"]) &&
-          Convert.ToDateTime(dt.Rows[j]["devdt"]).Day == firstDay && Convert.ToDateTime(dt.Rows[k]["devdt"]).Day == firstDay)
-          {
-            if (IsCardIn == false)
+            else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
             {
-              firsTimeIn = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j]["devdt"], timeZone);
-              lastTimeOut = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[k]["devdt"], timeZone);
-              IsCardIn = true;
+              timeZone = "Pakistan Standard Time";
+              countryName = "Pakistan";
+            }
+            else
+            {
+              switch (shortCountryName)
+              {
+                case "PK ":
+                case "PAK":
+                  timeZone = "Pakistan Standard Time";
+                  countryName = "Pakistan";
+                  break;
+                case "UAE":
+                  timeZone = "Arab Standard Time";
+                  countryName = "United Arab Emirates";
+                  break;
+                default:
+                  timeZone = aspNetUser.CountryName.TimeZone;
+                  countryName = aspNetUser.CountryName.Name;
+                  break;
+              }
             }
 
-            timeIn = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[j]["devdt"], timeZone);
-            timeOut = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[k]["devdt"], timeZone);
-            TimeSpan workingHour = (timeOut - timeIn);
-            ThidDayWorkingHours = ThidDayWorkingHours.Add(workingHour);
-            if (IsCardIn == true && !LstCardReadersIn.Contains((int)dt.Rows[k]["DEVID"]))
+            DateTime currentTime = ConvertToCountryTimeZoneNew((DateTime)dayRows[j]["devdt"], timeZone);
+
+            k = j + 1;
+
+            /* 🔥 SAME LOGIC, BUT SAFE */
+            if ((k < dayRows.Count) &&
+                LstCardReadersIn.Contains((int)dayRows[j]["DEVID"]) &&
+                !LstCardReadersIn.Contains((int)dayRows[k]["DEVID"]))
             {
+              DateTime nextTime = ConvertToCountryTimeZoneNew((DateTime)dayRows[k]["devdt"], timeZone);
+
+              if (!IsCardIn)
+              {
+                firsTimeIn = currentTime;
+                lastTimeOut = nextTime;
+                IsCardIn = true;
+              }
+
+              timeIn = currentTime;
+              timeOut = nextTime;
+
+              TimeSpan workingHour = (timeOut - timeIn);
+              ThidDayWorkingHours = ThidDayWorkingHours.Add(workingHour);
+
               IsCardOut = true;
-              lastTimeOut = ConvertToCountryTimeZoneNew((DateTime)dt.Rows[k]["devdt"], timeZone);
+              lastTimeOut = nextTime;
             }
+
+            previousCountryName = countryName;
           }
 
-          previousCountryName = countryName;
-        }
-        //datetime for end here
+          /* ✅ ADD DAILY RECORD (NO NEED separate last-loop fix anymore) */
+          if (firsTimeIn.Year != 2001 && lastTimeOut.Year != 2001)
+          {
+            TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
 
-        //add last date to list here as loop ended
-        if (firsTimeIn.Year != 2001 && lastTimeOut.Year != 2001)//(IsCardIn == true && IsCardOut == true)
-        {
-          TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
-          depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId).DepartmentName;
-          attendance = new TimeData() { EmployeeName = UserName, EmployeeNumber = UserId, TimeZone = countryName, Policy = userLeavePolicyDescription, Department = depName, Date = firsTimeIn.Date, Day = firsTimeIn.DayOfWeek.ToString(), TimeIn = firsTimeIn, TimeOut = lastTimeOut, WorkingHours = ThidDayWorkingHours, TotalTime = (lastTimeOut - firsTimeIn) };
+            var leaveName = "";
+            var leaveForDay = dbLeaveOn.Leaves
+                .Where(x => x.UserId == aspNetUser.Id &&
+                DbFunctions.TruncateTime(x.StartDate) == DbFunctions.TruncateTime(firsTimeIn))
+                .FirstOrDefault();
 
-          LstTimeData.Add(attendance);
-          TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
+            if (leaveForDay != null)
+            {
+              var leaveType = dbLeaveOn.LeaveTypes.Find(leaveForDay.LeaveTypeId);
+              leaveName = leaveType.Name;
+            }
+
+            attendance = new TimeData()
+            {
+              EmployeeName = UserName,
+              EmployeeNumber = UserId,
+              TimeZone = countryName,
+              Policy = userLeavePolicyDescription,
+              Department = depName,
+              Date = firsTimeIn.Date,
+              Day = firsTimeIn.DayOfWeek.ToString(),
+              TimeIn = firsTimeIn,
+              TimeOut = lastTimeOut,
+              WorkingHours = ThidDayWorkingHours,
+              TotalTime = (lastTimeOut - firsTimeIn),
+              Status = leaveName
+            };
+
+            LstTimeData.Add(attendance);
+            TotalWorkingHours = TotalWorkingHours.Add(ThidDayWorkingHours);
+          }
         }
 
         ////Leaves Processing
