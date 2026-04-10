@@ -66,7 +66,7 @@ namespace LeaveOnTaskRunner
 
            // IConfiguration config = builder.Build();
 
-            string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
+             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
             var userLsit=  await service.GetUserActiveList();
              userLsit = userLsit.Where(k => k.BioStarEmpNum == 2696).ToList();
 
@@ -103,10 +103,13 @@ namespace LeaveOnTaskRunner
                 List<TimeData> userData;
                 try
                 {
-                    if(service.GetUserAttendancData(startDate, endDate, con, user, out userData)==1)
-                    finalList.AddRange(userData);
+                    //(service.GetUserAttendancData(startDate, endDate, con, user, out userData)==1)
+                    //   finalList.AddRange(userData);
 
-                   
+
+                    List<TimeData> userData = service.GetEmployeeAttendacne(startDate, endDate, userData);
+
+
                 }
                 catch (Exception ex)
                 {
