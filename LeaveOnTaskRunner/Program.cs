@@ -68,7 +68,7 @@ namespace LeaveOnTaskRunner
 
              string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
             var userLsit=  await service.GetUserActiveList();
-             userLsit = userLsit.Where(k => k.BioStarEmpNum == 2696).ToList();
+           ///  userLsit = userLsit.Where(k => k.BioStarEmpNum == 2696).ToList();
 
             SqlConnection con = new SqlConnection(connection);
             con.Open();
@@ -107,7 +107,8 @@ namespace LeaveOnTaskRunner
                     //   finalList.AddRange(userData);
 
 
-                   userData = service.GetEmployeeAttendacne(startDate, endDate, userData);
+                   userData =  await service.GetEmployeeAttendacne(startDate, endDate, user);
+                    finalList.AddRange(userData);
 
 
                 }
