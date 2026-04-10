@@ -440,6 +440,7 @@ namespace LeaveON.Services
             TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
 
             var leaveName = "";
+            int leaveTypeID =0;
             var leaveForDay = dbLeaveOn.Leaves
                 .Where(x => x.UserId == aspNetUser.Id &&
                 DbFunctions.TruncateTime(x.StartDate) == DbFunctions.TruncateTime(firsTimeIn))
@@ -448,23 +449,42 @@ namespace LeaveON.Services
             if (leaveForDay != null)
             {
               var leaveType = dbLeaveOn.LeaveTypes.Find(leaveForDay.LeaveTypeId);
-              leaveName = leaveType.Name;
+                leaveTypeID = leaveType.Id;
+              leaveName = leaveType.Name;   
             }
-
+              bool isAbsent = false;
             attendance = new TimeData()
             {
+            
+            
+              
+               
+              
+              Date = firsTimeIn.Date,
+              Day = firsTimeIn.DayOfWeek.ToString(),
+            
+             
+             
+
               EmployeeName = UserName,
               EmployeeNumber = UserId,
               TimeZone = countryName,
+              Department= aspNetUser.DepartmentName,
               Policy = userLeavePolicyDescription,
-              Department = depName,
-              Date = firsTimeIn.Date,
-              Day = firsTimeIn.DayOfWeek.ToString(),
               TimeIn = firsTimeIn,
               TimeOut = lastTimeOut,
-              WorkingHours = ThidDayWorkingHours,
+              WorkingHours =ThidDayWorkingHours,
               TotalTime = (lastTimeOut - firsTimeIn),
-              Status = leaveName
+
+              aspNetUser.Id,
+              ManagerEmail=aspNetUser.ManagerEmail,
+              Manager2Email=aspNetUser.Manager2Email,
+              ManagerID= aspNetUser.ManagerID,
+              Manager2ID=aspNetUser.Manager2ID,
+              Status = leaveName,
+              isAbsent= isAbsent,
+              leaveTypeID = leaveTypeID,
+              leaveType= leaveName
             };
 
             LstTimeData.Add(attendance);
