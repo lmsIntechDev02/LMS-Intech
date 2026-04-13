@@ -765,7 +765,26 @@ namespace LeaveON.Services
 
 
     }
+    protected List<string> GetUserDataWeekEndLists(DateTime startDate, DateTime endDate, string WeekEndDays)
+    {
+      List<int> LstWeekEndDays = WeekEndDays.Split(',').Select(int.Parse).ToList();
+      List<string> LstThisMonthsWeekEnds = new List<string>();
 
+      CultureInfo ci = new CultureInfo("en-US");
+
+      // Loop through each day in the given date range
+      for (DateTime date = startDate; date < endDate; date = date.AddDays(1))
+      {
+        // Check if the current day's DayOfWeek matches any of the provided weekend days
+        if (LstWeekEndDays.Contains((int)date.DayOfWeek))
+        {
+          LstThisMonthsWeekEnds.Add(date.ToString("MM-dd-yyyy"));
+        }
+      }
+
+      LstThisMonthsWeekEnds.Sort();
+      return LstThisMonthsWeekEnds;
+    }
     private DateTime ConvertToCountryTimeZoneNew(DateTime dateTime, string timeZone)
     {
       try
