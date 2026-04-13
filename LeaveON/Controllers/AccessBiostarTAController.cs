@@ -2007,9 +2007,11 @@ namespace LeaveON.Controllers
              ? TimeSpan.FromSeconds((double)record.TotalWorkHours)
              : TimeSpan.Zero;
           string day = record.CreatedDate.HasValue ? record.CreatedDate.Value.ToString("dddd") : "N/A";
-
-          totalWorkingHoursAllUsers += totalWorkingHours;
-          totalTimeAllUsers += totalTime;
+          if (record.IsAbsent != true)
+          {
+            totalWorkingHoursAllUsers += totalWorkingHours;
+            totalTimeAllUsers += totalTime;
+          }
 
           //Chek weekend
           string status = "Absent";
@@ -2077,14 +2079,14 @@ namespace LeaveON.Controllers
             EmployeeName = record.UserName, 
             EmployeeNumber = record.BioStarEmpNum ?? 0, 
             Department = record.DepartmentName,
-            TimeZone = record.TimeZone,
+            TimeZone = record.CountryName,
             Policy = record.UserLeavePolicyID, 
             Date = record.CreatedDate ?? DateTime.MinValue,
             Day = day,
             TimeIn = timeIn,
             TimeOut = timeOut,
             TotalTime = totalTime,
-            WorkingHours = totalWorkingHours,
+            WorkingHours =   totalWorkingHours,
             Status = status,
    
           });

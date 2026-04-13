@@ -113,8 +113,8 @@
                             </td>
                             @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
 
-                              if (item.WorkingHours != offDayTime)
-                              {
+                                if (item.WorkingHours != offDayTime && item.Status != "Absent")
+                                {
                                 <td>
                                   @Html.DisplayFor(modelItem => item.TimeIn)
                                 </td>
