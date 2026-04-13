@@ -2077,7 +2077,7 @@ namespace LeaveON.Controllers
             EmployeeName = record.UserName, 
             EmployeeNumber = record.BioStarEmpNum ?? 0, 
             Department = record.DepartmentName,
-            TimeZone = record.CountryName,
+            TimeZone = record.TimeZone,
             Policy = record.UserLeavePolicyID, 
             Date = record.CreatedDate ?? DateTime.MinValue,
             Day = day,
