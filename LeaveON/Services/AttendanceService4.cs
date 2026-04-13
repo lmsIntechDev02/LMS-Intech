@@ -355,9 +355,10 @@ namespace LeaveON.Services
         foreach (var dayGroup in groupedData)
         {
           var dayRows = dayGroup.OrderBy(r => Convert.ToDateTime(r["devdt"])).ToList();
-
-          // Reset per day
-          firsTimeIn = blankDateTime;
+            var ddr = dayGroup.FirstOrDefault();
+            var dd =   Convert.ToDateTime(ddr["devdt"]) ;
+            // Reset per day
+            firsTimeIn = blankDateTime;
           lastTimeOut = blankDateTime;
           ThidDayWorkingHours = TimeSpan.Zero;
           IsCardIn = false;
@@ -468,7 +469,9 @@ namespace LeaveON.Services
 
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = timeZone,
+              CountryName = countryName,
+
               Department= aspNetUser.DepartmentName,
               Policy = userLeavePolicyDescription,
               TimeIn = firsTimeIn,
@@ -543,13 +546,14 @@ namespace LeaveON.Services
 
                   EmployeeName = UserName,
                   EmployeeNumber = UserId,
-                  TimeZone = countryName,
+                  TimeZone = timeZone,
+                  CountryName = countryName,
                   Department = aspNetUser.DepartmentName,
                   Policy = userLeavePolicyDescription,
-                  TimeIn = firsTimeIn,
-                  TimeOut = lastTimeOut,
-                  WorkingHours = ThidDayWorkingHours,
-                  TotalTime = (lastTimeOut - firsTimeIn),
+                  //TimeIn = firsTimeIn,
+                  //TimeOut = lastTimeOut,
+                  //WorkingHours = ThidDayWorkingHours,
+                 // TotalTime = (lastTimeOut - firsTimeIn),
 
                   UserID = aspNetUser.Id,
                   ManagerEmail = aspNetUser.ManagerEmail,
@@ -627,7 +631,8 @@ namespace LeaveON.Services
             {
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = timeZone,
+              CountryName = countryName,
               Policy = userLeavePolicyDescription,
               Department = depName,
               Date = annualOffDay?.OffDay ?? currentDay,
