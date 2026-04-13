@@ -74,91 +74,99 @@
                             <th>
                               @Html.DisplayNameFor(model => model.Status)
                             </th>
-                            @*<th></th>*@
+                            <th></th> 
                           </tr>
                         </thead>
                         <tbody>
                           @foreach (var item in Model)
                           {
-                            <tr>
-                              <td>
-                                @CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower())
-                              </td>
-                              <td>
-                                @Html.DisplayFor(modelItem => item.EmployeeNumber)
-                              </td>
-                              <td>
-                                @Html.DisplayFor(modelItem => item.Department)
-                              </td>
-                              <td>
-                                @{TimeSpan offDayTimeForCountry = TimeSpan.Parse("00.00:00");
-                                  if (item.WorkingHours != offDayTimeForCountry)
-                                  {
-                                    @Html.DisplayFor(modelItem => item.TimeZone)
-                                  }
-                                  else
-                                  {
-                                    <text>-</text>
-                                  }
-                                }
-                              </td>
-                              <td>
-                                @Html.DisplayFor(modelItem => item.Policy)
-                              </td>
-                              <td>
-                                @Html.DisplayFor(modelItem => item.Date)
-                              </td>
-                              <td>
-                                @Html.DisplayFor(modelItem => item.Day)
-                              </td>
-                              @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
-
-                                if (item.WorkingHours != offDayTime)
+                          <tr>
+                            <td>
+                              @CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower())
+                            </td>
+                            <td>
+                              @Html.DisplayFor(modelItem => item.EmployeeNumber)
+                            </td>
+                            <td>
+                              @Html.DisplayFor(modelItem => item.Department)
+                            </td>
+                            <td>
+                              @{TimeSpan offDayTimeForCountry = TimeSpan.Parse("00.00:00");
+                                if (item.WorkingHours != offDayTimeForCountry)
                                 {
-                                  <td>
-                                    @Html.DisplayFor(modelItem => item.TimeIn)
-                                  </td>
-                                  <td>
-                                    @Html.DisplayFor(modelItem => item.TimeOut)
-                                  </td>
-                                  <td>
-                                    @Html.DisplayFor(modelItem => item.WorkingHours)
-                                  </td>
-                                  <td>
-                                    @Html.DisplayFor(modelItem => item.TotalTime)
-                                  </td>
+                                  @Html.DisplayFor(modelItem => item.TimeZone)
                                 }
                                 else
                                 {
-                                  <td>
-                                    <text>-</text>
-                                  </td>
-                                  <td>
-                                    <text>-</text>
-                                  </td>
-                                  <td>
-                                    <text>-</text>
-                                  </td>
-                                  <td>
-                                    <text>-</text>
-                                  </td>
+                                  <text>-</text>
                                 }
+                              }
+                            </td>
+                            <td>
+                              @Html.DisplayFor(modelItem => item.Policy)
+                            </td>
+                            <td>
+                              @Html.DisplayFor(modelItem => item.Date)
+                            </td>
+                            <td>
+                              @Html.DisplayFor(modelItem => item.Day)
+                            </td>
+                            @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
 
+                              if (item.WorkingHours != offDayTime)
+                              {
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.TimeIn)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.TimeOut)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.WorkingHours)
+                                </td>
+                                <td>
+                                  @Html.DisplayFor(modelItem => item.TotalTime)
+                                </td>
+                              }
+                              else
+                              {
+                                <td>
+                                  <text>-</text>
+                                </td>
+                                <td>
+                                  <text>-</text>
+                                </td>
+                                <td>
+                                  <text>-</text>
+                                </td>
+                                <td>
+                                  <text>-</text>
+                                </td>
                               }
 
-                              <td>
+                            }
 
-                                @{if (item.WorkingHours != offDayTime)
-                                  {
-                                    @*@Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
-                                    @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
-                                  }
-                                  @Html.DisplayFor(modelItem => item.Status)
+                            <td>
+
+                              
+                                @Html.DisplayFor(modelItem => item.Status)
+                            
+
+
+                            </td>
+                            <td>
+
+                              @{if (item.WorkingHours != offDayTime)
+                                {
+                                  @*@Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
+                                  @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
                                 }
+                               
+                              }
 
 
-                              </td>
-                            </tr>
+                            </td>
+                          </tr>
                           }
                         </tbody>
                         <tfoot>
