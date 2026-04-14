@@ -130,7 +130,8 @@ namespace LeaveON.UtilityClasses
                     int UpdatedEmp = 0;
                     //List<string> loginsList = new List<string>();
                     var path = @"D:\LeaveON - AD\Intranet\ADUserList.txt";
-
+                    int totalActiveuserCount = 0;
+                    int totalUserCount = 0;
                     using (var searcher = new PrincipalSearcher(userFilter))
                     {
 
@@ -187,6 +188,8 @@ namespace LeaveON.UtilityClasses
                         string conn = db.Database.Connection.ConnectionString;
                          int totalRecords = AllIntechUsers.Count();
 
+                         // int totalRecords = AllIntechUsers.Count();
+
                         foreach (var result in AllIntechUsers)
                         {
 
@@ -213,49 +216,28 @@ namespace LeaveON.UtilityClasses
                                 counter += 1;
 
 
-                              
+                                departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
+                                countriesList.Add(Convert.ToString(de.Properties["co"].Value));
 
 
-                                //if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
-                                //{
-
-                                //}
-
-                                // AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
-                                int bioStarValue = 0;
-                                var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
-
-                                if (rawValue != null && long.TryParse(rawValue.ToString(), out long val))
+                                if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
                                 {
-                                    if (val >= int.MinValue && val <= int.MaxValue)
-                                    {
-                                        bioStarValue = (int)val;
-                                    }
-                                    //else
-                                    //{
-                                    //    continue;
-                                    //}
-                                }
-                              
-                                AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.BioStarEmpNum== bioStarValue && !(x.IsDeleted==true) && x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
 
-                                if ((aspNetUser == null && auth.Enabled == false) || bioStarValue==0)
+                                }
+
+                                AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
+                                if (aspNetUser == null && auth.Enabled == false)
                                 {
                                     //   InsertSyncLog(jobName, "asp Net User is null ", 0, 1, 0, "", "continue", de);
                                     continue;
                                 }
-                                departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
-                                // countriesList.Add(Convert.ToString(de.Properties["co"].Value));
-                                string countryname = Convert.ToString(de.Properties["co"].Value);
-                                if (bioStarValue == 1793)
-                                {
-                                
-                                }
+
                                 if (aspNetUser == null && auth.Enabled != false)
                                 {//Insert
                                  //it means if user is created before "01/01/2019" then totaDays will be in minus. so not add very old users. only add new users. which are after "01/01/2019"
                                  //this is just to fast the process
                                  //if (TimeDifference.TotalDays < 0) continue;
+                                    InsertSyncLog("UserList", "UserList", 0, 1, 0, "", "Insert", de);
                                     try
                                     {
                                         if (!string.IsNullOrEmpty(countryname))
@@ -286,11 +268,11 @@ namespace LeaveON.UtilityClasses
                                 {//Update
                                     try
                                     {
-                                        if (!string.IsNullOrEmpty(countryname))
-                                        { UpdateCountry(countryname); }
-                                       
-                                        var olddbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == aspNetUser.Id && !(x.IsDeleted == true));
-                                        UpdateEmployee(olddbUser, de, countryname);
+                                        //if ( string.IsNullOrEmpty(aspNetUser.DepartmentName) ||
+                                        //    aspNetUser.DepartmentName != Convert.ToString(de.Properties["department"].Value) ||
+                                        //    aspNetUser.CntryName != Convert.ToString(de.Properties["co"].Value))
+                                        //{
+                                        UpdateEmployee(aspNetUser, de);
                                         // InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
                                         //}
                                     }
@@ -321,6 +303,8 @@ namespace LeaveON.UtilityClasses
 
                         }
 
+                                InsertSyncLog(jobName, "Insert", totalActiveuserCount, 0, 1, "Test", "Active User Count", null);
+                                InsertSyncLog(jobName, "Insert", totalUserCount, 0, 1, "Test", " User Count", null);
                         var dbDaprtmentList = db.DepartmentNames.ToList();
                         //-----------add department name which does not exist in LMS-DB------------
                         List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
@@ -414,11 +398,19 @@ namespace LeaveON.UtilityClasses
 
         private bool IsActive(DirectoryEntry de)
         {
-            if (de.NativeGuid == null) return false;
+            if (de == null || de.NativeGuid == null)
+                return false;
 
-            int flags = (int)de.Properties["userAccountControl"].Value;
+            if (de.Properties["userAccountControl"] == null ||
+                de.Properties["userAccountControl"].Value == null)
+                return false;
 
-            return !Convert.ToBoolean(flags & 0x0002);
+            int flags = Convert.ToInt32(de.Properties["userAccountControl"].Value);
+
+            // Check if ACCOUNTDISABLE bit is set
+            //bool isDisabled = (flags & 0x0002) == 0x0002;
+            return (flags & 0x0002) == 0; // true = active
+            //return !isDisabled;
         }
         private void InsertEmployee(DirectoryEntry de)
         {
@@ -520,6 +512,10 @@ namespace LeaveON.UtilityClasses
              var dbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == oldemp.Id && !(x.IsDeleted == true));
             if (dbUser != null)
             {
+                //if(dbUser.EmpolyeeName== "Rosheen Naveed")
+                //{
+                      
+                //}
                 string managerNameFromAD = string.Empty;
                 dbUser.IsActive = IsActive(de);
                 if (!String.IsNullOrEmpty(countryname))
@@ -583,6 +579,11 @@ namespace LeaveON.UtilityClasses
                             dbUser.ManagerName = managerData.EmpolyeeName;
                         }
                     }
+                }
+                else
+                {
+                    dbUser.ManagerID =null;
+                    dbUser.ManagerName = String.Empty;
                 }
 
                 // Retrieve "whenCreated" from DirectoryEntry
@@ -664,7 +665,7 @@ namespace LeaveON.UtilityClasses
         {
             string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
-            int? bioStarValue = 0;
+            int? bioStarValue = null;
             if (de != null)
             {
                 var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
