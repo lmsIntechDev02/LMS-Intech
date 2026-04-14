@@ -105,7 +105,7 @@ namespace LeaveON.UtilityClasses
         {
             try
             {
-               /// SyncAppWithAD("Task Scheduler call");
+                /// SyncAppWithAD("Task Scheduler call");
             }
             catch (Exception ex)
             {
@@ -130,8 +130,7 @@ namespace LeaveON.UtilityClasses
                     int UpdatedEmp = 0;
                     //List<string> loginsList = new List<string>();
                     var path = @"D:\LeaveON - AD\Intranet\ADUserList.txt";
-                    int totalActiveuserCount = 0;
-                    int totalUserCount = 0;
+
                     using (var searcher = new PrincipalSearcher(userFilter))
                     {
 
@@ -154,7 +153,7 @@ namespace LeaveON.UtilityClasses
     .ToList();
 
                         //  List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
-                        List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true ).ToList<AspNetUser>(); //893
+                        List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true).ToList<AspNetUser>(); //893
                         //-------
                         //int cntr = 0;
                         //int non = 0;
@@ -186,9 +185,7 @@ namespace LeaveON.UtilityClasses
                         List<string> countriesList = new List<string>();
 
                         string conn = db.Database.Connection.ConnectionString;
-                         int totalRecords = AllIntechUsers.Count();
-
-                         // int totalRecords = AllIntechUsers.Count();
+                        int totalRecords = AllIntechUsers.Count();
 
                         foreach (var result in AllIntechUsers)
                         {
@@ -196,7 +193,7 @@ namespace LeaveON.UtilityClasses
                             try
                             {
                                 DirectoryEntry de = result.De;
-                                  auth = result.Auth;
+                                auth = result.Auth;
 
                                 //DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
                                 //auth = result as AuthenticablePrincipal;
@@ -216,28 +213,46 @@ namespace LeaveON.UtilityClasses
                                 counter += 1;
 
 
-                                departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
-                                countriesList.Add(Convert.ToString(de.Properties["co"].Value));
 
 
-                                if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
+
+                                //if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
+                                //{
+
+                                //}
+
+                                // AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
+                                int bioStarValue = 0;
+                                var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
+
+                                if (rawValue != null && long.TryParse(rawValue.ToString(), out long val))
                                 {
-
+                                    if (val >= int.MinValue && val <= int.MaxValue)
+                                    {
+                                        bioStarValue = (int)val;
+                                    }
+                                    //else
+                                    //{
+                                    //    continue;
+                                    //}
                                 }
 
-                                AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
-                                if (aspNetUser == null && auth.Enabled == false)
+                                AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == bioStarValue && !(x.IsDeleted == true) && x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
+
+                                if ((aspNetUser == null && auth.Enabled == false) || bioStarValue == 0)
                                 {
                                     //   InsertSyncLog(jobName, "asp Net User is null ", 0, 1, 0, "", "continue", de);
                                     continue;
                                 }
-
+                                departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
+                                // countriesList.Add(Convert.ToString(de.Properties["co"].Value));
+                                string countryname = Convert.ToString(de.Properties["co"].Value);
+                                
                                 if (aspNetUser == null && auth.Enabled != false)
                                 {//Insert
                                  //it means if user is created before "01/01/2019" then totaDays will be in minus. so not add very old users. only add new users. which are after "01/01/2019"
                                  //this is just to fast the process
                                  //if (TimeDifference.TotalDays < 0) continue;
-                                    InsertSyncLog("UserList", "UserList", 0, 1, 0, "", "Insert", de);
                                     try
                                     {
                                         if (!string.IsNullOrEmpty(countryname))
@@ -268,11 +283,11 @@ namespace LeaveON.UtilityClasses
                                 {//Update
                                     try
                                     {
-                                        //if ( string.IsNullOrEmpty(aspNetUser.DepartmentName) ||
-                                        //    aspNetUser.DepartmentName != Convert.ToString(de.Properties["department"].Value) ||
-                                        //    aspNetUser.CntryName != Convert.ToString(de.Properties["co"].Value))
-                                        //{
-                                        UpdateEmployee(aspNetUser, de);
+                                        if (!string.IsNullOrEmpty(countryname))
+                                        { UpdateCountry(countryname); }
+
+                                        var olddbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == aspNetUser.Id && !(x.IsDeleted == true));
+                                        UpdateEmployee(olddbUser, de, countryname);
                                         // InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
                                         //}
                                     }
@@ -303,8 +318,6 @@ namespace LeaveON.UtilityClasses
 
                         }
 
-                                InsertSyncLog(jobName, "Insert", totalActiveuserCount, 0, 1, "Test", "Active User Count", null);
-                                InsertSyncLog(jobName, "Insert", totalUserCount, 0, 1, "Test", " User Count", null);
                         var dbDaprtmentList = db.DepartmentNames.ToList();
                         //-----------add department name which does not exist in LMS-DB------------
                         List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
@@ -313,7 +326,7 @@ namespace LeaveON.UtilityClasses
                             //if(String.IsNullOrEmpty(itm))
                             //    continue;
                             DepartmentName departmentName = db.DepartmentNames.FirstOrDefault(x => x.Name == itm);
-                           
+
 
                             if (departmentName == null && !string.IsNullOrEmpty(itm.Trim()))
                             {
@@ -338,7 +351,7 @@ namespace LeaveON.UtilityClasses
                         List<string> distinctCountriesNames = countriesList.Distinct().ToList();
                         foreach (string itm in distinctCountriesNames)
                         {
-                            
+
                             CountryName countryName = db.CountryNames.FirstOrDefault(x => x.Name == itm);
                             if (countryName == null && !string.IsNullOrEmpty(itm.Trim()))
                             {
@@ -398,19 +411,11 @@ namespace LeaveON.UtilityClasses
 
         private bool IsActive(DirectoryEntry de)
         {
-            if (de == null || de.NativeGuid == null)
-                return false;
+            if (de.NativeGuid == null) return false;
 
-            if (de.Properties["userAccountControl"] == null ||
-                de.Properties["userAccountControl"].Value == null)
-                return false;
+            int flags = (int)de.Properties["userAccountControl"].Value;
 
-            int flags = Convert.ToInt32(de.Properties["userAccountControl"].Value);
-
-            // Check if ACCOUNTDISABLE bit is set
-            //bool isDisabled = (flags & 0x0002) == 0x0002;
-            return (flags & 0x0002) == 0; // true = active
-            //return !isDisabled;
+            return !Convert.ToBoolean(flags & 0x0002);
         }
         private void InsertEmployee(DirectoryEntry de)
         {
@@ -447,7 +452,7 @@ namespace LeaveON.UtilityClasses
 
 
             emp.UserName = Convert.ToString(de.Properties["userPrincipalName"].Value);
-      
+
             emp.Id = Guid.NewGuid().ToString();
             //emp.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);//null; //0000;
             emp.BioStarEmpNum = bioStarValue;
@@ -459,14 +464,14 @@ namespace LeaveON.UtilityClasses
             emp.LockoutEnabled = true;
             emp.AccessFailedCount = 0;
             emp.DateCreated = DateTime.Now;
-            emp.IsNew =  true;
+            emp.IsNew = true;
             emp.DepartmentName = Convert.ToString(de.Properties["department"].Value);
             //emp.CntryName = Convert.ToString(de.Properties["co"].Value);
             emp.IsActive = IsActive(de);
             emp.Gender = Convert.ToString(de.Properties["gender"].Value) == "Male" ? true : false;
             emp.JoiningDate = whenCreated;
             string dn = de.Properties["manager"].Value != null ? de.Properties["manager"].Value.ToString() : string.Empty;
-            
+
             if (!string.IsNullOrEmpty(dn))
             {
 
@@ -499,7 +504,7 @@ namespace LeaveON.UtilityClasses
 
         }
 
-        private void UpdateEmployee(AspNetUser oldemp, DirectoryEntry de ,string countryname)
+        private void UpdateEmployee(AspNetUser oldemp, DirectoryEntry de, string countryname)
         {
 
             //return;0.
@@ -507,15 +512,11 @@ namespace LeaveON.UtilityClasses
             //emp = new AspNetUser();
             //emp.IsActive = IsActive(de);
 
-              db = new LeaveONEntities();
+            db = new LeaveONEntities();
 
-             var dbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == oldemp.Id && !(x.IsDeleted == true));
+            var dbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == oldemp.Id && !(x.IsDeleted == true));
             if (dbUser != null)
             {
-                //if(dbUser.EmpolyeeName== "Rosheen Naveed")
-                //{
-                      
-                //}
                 string managerNameFromAD = string.Empty;
                 dbUser.IsActive = IsActive(de);
                 if (!String.IsNullOrEmpty(countryname))
@@ -523,7 +524,7 @@ namespace LeaveON.UtilityClasses
                 else
                 {
                     dbUser.CntryName = null;
-                 }
+                }
                 dbUser.DepartmentName = Convert.ToString(de.Properties["department"].Value);
                 dbUser.BioStarEmpNum = Convert.ToInt32(de.Properties["facsimileTelephoneNumber"].Value);
                 dbUser.DateModified = DateTime.Now;
@@ -539,7 +540,7 @@ namespace LeaveON.UtilityClasses
                     managerNameFromAD = endIndex > 0 ? dn.Substring(startIndex, endIndex - startIndex) : dn.Substring(startIndex);
 
 
-                    if (dbUser.ManagerName != managerNameFromAD )
+                    if (dbUser.ManagerName != managerNameFromAD)
                     {
 
                         string normalizedManagerName = managerNameFromAD
@@ -580,11 +581,6 @@ namespace LeaveON.UtilityClasses
                         }
                     }
                 }
-                else
-                {
-                    dbUser.ManagerID =null;
-                    dbUser.ManagerName = String.Empty;
-                }
 
                 // Retrieve "whenCreated" from DirectoryEntry
                 DateTime? whenCreated = de.Properties["whenCreated"].Value != null
@@ -603,7 +599,7 @@ namespace LeaveON.UtilityClasses
                 else
 
                     dbUser.EmpolyeeName = empolyeeName;
-                }
+            }
             dbUser.IsNew = true;
             db.Entry(dbUser).Property(x => x.IsActive).IsModified = true;
             db.Entry(dbUser).Property(x => x.DepartmentName).IsModified = true;
@@ -617,14 +613,14 @@ namespace LeaveON.UtilityClasses
             db.Entry(dbUser).Property(x => x.EmpolyeeName).IsModified = true;
             db.Entry(dbUser).Property(x => x.IsNew).IsModified = true;
             db.SaveChanges();
-           
 
-              
-            
-           
 
-          
-            
+
+
+
+
+
+
 
             //db.AspNetUsers.Attach(oldEmp);
 
@@ -650,7 +646,7 @@ namespace LeaveON.UtilityClasses
         {
             LeaveONEntities dbcontext = new LeaveONEntities();
             var counntry = dbcontext.CountryNames.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.Trim().ToLower() == name.Trim().ToLower());
-              if (counntry ==null)
+            if (counntry == null)
             {
                 CountryName cntry = new CountryName();
                 cntry.Name = name;
@@ -660,12 +656,12 @@ namespace LeaveON.UtilityClasses
             }
 
         }
-            public void InsertSyncLog(string jobName, string status, int totalRecords,
-                          int inserted, int updated, string errorMessage, string taskType, DirectoryEntry de)
+        public void InsertSyncLog(string jobName, string status, int totalRecords,
+                      int inserted, int updated, string errorMessage, string taskType, DirectoryEntry de)
         {
             string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
-            int? bioStarValue = null;
+            int? bioStarValue = 0;
             if (de != null)
             {
                 var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
