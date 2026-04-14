@@ -608,8 +608,11 @@ namespace LeaveON.Services
           // Handle cases where no time data exists for the day
           if (timeDataForDay == null)
           {
-            string status = "Absent"; // Default to "Absent"
-              bool isAbsent = false;                 // Check for holiday and leave
+
+              var leaveName = "";
+              int leaveTypeID = 0;
+               string status = "Absent"; // Default to "Absent"
+              bool isAbsent = true;                 // Check for holiday and leave
             if (annualOffDay != null)
             {
               status = annualOffDay.Description; // Holiday description
@@ -617,13 +620,12 @@ namespace LeaveON.Services
             else if (leave != null)
             {
               // If a leave record exists, retrieve the corresponding leave type name
-              var leaveTypeName = dbLeaveOn.LeaveTypes
-                  .Where(l => l.Id == leave.LeaveTypeId)
-                  .Select(l => l.Name)
-                  .FirstOrDefault();
-              status = leaveTypeName; // Leave type ID if on leave
+                 
+                  var leaveobject= dbLeaveOn.LeaveTypes.Where(l => l.Id == leave.LeaveTypeId).FirstOrDefault();
+                leaveTypeID = leaveobject.Id;
+             status = leaveobject.Name; // Leave type ID if on leave
             }
-              isAbsent = true;
+             // isAbsent = true;
               //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
               depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
                                                                                                                        // Add attendance data for the day
@@ -638,20 +640,13 @@ namespace LeaveON.Services
               Date = annualOffDay?.OffDay ?? currentDay,
               Day = (annualOffDay?.OffDay ?? currentDay).DayOfWeek.ToString(),
               Status = status,
-
-
-
-           
-
-
-
-
+               
 
               
-              TimeIn = firsTimeIn,
-              TimeOut = lastTimeOut,
-              WorkingHours = ThidDayWorkingHours,
-              TotalTime = (lastTimeOut - firsTimeIn),
+             // TimeIn = firsTimeIn,
+             // TimeOut = lastTimeOut,
+             // WorkingHours = ThidDayWorkingHours,
+             // TotalTime = (lastTimeOut - firsTimeIn),
 
               UserID = aspNetUser.Id,
               ManagerEmail = aspNetUser.ManagerEmail,
@@ -660,8 +655,8 @@ namespace LeaveON.Services
               Manager2ID = aspNetUser.Manager2ID,
 
               isAbsent = isAbsent,
-              leaveTypeID = 0,
-              leaveType = String.Empty
+              leaveTypeID = leaveTypeID,
+              leaveType = leaveName
             };
             LstTimeData.Add(attendance);
           }
