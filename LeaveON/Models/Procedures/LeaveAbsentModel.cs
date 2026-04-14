@@ -18,7 +18,7 @@ namespace LeaveON.Models.Procedures
     public string Status { get; set; }
     public decimal TotalDays { get; set; }
     public string Reason { get; set; }
-    public string LineManager1 { get; set; }
-    public string LineManager2 { get; set; }
+    public int? IsAccepted1 { get; set; }
+    public int? IsAccepted2 { get; set; }
   }
 }

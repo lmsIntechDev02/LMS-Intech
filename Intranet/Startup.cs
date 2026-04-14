@@ -15,13 +15,13 @@ namespace Intranet
         {
             // Configure Hangfire storage
             GlobalConfiguration.Configuration
-                .UseSqlServerStorage("DefaultConnection");
+               .UseSqlServerStorage("DefaultConnection");
 
             // Start Hangfire server
             app.UseHangfireServer();
 
             // Enable dashboard
-            app.UseHangfireDashboard("/hangfire");
+           app.UseHangfireDashboard("/hangfire");
 
             // Schedule your AD sync job
             // comment for testing

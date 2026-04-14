@@ -17,8 +17,8 @@ namespace Repository.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public CountryName()
         {
-            this.AspNetUsers = new HashSet<AspNetUser>();
             this.UserLeavePolicies = new HashSet<UserLeavePolicy>();
+            this.AspNetUsers = new HashSet<AspNetUser>();
         }
     
         public decimal Id { get; set; }
@@ -26,8 +26,10 @@ namespace Repository.Models
         public string TimeZone { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserLeavePolicy> UserLeavePolicies { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
+        public virtual CountryName CountryNames1 { get; set; }
+        public virtual CountryName CountryName1 { get; set; }
     }
 }

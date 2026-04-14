@@ -17,85 +17,88 @@ namespace LeaveON.Services
   public class BreakHoursService
   {
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
-                                                 543734917, 538205733};
+                                                 543734917, 538205733, 538205730};
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
-    LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
-    public async Task ConnectToDBandFillBreakHours(DateTime startDate, DateTime endDate)
+   // LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
+
+
+    public   List<BreakHour> GetBreakHoursForUser(
+    AspNetUser aspNetUser,
+    DateTime startDate,
+    DateTime endDate,
+    SqlConnection con)
     {
-      var overallStopwatch = Stopwatch.StartNew();
-      Console.WriteLine("Connecting to database...");
-      string countryName = string.Empty;
-      string previousCountryName = string.Empty;
-      string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
-      SqlConnection con = new SqlConnection(connection);
-      SqlCommand cmd;
-      SqlDataReader dr;
-      List<string> logg = new List<string>();
-      List<AspNetUser> users = dbLeaveOn.AspNetUsers.ToList();
-      //  List<AspNetUser> users = dbLeaveOn.AspNetUsers.Where(u => u.Email == "kashif.ijaz@intechww.com").ToList();
+      List<BreakHour> lstBreakHours = new List<BreakHour>();
 
-      List<BreakHour> LstBreakHours = new List<BreakHour>();
+      if (!aspNetUser.BioStarEmpNum.HasValue)
+        return lstBreakHours;
 
-      con.Open();
-      foreach (var aspNetUser in users)
+      int userId = aspNetUser.BioStarEmpNum.Value;
+
+      using (SqlCommand cmd = new SqlCommand(@"
+        SELECT user_id, devdt, bsevtdt, DEVID, devnm 
+        FROM punchlog 
+        WHERE user_id = @UserId 
+        AND devdt BETWEEN @StartDate AND @EndDate 
+        ORDER BY devdt", con))
       {
-        int UserId = aspNetUser.BioStarEmpNum.Value;
-
-        // Query optimized to reduce repetitive queries
-        cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE user_id = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
-        cmd.Parameters.AddWithValue("@UserId", UserId);
+        cmd.Parameters.AddWithValue("@UserId", userId);
         cmd.Parameters.AddWithValue("@StartDate", startDate);
         cmd.Parameters.AddWithValue("@EndDate", endDate);
-        dr = cmd.ExecuteReader();
 
-        List<PunchLog> punchLogs = new List<PunchLog>();
-        string timeZone = aspNetUser.CountryName?.TimeZone ?? string.Empty;
-        string userGuidId = aspNetUser.Id;
-        if (string.IsNullOrEmpty(userGuidId))
+        using (SqlDataReader dr = cmd.ExecuteReader())
         {
-          Console.WriteLine($"Skipping user with invalid Id: {aspNetUser.BioStarEmpNum}");
-          continue;
-        }
+          List<PunchLog> punchLogs = new List<PunchLog>();
 
-        // Processing user country and timezone data
-        if (aspNetUser.IsRelocated)
-        {
-          timeZone = dbLeaveOn.CountryNames.FirstOrDefault(x => x.Name == aspNetUser.CntryNameTemp)?.TimeZone;
-        }
-
-
-        while (dr.Read())
-        {
-          PunchLog log = new PunchLog
+          while (dr.Read())
           {
-            UserId = Convert.ToInt32(dr["user_id"]),
-            DeviceId = Convert.ToInt32(dr["DEVID"]),
-            DeviceName = dr["devnm"].ToString(),
-            DeviceDate = Convert.ToDateTime(dr["devdt"]),
-            BreakStart = dr["bsevtdt"] != DBNull.Value ? (DateTime?)dr["bsevtdt"] : null
-          };
-          punchLogs.Add(log);
+            punchLogs.Add(new PunchLog
+            {
+              UserId = Convert.ToInt32(dr["user_id"]),
+              DeviceId = Convert.ToInt32(dr["DEVID"]),
+              DeviceName = dr["devnm"].ToString(),
+              DeviceDate = Convert.ToDateTime(dr["devdt"]),
+              BreakStart = dr["bsevtdt"] != DBNull.Value
+                    ? (DateTime?)dr["bsevtdt"]
+                    : null
+            });
+          }
+
+          // timezone logic
+          string timeZone = aspNetUser.CountryName?.TimeZone ?? string.Empty;
+
+          if (aspNetUser.IsRelocated)
+          {
+            timeZone = dbLeaveOn.CountryNames
+                .FirstOrDefault(x => x.Name == aspNetUser.CntryNameTemp)?.TimeZone;
+          }
+
+          // your existing processing method
+          ProcessBreakHours(punchLogs, aspNetUser, timeZone, lstBreakHours);
         }
-        dr.Close();
-
-        // Process the punch logs to determine break hours
-        ProcessBreakHours(punchLogs, aspNetUser, timeZone, LstBreakHours);
       }
 
-      // After processing all users, save break hours
-      try
-      {
-        SaveBreakHours(LstBreakHours);
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine("Exceptioin => " + ex.Message);
-        if (ex.InnerException != null)
+      return lstBreakHours;
+    }
+    public async Task ConnectToDBandFillBreakHours( List<BreakHour> lstBreakHours)
+    {
+       
+       
+        try
         {
-          Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+          SaveBreakHours(lstBreakHours);
         }
-      }
+        catch (Exception ex)
+        {
+          Console.WriteLine("Exception => " + ex.Message);
+          if (ex.InnerException != null)
+          {
+            Console.WriteLine("Inner Exception: " + ex.InnerException.Message);
+          }
+        }
+     
+       
     }
 
     private void ProcessBreakHours(List<PunchLog> punchLogs, AspNetUser aspNetUser, string timeZone, List<BreakHour> LstBreakHours)

@@ -512,8 +512,9 @@ namespace LeaveON.Controllers
             }
 
             //  Check public holiday (AnnualOffDays table)
+            var userDetail = dbLeaveOn.AspNetUsers.FirstOrDefault(k => k.BioStarEmpNum == record.BioStarEmpNum);
             bool isPublicHoliday = dbLeaveOn.AnnualOffDays.Any(h =>
-                h.UserLeavePolicyId == record.AspNetUser.UserLeavePolicyId &&
+                h.UserLeavePolicyId == userDetail.UserLeavePolicyId &&
                 h.OffDay == record.CreatedDate.Value
             );
 
@@ -2720,7 +2721,7 @@ namespace LeaveON.Controllers
       }
 
       var users = dbLeaveOn.AspNetUsers
-          .Where(u => departmentNames.Contains(u.DepartmentName) && u.IsActive == true)
+          .Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue && u.IsActive == true)
           .AsEnumerable()
           .Select(u => new SelectListItem
           {

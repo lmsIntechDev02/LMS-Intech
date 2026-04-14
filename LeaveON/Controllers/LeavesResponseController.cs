@@ -645,7 +645,7 @@ namespace LeaveON.Controllers
             StartDate = record.StartDate,
             EndDate = record.EndDate,
             UserId = username,
-            LeaveTypeName = record.LeaveTypeId != 0 ? db.LeaveTypes.Find(record.LeaveTypeId)?.Name : "N/A",
+            //LeaveTypeName = record.LeaveTypeId != 0 ? db.LeaveTypes.Find(record.LeaveTypeId)?.Name : "N/A",
             TotalDays = record.TotalDays ?? 0,
             Reason = record.Reason ?? null,
             IsAccepted1 = record.IsAccepted1,
