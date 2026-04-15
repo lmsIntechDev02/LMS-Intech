@@ -22,7 +22,7 @@ namespace LeaveON.UtilityClasses
         if (aspNetUserNames == null)
         {
           // Retrieve users without modifying the database
-          var usersFromDb = db.AspNetUsers.ToList();
+          var usersFromDb = db.AspNetUsers.Where(k=>k.IsDeleted !=true).ToList();
 
           // Format usernames for display in UI without changing database values
           aspNetUserNames = usersFromDb.Select(user =>

@@ -47,7 +47,7 @@
 
   @* this all was for multiselect dropdown but now using for all code *@
 
-  
+
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
 
 
@@ -88,7 +88,8 @@
   <script src="../../dist/js/adminlte.min.js"></script>
   <!-- AdminLTE for demo purposes -->
   <script src="../../dist/js/demo.js"></script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
   <script>
     toastr.options = {
       "closeButton": true,
@@ -100,6 +101,8 @@
   <script type="text/javascript">
     $(document).ready(function () {
       bsCustomFileInput.init();
+
+      $(".select2").select2();
     });
   </script>
   @*<style>

@@ -497,15 +497,16 @@ namespace LeaveON.Services
         }
         ////Leaves Processing
         List<TimeData> offDays = new List<TimeData>();
-        List<string> LstThisMonthsWeekEnds;
-        if (aspNetUser.UserLeavePolicy == null || string.IsNullOrEmpty(aspNetUser.UserLeavePolicy.WeeklyOffDays))
-        {
-          LstThisMonthsWeekEnds = GetUserDataWeekEndLists(startDate, endDate, "6,0");
-        }
-        else
-        {
-          LstThisMonthsWeekEnds = GetUserDataWeekEndLists(startDate, endDate, aspNetUser.UserLeavePolicy.WeeklyOffDays);
-        }
+        //List<string> LstThisMonthsWeekEnds;
+        //List<DateTime> lstThisMonthsWeekEnds
+        //if (aspNetUser.UserLeavePolicy == null || string.IsNullOrEmpty(aspNetUser.UserLeavePolicy.WeeklyOffDays))
+        //{
+        //  LstThisMonthsWeekEnds = GetUserDataWeekEndLists(startDate, endDate, "6,0");
+        //}
+        //else
+        //{
+        //  LstThisMonthsWeekEnds = GetUserDataWeekEndLists(startDate, endDate, aspNetUser.UserLeavePolicy.WeeklyOffDays);
+        //}
 
         int iEmpNum = aspNetUser.BioStarEmpNum.Value;
 
@@ -514,14 +515,51 @@ namespace LeaveON.Services
                 .OrderByDescending(x => x.Date)
                 .Select(x => x.Date.Date)
                 .FirstOrDefault();
-        foreach (string weekEndDay in LstThisMonthsWeekEnds)
+
+        List<DateTime> lstThisMonthsWeekEnds = GetWeekEndList(startDate, endDate, aspNetUser.UserLeavePolicy?.WeeklyOffDays ?? "6,0");
+        //foreach (DateTime weekEndDate in lstThisMonthsWeekEnds)
+        //{
+        //  TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date && x.EmployeeNumber == UserId);
+        //  if (thisWeekEnd != null)
+        //  {
+        //    thisWeekEnd.Status = "Weekend";
+        //  }
+        //  else
+        //  {
+        //    string status = "Weekend";
+        //    bool isAbsent = false;
+
+        //    offDays.Add(LeaveANDAbsentTimeData(
+        //    UserName,
+        //    UserId,
+        //    timeZone,
+        //    countryName,
+        //    aspNetUser.DepartmentName,
+        //    userLeavePolicyDescription,
+        //    weekEndDate,
+        //    weekEndDate.ToString("dddd"),
+        //    aspNetUser.Id,
+        //    aspNetUser.ManagerEmail,
+        //    aspNetUser.Manager2Email,
+        //    aspNetUser.ManagerID,
+        //    aspNetUser.Manager2ID,
+        //    status,
+        //    isAbsent
+        //  ));
+        //  }
+
+
+
+        //}
+
+        foreach (DateTime weekEndDay in lstThisMonthsWeekEnds)
         {
           // Create a DateTime object for the weekend day
 
-          DateTime weekEndDate = DateTime.ParseExact(weekEndDay, "MM-dd-yyyy", CultureInfo.InvariantCulture);
-          if (weekEndDate <= latestTimeData)
-          {
-            TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date);
+          //   DateTime weekEndDate = DateTime.ParseExact(weekEndDay, "MM-dd-yyyy", CultureInfo.InvariantCulture);
+          TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDay.Date && x.EmployeeNumber == UserId);
+
+        ///  TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDay.da);
 
             if (thisWeekEnd != null)
             {
@@ -536,8 +574,8 @@ namespace LeaveON.Services
 
 
 
-                  Date = weekEndDate,
-                  Day = weekEndDate.ToString("dddd"),
+                  Date = weekEndDay.Date,
+                  Day = weekEndDay.Date.ToString("dddd"),
                   Status = "Weekend",
 
 
@@ -567,7 +605,7 @@ namespace LeaveON.Services
               };
               offDays.Add(weekEndOffDate);
             }
-          }
+         
         }
         if(offDays.Count()>0)
         LstTimeData.AddRange(offDays);
