@@ -22,7 +22,7 @@ namespace LeaveON.Controllers
     // GET: AspNetUsers
     public async Task<ActionResult> Index()
     {
-      var aspNetUsers = db.AspNetUsers;//.Include(a => a.Department);
+      var aspNetUsers = db.AspNetUsers.Where(k=>k.IsDeleted != true &&  k.BioStarEmpNum>0);//.Include(a => a.Department);
       return View(await aspNetUsers.ToListAsync());
     }
 
