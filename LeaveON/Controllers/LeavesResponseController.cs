@@ -781,7 +781,7 @@ namespace LeaveON.Controllers
         if (User.IsInRole("Admin"))
         {
           var departments = db.AspNetUsers
-                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive==true && u.BioStarEmpNum.HasValue)
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive==true && u.BioStarEmpNum.HasValue && u.BioStarEmpNum.Value>0 && u.IsDeleted != true)
                  .Select(u => u.DepartmentName)
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
@@ -821,8 +821,16 @@ namespace LeaveON.Controllers
           );
 
           ViewBag.SelectedDepartments = managerDepartment;
-          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
-          ViewBag.Employees = employeesUnderManager;
+          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId  &&   u.IsDeleted != null) && u.BioStarEmpNum.HasValue && u.BioStarEmpNum.Value>0 ).ToList();
+
+          //db.AspNetUsers.Where(k=>k.IsActive == true && k.BioStarEmpNum.HasValue).ToList();
+          var userlist = employeesUnderManager.Select(k => new AspNetUser
+          {
+            UserName = k.UserName.Split('@')[0].Replace('.', ' '),
+            BioStarEmpNum = k.BioStarEmpNum
+          }).ToList();
+
+          ViewBag.Employees = userlist;
 
           //;new SelectList(employeesUnderManager, "Id", "UserName");
           //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");

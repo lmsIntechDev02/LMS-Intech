@@ -98,9 +98,17 @@
                                   Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
                                   Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
                                   string Allowed = string.Empty;
+                                  Allowed = Balance;
+
                                   if (!(string.IsNullOrEmpty(Taken) && string.IsNullOrEmpty(Balance)))
                                   {
-                                    Allowed = (decimal.Parse(Taken) + decimal.Parse(Balance)).ToString();
+                                    decimal cBalance = (decimal.Parse(Balance) - decimal.Parse(Taken));
+
+                                    if (cBalance < 0)
+                                    {
+                                      cBalance = -1 * cBalance;
+                                    }
+                                    Balance = (cBalance).ToString();
                                   }
                                   <tr>
                                     <td style="display:none;"><input type="hidden" name="UserLeavePolicyDetail.Index" value="" /></td>
@@ -115,7 +123,7 @@
                                     </td>
                                     <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(Allowed)" class="form-control" placeholder="Allowed"> </td>
                                     <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(leaveBalance != null ? leaveBalance.Taken.ToString() : "")" class="form-control" placeholder="Taken"> </td>
-                                    <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(leaveBalance != null ? leaveBalance.Balance.ToString() : "")" class="form-control" placeholder="Balance"> </td>
+                                    <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(Balance)" class="form-control" placeholder="Balance"> </td>
 
                                   </tr>
                                 }

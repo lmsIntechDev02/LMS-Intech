@@ -281,8 +281,8 @@
     }
     $('#listDepartments').on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
     var selectedDepartments = $(this).val(); // this is an array of selected values
-    console.log(selectedDepartments);
-
+      console.log(selectedDepartments);
+      debugger
     // If nothing is selected, send an empty array
     if (!selectedDepartments) {
         selectedDepartments = [];

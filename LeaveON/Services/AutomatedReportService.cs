@@ -70,7 +70,7 @@ namespace LeaveON.Services
         //test
        // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "dc70c0b4-e445-43b5-8c24-1ab960c3f431"))
       //live
-       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true )
+       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted==true )
       .Select(x => new EmailAndIDs
       {
         userId = x.BioStarEmpNum.Value,
