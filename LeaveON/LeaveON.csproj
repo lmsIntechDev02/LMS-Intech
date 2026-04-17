@@ -337,6 +337,7 @@
     <Compile Include="Services\BreakHoursService.cs" />
     <Compile Include="Services\AttendanceService4.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="UtilityClasses\Constants.cs" />
     <Compile Include="UtilityClasses\Dashboard.cs" />
     <Compile Include="UtilityClasses\TimeData.cs" />
     <Compile Include="UtilityClasses\LoginFilter.cs" />

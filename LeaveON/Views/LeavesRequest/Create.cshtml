@@ -154,6 +154,8 @@
 
             @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
             @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control select2" })
+
+
             @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
 
             @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })

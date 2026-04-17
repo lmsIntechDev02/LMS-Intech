@@ -84,6 +84,7 @@ namespace LeaveON.Controllers
       //ViewBag.LineManager1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id).UserName;
       //ViewBag.LineManager2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id).UserName;
       List<AspNetUser> Seniors = GetSeniorStaff();
+     var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       bool IsLineManager1 = false;
       if (User.Identity.GetUserId() == leave.LineManager1Id)
       {
@@ -97,7 +98,9 @@ namespace LeaveON.Controllers
 
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
-      ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
+      ViewBag.JoiningDate = user != null ? (user.JoiningDate.HasValue ? String.Format(LeaveON.UtilityClasses.Constants.DateFormatDayMonthYear, user.JoiningDate.Value) : String.Empty) : String.Empty;
+
+      ViewBag.ApplicantName = user.UserName;
       ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       ViewBag.totalDays = Convert.ToInt32(leave.TotalDays);
@@ -245,7 +248,11 @@ namespace LeaveON.Controllers
 
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
-      ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
+      var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
+
+      ViewBag.JoiningDate = user != null ? (user.JoiningDate.HasValue ? String.Format( LeaveON.UtilityClasses.Constants.DateFormatDayMonthYear, user.JoiningDate.Value)  : String.Empty ): String.Empty;
+
+      ViewBag.ApplicantName = user.UserName;
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
       ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
