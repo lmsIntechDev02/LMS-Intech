@@ -146,15 +146,47 @@ namespace LeaveON.Controllers
       return new EmptyResult();
     }
 
-    // ---------------------------------------------------------------
-    // FIXED: NO [AllowAnonymous] and NO [Authorize] here.
-    // The class-level [Authorize] is removed above.
-    // IIS Windows Auth (configured in applicationHost.config) will
-    // challenge this route and show the popup to unauthenticated users.
-    // User.Identity.Name is populated AFTER the popup is completed.
-    // ---------------------------------------------------------------
-  
-    
+
+    // OWIN redirects here when unauthenticated (LoginPath in Startup.Auth.cs)
+    // Plain anonymous page — just forwards to AuthLogin which triggers Windows popup
+    [AllowAnonymous]
+    public ActionResult WindowsLogin(string returnUrl)
+    {
+      return RedirectToAction("AuthLogin", new { returnUrl = returnUrl });
+    }
+
+    // Windows popup fires on this route via applicationHost.config location block
+    // [AllowAnonymous] stays — popup is triggered by IIS, not by removing this attribute
+    [AllowAnonymous]
+    public ActionResult AuthLogin(string returnUrl)
+    {
+      // Not authenticated via Windows yet — send 401 to trigger IIS Windows popup
+      if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
+      {
+        Response.StatusCode = 401;
+        Response.AddHeader("WWW-Authenticate", "Negotiate");
+        Response.End();
+        return null;
+      }
+
+      // Windows Auth completed — User.Identity.Name is populated
+      string ADUserValue = null;
+      try
+      {
+        PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+        UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+        ADUserValue = currentUser?.UserPrincipalName;
+      }
+      catch
+      {
+        return RedirectToAction("Error404", "Error");
+      }
+
+      if (string.IsNullOrEmpty(ADUserValue))
+        return RedirectToAction("Error404", "Error");
+
+      return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+    }
 
     // FIXED: [AllowAnonymous] here is correct — this action only receives
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
