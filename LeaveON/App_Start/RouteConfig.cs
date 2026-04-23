@@ -13,16 +13,11 @@ namespace LeaveON
     {
       routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-      //      routes.MapRoute(
-      //name: "Default",
-      //url: "{controller}/{action}/{id}",
-      //defaults: new { controller = "Account", action = "AuthLogin", id = UrlParameter.Optional }
-      //);
       routes.MapRoute(
-          name: "common",
-          url: "{controller}/{action}/{id}",
-          defaults: new { controller = "Account", action = "WindowsLogin", id = UrlParameter.Optional });
-      //); 
+    name: "Default",
+    url: "{controller}/{action}/{id}",
+    defaults: new { controller = "Account", action = "AuthLogin", id = UrlParameter.Optional }
+);
       //routes.MapRoute(
       //    name: "common",
       //    url: "{controller}/{action}/{id}",

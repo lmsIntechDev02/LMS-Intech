@@ -149,9 +149,14 @@ namespace LeaveON.Controllers
 
     // OWIN redirects here when unauthenticated (LoginPath in Startup.Auth.cs)
     // Plain anonymous page — just forwards to AuthLogin which triggers Windows popup
+
     [AllowAnonymous]
     public ActionResult WindowsLogin(string returnUrl)
     {
+      if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("WindowsLogin"))
+      {
+        returnUrl = "/";
+      }
       return RedirectToAction("AuthLogin", new { returnUrl = returnUrl });
     }
 
@@ -160,7 +165,6 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult AuthLogin(string returnUrl)
     {
-      // Not authenticated via Windows yet — send 401 to trigger IIS Windows popup
       if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
       {
         Response.StatusCode = 401;
@@ -169,23 +173,27 @@ namespace LeaveON.Controllers
         return null;
       }
 
-      // Windows Auth completed — User.Identity.Name is populated
-      string ADUserValue = null;
-      try
+      // ✅ STEP 1: Create identity
+      var identity = new ClaimsIdentity(
+          new[] { new Claim(ClaimTypes.Name, User.Identity.Name) },
+          DefaultAuthenticationTypes.ApplicationCookie
+      );
+
+      // ✅ STEP 2: Sign in OWIN (VERY IMPORTANT)
+      HttpContext.GetOwinContext().Authentication.SignIn(identity);
+
+      // ✅ STEP 3: Prevent bad returnUrl
+      if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("WindowsLogin"))
       {
-        PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-        UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
-        ADUserValue = currentUser?.UserPrincipalName;
+        returnUrl = "/";
       }
-      catch
+      else
       {
-        return RedirectToAction("Error404", "Error");
+        return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = "" });
       }
 
-      if (string.IsNullOrEmpty(ADUserValue))
-        return RedirectToAction("Error404", "Error");
-
-      return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+     
+      return Redirect(returnUrl);
     }
 
     // FIXED: [AllowAnonymous] here is correct — this action only receives

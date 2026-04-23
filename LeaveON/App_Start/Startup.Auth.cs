@@ -75,16 +75,18 @@ namespace LeaveON
       app.UseCookieAuthentication(new CookieAuthenticationOptions
       {
         AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
-        LoginPath = new PathString("/Account/WindowsLogin"), // neutral route
+        // ❌ REMOVE LoginPath completely
         ExpireTimeSpan = TimeSpan.FromMinutes(60),
         SlidingExpiration = true,
         Provider = new CookieAuthenticationProvider
         {
           OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
-            validateInterval: TimeSpan.FromMinutes(20),
-            regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+           validateInterval: TimeSpan.FromMinutes(20),
+           regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
         }
       });
+
+
       // Enable the application to use bearer tokens to authenticate users
       app.UseOAuthBearerTokens(OAuthOptions);
 
