@@ -76,6 +76,7 @@ namespace LeaveON
       {
         AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
         // ❌ REMOVE LoginPath completely
+        CookieName = ".AspNet.ApplicationCookie",
         ExpireTimeSpan = TimeSpan.FromMinutes(60),
         SlidingExpiration = true,
         Provider = new CookieAuthenticationProvider

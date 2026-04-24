@@ -165,17 +165,33 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult AuthLogin(string returnUrl)
     {
-      if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
+      //if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
+      //{
+      //  Response.StatusCode = 401;
+      //  Response.AddHeader("WWW-Authenticate", "Negotiate");
+      //  Response.End();
+      //  return null;
+      //}
+      HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
+      // Use IIS identity — NOT User.Identity
+       var iisIdentity = Request.LogonUserIdentity; 
+      var logonUser = Request.ServerVariables["LOGON_USER"];
+      var authUser = Request.ServerVariables["AUTH_USER"]; 
+      var authType = Request.ServerVariables["AUTH_TYPE"];
+
+    
+
+      if (iisIdentity == null || !iisIdentity.IsAuthenticated || string.IsNullOrEmpty(iisIdentity.Name))
       {
-        Response.StatusCode = 401;
         Response.AddHeader("WWW-Authenticate", "Negotiate");
-        Response.End();
-        return null;
+        return new HttpStatusCodeResult(401);
       }
+
+      var username = iisIdentity.Name;
 
       // ✅ STEP 1: Create identity
       var identity = new ClaimsIdentity(
-          new[] { new Claim(ClaimTypes.Name, User.Identity.Name) },
+          new[] { new Claim(ClaimTypes.Name, username) },
           DefaultAuthenticationTypes.ApplicationCookie
       );
 
