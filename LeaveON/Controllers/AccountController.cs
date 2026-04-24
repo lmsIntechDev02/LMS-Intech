@@ -13,6 +13,7 @@ using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
 using System;
 using System.Collections;
+using System.Security.Principal;
 
 namespace LeaveON.Controllers
 {
@@ -166,74 +167,101 @@ namespace LeaveON.Controllers
     public ActionResult AuthLogin(string returnUrl)
     {
 
-      GetLog();
-      List<string> loginsList = new List<string>();
-      PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-      UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+     //GetLog();
+     //   List<string> loginsList = new List<string>();
+     // PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+     //   UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
 
-      loginsList.Add(currentUser.UserPrincipalName);
+      //  loginsList.Add(currentUser.UserPrincipalName);
 
-      var path = Server.MapPath(@"~/myLog.txt");
-      System.IO.File.AppendAllLines(path, loginsList);
-
-
-    //  string ReturnUrlValue = "/";
-
-    ////  if (string.IsNullOrEmpty(ReturnUrl)) ReturnUrl = "/";
-
-      string ADUserValue = currentUser.UserPrincipalName;
-      return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
-      //  //if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
-      //  //{
-      //  //  Response.StatusCode = 401;
-      //  //  Response.AddHeader("WWW-Authenticate", "Negotiate");
-      //  //  Response.End();
-      //  //  return null;
-      //  //}
-      //  HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
-      //  // Use IIS identity — NOT User.Identity
-      //   var iisIdentity = Request.LogonUserIdentity; 
-      //  var logonUser = Request.ServerVariables["LOGON_USER"];
-      //  var authUser = Request.ServerVariables["AUTH_USER"]; 
-      //  var authType = Request.ServerVariables["AUTH_TYPE"];
+      //  var path = Server.MapPath(@"~/myLog.txt");
+      //  System.IO.File.AppendAllLines(path, loginsList);
 
 
+      ////  string ReturnUrlValue = "/";
 
-      //  if (iisIdentity == null || !iisIdentity.IsAuthenticated || string.IsNullOrEmpty(iisIdentity.Name))
-      //  {
-      //    Response.AddHeader("WWW-Authenticate", "Negotiate");
-      //    return new HttpStatusCodeResult(401);
-      //  }
+      //////  if (string.IsNullOrEmpty(ReturnUrl)) ReturnUrl = "/";
 
-      //  var username = iisIdentity.Name;
+       //string ADUserValue = currentUser.UserPrincipalName;
+      //  return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+      //if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
+      //{
+      //  Response.StatusCode = 401;
+      //  Response.AddHeader("WWW-Authenticate", "Negotiate");
+      //  Response.End();
+      //  return null;
+      //}
+      var winIdentity = Request.LogonUserIdentity;
 
-      //  // ✅ STEP 1: Create identity
-      //  var identity = new ClaimsIdentity(
-      //      new[] { new Claim(ClaimTypes.Name, username) },
-      //      DefaultAuthenticationTypes.ApplicationCookie
-      //  );
+      // 🔴 Trigger popup
+      if (winIdentity == null || !winIdentity.IsAuthenticated)
+      {
+        Response.StatusCode = 401;
+        Response.Headers["WWW-Authenticate"] = "Negotiate";
+        return new EmptyResult();
+      }
+      else
+      {
+        HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
+        // Use IIS identity — NOT User.Identity
+        var iisIdentity = Request.LogonUserIdentity;
+        var logonUser = Request.ServerVariables["LOGON_USER"];
+        var authUser = Request.ServerVariables["AUTH_USER"];
+        var authType = Request.ServerVariables["AUTH_TYPE"];
+        List<string> loginsList = new List<string>();
+        PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+        UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
 
-      //  // ✅ STEP 2: Sign in OWIN (VERY IMPORTANT)
-      //  HttpContext.GetOwinContext().Authentication.SignIn(identity);
+        loginsList.Add(currentUser.UserPrincipalName);
 
-      //  // ✅ STEP 3: Prevent bad returnUrl
-      //  if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("WindowsLogin"))
-      //  {
-      //    returnUrl = "/";
-      //  }
-      //  else
-      //  {
-      //    return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = "" });
-      //  }
+        var path = Server.MapPath(@"~/myLog.txt");
+        System.IO.File.AppendAllLines(path, loginsList);
+        string ADUserValue = currentUser.UserPrincipalName;
+
+        return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+      }
+
+      
+     
 
 
-      //  return Redirect(returnUrl);
+
+      //if (iisIdentity == null || !iisIdentity.IsAuthenticated || string.IsNullOrEmpty(iisIdentity.Name))
+      //{
+      //  Response.AddHeader("WWW-Authenticate", "Negotiate");
+      // return new HttpStatusCodeResult(401);
+      //  //return Content("Windows Authentication failed");
+      //}
+
+      //var username = iisIdentity.Name;
+
+      //// ✅ STEP 1: Create identity
+      //var identity = new ClaimsIdentity(
+      //    new[] { new Claim(ClaimTypes.Name, username) },
+      //    DefaultAuthenticationTypes.ApplicationCookie
+      //);
+
+      //// ✅ STEP 2: Sign in OWIN (VERY IMPORTANT)
+      //HttpContext.GetOwinContext().Authentication.SignIn(identity);
+
+      //// ✅ STEP 3: Prevent bad returnUrl
+      //if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("WindowsLogin"))
+      //{
+      //  returnUrl = "/";
+      //}
+      //else
+      //{
+      //  return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = "" });
+      //}
+
+     
+      //return Redirect(returnUrl);
     }
 
     // FIXED: [AllowAnonymous] here is correct — this action only receives
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
     [AllowAnonymous]
-    public ActionResult Login(string returnUrl, string ADUser)
+    public async Task<ActionResult> Login(string returnUrl, string ADUser)
     {
 
 
@@ -268,11 +296,11 @@ namespace LeaveON.Controllers
         return RedirectToAction("General", "Error");
       }
 
-
+      var result = await SignInManager.PasswordSignInAsync(ADUser, "Leaves12*",true, shouldLockout: false);
       ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
       ViewBag.ReturnUrl = returnUrl;
-
-      return View();
+      return RedirectToAction("index", "Dashboard");
+      ///return View();
     }
 
 

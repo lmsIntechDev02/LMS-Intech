@@ -234,17 +234,31 @@ namespace LeaveON.Services
                 .ToList();
 
             //for missing get date list
-            //List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
-            //List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
-            //if (workingMonthDateList.Count > userAttendanceMonth.Count)
-            //{
-            //  var list = workingMonthDateList.Where(date => !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+             List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
 
-            //  missedMonthAttendanceDateList.AddRange(list);
-            //}
+            List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
+            if (workingMonthDateList.Count > userAttendanceMonth.Count)
+            {
+              var list = workingMonthDateList.Where(date => !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+            
+             
+              var monthyLeaves= leaves
+                  .Where(l => l.UserId == user.UserID
+                           && (l.LeaveTypeId == 1 || l.LeaveTypeId == 2)
+                           && l.IsAccepted1 == 1
+                           && l.IsAccepted2 == 1
+                           && l.StartDate >= startOfMonth
+                           && l.EndDate <= endOfMonth)
+                  .ToList();
+
+              list = list.Where(k => !monthyLeaves.Any(g => g.DateCreated.Value.Date == k.Date.Date)).ToList();
+              missedMonthAttendanceDateList.AddRange(list);
+            }
 
             //if (userAttendanceMonth.Count() == 0)
             //  continue;
+
+
             //if (missedMonthAttendanceDateList.Count > 0)
             //{
             //  AttendanceData attand = new AttendanceData();
@@ -257,7 +271,7 @@ namespace LeaveON.Services
             //    attendanceYear.Add(attand);
             //  }
             //}
-           
+
             var userAttendanceYTD = attendanceYear
                 .Where(a => a.BioStarEmpNum == userIdInt
 

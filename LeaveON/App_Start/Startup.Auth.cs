@@ -72,43 +72,52 @@ namespace LeaveON
       // Once you check this option, your second step of verification during the login process will be remembered on the device where you logged in from.
       // This is similar to the RememberMe option when you log in.
       //app.UseTwoFactorRememberBrowserCookie(DefaultAuthenticationTypes.TwoFactorRememberBrowserCookie);
+      //app.UseCookieAuthentication(new CookieAuthenticationOptions
+      //{
+      //  AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+      //  // ❌ REMOVE LoginPath completely
+      //  CookieName = ".AspNet.ApplicationCookie",
+      //  ExpireTimeSpan = TimeSpan.FromMinutes(60),
+      //  SlidingExpiration = true,
+      //  Provider = new CookieAuthenticationProvider
+      //  {
+      //    OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
+      //     validateInterval: TimeSpan.FromMinutes(20),
+      //     regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+      //  }
+      //});
+
       app.UseCookieAuthentication(new CookieAuthenticationOptions
       {
-        AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
-        // ❌ REMOVE LoginPath completely
-        CookieName = ".AspNet.ApplicationCookie",
+        AuthenticationType = "ApplicationCookie",
+
+        // ⚠️ IMPORTANT: This should NOT point to AuthLogin
+        LoginPath = new PathString("/Account/WindowsLogin"),
+
         ExpireTimeSpan = TimeSpan.FromMinutes(60),
         SlidingExpiration = true,
-        Provider = new CookieAuthenticationProvider
+          // 🔥 ADD THIS (IMPORTANT)
+    Provider = new CookieAuthenticationProvider
+    {
+      OnApplyRedirect = context =>
+      {
+        // ❌ Prevent redirect loop for API / Auth calls
+        if (context.Request.Path.StartsWithSegments(new PathString("/Account/AuthLogin")))
         {
-          OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
-           validateInterval: TimeSpan.FromMinutes(20),
-           regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+          return;
         }
-      });
+
+        context.Response.Redirect(context.RedirectUri);
+      }
+    }
+      }); ;;
 
 
-      // Enable the application to use bearer tokens to authenticate users
-      app.UseOAuthBearerTokens(OAuthOptions);
 
-      // Uncomment the following lines to enable logging in with third party login providers
-      //app.UseMicrosoftAccountAuthentication(
-      //    clientId: "",
-      //    clientSecret: "");
 
-      //app.UseTwitterAuthentication(
-      //    consumerKey: "",
-      //    consumerSecret: "");
+      //app.UseOAuthBearerTokens(OAuthOptions);
 
-      //app.UseFacebookAuthentication(
-      //    appId: "",
-      //    appSecret: "");
 
-      //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-      //{
-      //    ClientId = "",
-      //    ClientSecret = ""
-      //});
     }
   }
 }
