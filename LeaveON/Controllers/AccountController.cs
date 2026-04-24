@@ -165,51 +165,69 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult AuthLogin(string returnUrl)
     {
-      //if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
-      //{
-      //  Response.StatusCode = 401;
-      //  Response.AddHeader("WWW-Authenticate", "Negotiate");
-      //  Response.End();
-      //  return null;
-      //}
-      HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
-      // Use IIS identity — NOT User.Identity
-       var iisIdentity = Request.LogonUserIdentity; 
-      var logonUser = Request.ServerVariables["LOGON_USER"];
-      var authUser = Request.ServerVariables["AUTH_USER"]; 
-      var authType = Request.ServerVariables["AUTH_TYPE"];
 
-    
+      GetLog();
+      List<string> loginsList = new List<string>();
+      PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+      UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
 
-      if (iisIdentity == null || !iisIdentity.IsAuthenticated || string.IsNullOrEmpty(iisIdentity.Name))
-      {
-        Response.AddHeader("WWW-Authenticate", "Negotiate");
-        return new HttpStatusCodeResult(401);
-      }
+      loginsList.Add(currentUser.UserPrincipalName);
 
-      var username = iisIdentity.Name;
+      var path = Server.MapPath(@"~/myLog.txt");
+      System.IO.File.AppendAllLines(path, loginsList);
 
-      // ✅ STEP 1: Create identity
-      var identity = new ClaimsIdentity(
-          new[] { new Claim(ClaimTypes.Name, username) },
-          DefaultAuthenticationTypes.ApplicationCookie
-      );
 
-      // ✅ STEP 2: Sign in OWIN (VERY IMPORTANT)
-      HttpContext.GetOwinContext().Authentication.SignIn(identity);
+    //  string ReturnUrlValue = "/";
 
-      // ✅ STEP 3: Prevent bad returnUrl
-      if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("WindowsLogin"))
-      {
-        returnUrl = "/";
-      }
-      else
-      {
-        return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = "" });
-      }
+    ////  if (string.IsNullOrEmpty(ReturnUrl)) ReturnUrl = "/";
 
-     
-      return Redirect(returnUrl);
+      string ADUserValue = currentUser.UserPrincipalName;
+      return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = ADUserValue });
+      //  //if (!User.Identity.IsAuthenticated || string.IsNullOrEmpty(User.Identity.Name))
+      //  //{
+      //  //  Response.StatusCode = 401;
+      //  //  Response.AddHeader("WWW-Authenticate", "Negotiate");
+      //  //  Response.End();
+      //  //  return null;
+      //  //}
+      //  HttpContext.Response.SuppressFormsAuthenticationRedirect = true;
+      //  // Use IIS identity — NOT User.Identity
+      //   var iisIdentity = Request.LogonUserIdentity; 
+      //  var logonUser = Request.ServerVariables["LOGON_USER"];
+      //  var authUser = Request.ServerVariables["AUTH_USER"]; 
+      //  var authType = Request.ServerVariables["AUTH_TYPE"];
+
+
+
+      //  if (iisIdentity == null || !iisIdentity.IsAuthenticated || string.IsNullOrEmpty(iisIdentity.Name))
+      //  {
+      //    Response.AddHeader("WWW-Authenticate", "Negotiate");
+      //    return new HttpStatusCodeResult(401);
+      //  }
+
+      //  var username = iisIdentity.Name;
+
+      //  // ✅ STEP 1: Create identity
+      //  var identity = new ClaimsIdentity(
+      //      new[] { new Claim(ClaimTypes.Name, username) },
+      //      DefaultAuthenticationTypes.ApplicationCookie
+      //  );
+
+      //  // ✅ STEP 2: Sign in OWIN (VERY IMPORTANT)
+      //  HttpContext.GetOwinContext().Authentication.SignIn(identity);
+
+      //  // ✅ STEP 3: Prevent bad returnUrl
+      //  if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("WindowsLogin"))
+      //  {
+      //    returnUrl = "/";
+      //  }
+      //  else
+      //  {
+      //    return RedirectToAction("Login", new { returnUrl = returnUrl, ADUser = "" });
+      //  }
+
+
+      //  return Redirect(returnUrl);
     }
 
     // FIXED: [AllowAnonymous] here is correct — this action only receives
