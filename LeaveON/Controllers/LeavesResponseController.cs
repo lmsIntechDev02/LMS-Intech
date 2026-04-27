@@ -13,6 +13,7 @@ using LeaveON.EmailSender;
 using LMS.Constants;
 using System.Data.SqlClient;
 using LeaveON.Models.Procedures;
+using System.Text;
 
 namespace LeaveON.Controllers
 {
@@ -134,7 +135,67 @@ namespace LeaveON.Controllers
       }
       //--------------------------------------------------
       Leave leaveOld = db.Leaves.FirstOrDefault(x => x.Id == leave.Id);
+
+
+      if (leaveOld.LeaveTypeId != 7) // Casual Short Day
+      {
+        var balance = db.LeaveBalances
+      .Where(x =>
+          x.UserLeavePolicyId == leaveOld.UserLeavePolicyID &&
+          x.UserId == leaveOld.UserId &&
+          x.LeaveTypeId == leaveOld.LeaveTypeId)
+      .Sum(x => (decimal?)x.Balance) ?? 0;
+
+
+        var approvedDays = db.Leaves
+            .Where(x =>
+                x.UserId == leaveOld.UserId &&
+                x.Id != leave.Id &&
+                x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
+                x.IsAccepted1 == 1 &&
+                x.IsAccepted2 == 1 &&
+                x.LeaveTypeId == leaveOld.LeaveTypeId)
+            .Sum(x => (decimal?)x.TotalDays) ?? 0;
+
+
+        //  ONLY selected leaves (bulk)
+        var requestedDays = db.Leaves
+            .Where(x =>
+
+                x.UserId == leaveOld.UserId
+                && (x.IsAccepted1 != 1 || x.IsAccepted2 != 1)
+                && x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
+                x.LeaveTypeId == leaveOld.LeaveTypeId)
+            .Sum(x => (decimal?)x.TotalDays) ?? 0;
+
+
+        //  Final check
+        if ((approvedDays + requestedDays) > balance)
+        {
+          TempData["ErrorMessage"] = "The selected customer's leave request exceeds the available balance.";
+          AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leaveOld.LineManager1Id);
+
+
+          string name = leaveOld.AspNetUser.EmpolyeeName;
+          StringBuilder sb = new StringBuilder();
+          sb.AppendLine("Dear" + name + ",");
+          sb.AppendLine("Your leave request cannot be processed as it exceeds your available leave balance.");
+          sb.AppendLine("Please contact your manager for further assistance.");
+          string body = sb.ToString();
+
+            
+          SendEmail.SendsEmail(leaveOld.AspNetUser.Email, "leave Request Balance Exceeds", body);
+
+          //SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
+          return RedirectToAction("Index");
+        }
+      }
+
       leave = leaveOld;
+
+
+
+
 
       if (IsLineManager1 == "True")
       {
@@ -183,12 +244,12 @@ namespace LeaveON.Controllers
           {
             //sending email to 2nd admin for request of second acceptance
             AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-            SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
+            SendEmail.SendEmailUsingLeavON(leave,  leave.AspNetUser, admin2, "LeaveRequest");
           }
 
           //sending eamil to employee from first admin //approved or disapproved
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave,  admin, leave.AspNetUser, "LeaveResponse");
 
           //if (leave.LineManager1Id == leave.LineManager2Id)
           //{
@@ -200,7 +261,7 @@ namespace LeaveON.Controllers
         else
         {
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave,   admin, leave.AspNetUser, "LeaveResponse");
         }
 
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
@@ -349,11 +410,11 @@ namespace LeaveON.Controllers
           {
             //sending email to 2nd admin for request of second acceptance
             AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-            SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
+            SendEmail.SendEmailUsingLeavON(leave,  leave.AspNetUser, admin2, "LeaveRequest");
           }
           //sending eamil to employee from first admin //approved or disapproved
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
           //if (leave.LineManager1Id == leave.LineManager2Id)
           //{
           //  admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
@@ -363,7 +424,7 @@ namespace LeaveON.Controllers
         else
         {
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave,  admin, leave.AspNetUser, "LeaveResponse");
         }
 
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);

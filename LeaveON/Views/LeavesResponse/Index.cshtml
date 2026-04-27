@@ -13,7 +13,12 @@
 <!-- DataTables -->
 <script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-
+@if (TempData["ErrorMessage"] != null)
+{
+  <script>
+        toastr.error("@TempData["ErrorMessage"]");
+  </script>
+}
 <section class="content">
   <div class="row">
     <div class="col-12">
@@ -269,8 +274,8 @@
     }
     // Manage active state
     $('.filter-btn').on('click', function () {
-      $('.filter-btn').removeClass('active'); 
-      $(this).addClass('active'); 
+      $('.filter-btn').removeClass('active');
+      $(this).addClass('active');
     });
 
     // Button events
@@ -296,7 +301,7 @@
 <style>
   .filter-btn {
     color: #000;
-    border: 1px solid #c5c5c5; 
+    border: 1px solid #c5c5c5;
     padding: 6px 12px;
     width: 110px;
     font-weight: 500;
@@ -306,8 +311,8 @@
   }
 
     .filter-btn:hover {
-      background-color: #e0e0e0; 
-      border: 1px solid #000; 
+      background-color: #e0e0e0;
+      border: 1px solid #000;
     }
 
     .filter-btn.active {

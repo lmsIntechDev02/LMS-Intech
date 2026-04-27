@@ -76,7 +76,6 @@ namespace LeaveON.UtilityClasses
       using (var db = new LeaveONEntities()) // Replace with your context
       {
         AspNetUser aspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == UserId);
-
         List<LeaveType> leaveTypes;
         LeaveType leaveType;
         if (aspNetUser != null && aspNetUser.Gender == false)

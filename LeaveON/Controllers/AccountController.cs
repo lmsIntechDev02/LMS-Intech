@@ -153,8 +153,8 @@ namespace LeaveON.Controllers
     // challenge this route and show the popup to unauthenticated users.
     // User.Identity.Name is populated AFTER the popup is completed.
     // ---------------------------------------------------------------
-  
-    
+
+
 
     // FIXED: [AllowAnonymous] here is correct — this action only receives
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
@@ -165,8 +165,9 @@ namespace LeaveON.Controllers
 
       // test user
       //ADUser = "m.yousaf@intechww.com";
-      ADUser = "waqar.umer@intechww.com";// "laiba.khan@intechww.com";
-     // ADUser = "Umair.Ahmad@intechww.com";
+     // ADUser = "faisal.akram@intechww.com";
+      ADUser ="laiba.khan@intechww.com";                                     
+      // ADUser = "Umair.Ahmad@intechww.com";
       // ADUser = "shaheer.ahmad@intechww.com";
       // ADUser = "Muhammad.Ahmad@intechww.com";
 
@@ -247,7 +248,7 @@ namespace LeaveON.Controllers
       switch (result)
       {
         case SignInStatus.Success:
-          return RedirectToAction("index","Dashboard");
+          return RedirectToAction("index", "Dashboard");
         case SignInStatus.LockedOut:
           return View("Lockout");
         case SignInStatus.RequiresVerification:
@@ -552,9 +553,9 @@ namespace LeaveON.Controllers
     //[AllowAnonymous]
     //public ActionResult LoginAgain() => Redirect("https://lms.intechww.com:1001/"); 
     [AllowAnonymous]
-    public ActionResult LoginAgain()  
+    public ActionResult LoginAgain()
     {
-      
+
       return RedirectToAction("AuthLogin", "Account");
     }
     [AllowAnonymous]

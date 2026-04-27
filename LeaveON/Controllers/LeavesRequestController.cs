@@ -438,9 +438,11 @@ namespace LeaveON.Controllers
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
       var shortLeaveMessage = "";
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
+
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
         leave.IsShortLeave = true;
+
         var balanceCheck = db.LeaveBalances
           .Where(leaveBalance =>
             leaveBalance.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
@@ -466,6 +468,7 @@ namespace LeaveON.Controllers
                   leaveBalance.LeaveTypeId == 7) // Casual Short Leave
               .Select(detail => detail.HoursTaken)
               .FirstOrDefault();
+
           if(hoursTakenCheck + (int)(leave.EndDate - leave.StartDate).TotalHours > 8)
           {
             TempData["ErrorMessage"] = "Your leave request exceeds the available balance.";
@@ -649,7 +652,7 @@ namespace LeaveON.Controllers
             ViewBag.BalanceCheck = balanceCheck;
             db.Leaves.Add(leave);
             await db.SaveChangesAsync();
-            SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, receiver: admin1, MessageType: "LeaveRequest");
+            SendEmail.SendEmailUsingLeavON(leave,  leave.AspNetUser, receiver: admin1, MessageType: "LeaveRequest");
           }
           catch (Exception ex)
           {
@@ -713,7 +716,7 @@ namespace LeaveON.Controllers
 
         await db.SaveChangesAsync();
         AspNetUser admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-        SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin1, "LeaveRequest");
+        SendEmail.SendEmailUsingLeavON(leave,   leave.AspNetUser, admin1, "LeaveRequest");
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
         //SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
         return RedirectToAction("QuotaRequestHistory");
