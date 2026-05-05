@@ -11,6 +11,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Diagnostics;
+ 
 
 namespace LeaveON.Services
 {
@@ -26,8 +27,154 @@ namespace LeaveON.Services
 
     public async Task<List<AspNetUser>> GetUserActiveList()
     {
-     return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted !=true).ToList();
+      return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true && x.BioStarEmpNum > 0).ToList();
     }
+
+    public async Task<bool> SaveAttendance(List<TimeData> LstTimeData, string leaveConnectionString)
+    {
+      try
+      {
+        if (LstTimeData == null || !LstTimeData.Any())
+          return false;
+
+        DataTable dt = new DataTable();
+
+        // Filter
+        LstTimeData = LstTimeData.Where(x => x.Date <= DateTime.Now.Date).ToList();
+
+        var distinctTimeData = LstTimeData
+            .GroupBy(x => new { x.EmployeeNumber, Date = x.Date.Date })
+            .Select(g => g.First())
+            .ToList();
+
+        // ✅ Correct DataTable schema (match SQL)
+        dt.Columns.Add("BioStarEmpNum", typeof(int));
+        dt.Columns.Add("CreatedDate", typeof(DateTime));
+        dt.Columns.Add("UserName", typeof(string));
+        dt.Columns.Add("DepartmentName", typeof(string));
+        dt.Columns.Add("UserLeavePolicyID", typeof(string));
+        dt.Columns.Add("FirstPunchIn", typeof(DateTime));
+        dt.Columns.Add("LastPunchOut", typeof(DateTime));
+        dt.Columns.Add("TotalWorkHours", typeof(long));
+        dt.Columns.Add("BreakHours", typeof(long));
+        dt.Columns.Add("IsLateArrival", typeof(bool));
+        dt.Columns.Add("IsEarlyDeparture", typeof(bool));
+        dt.Columns.Add("IsAbsent", typeof(bool));
+        dt.Columns.Add("IsLeave", typeof(bool));
+        dt.Columns.Add("LeaveTypeID", typeof(int));
+        dt.Columns.Add("LeaveType", typeof(string));
+        dt.Columns.Add("CountryName", typeof(string));
+        dt.Columns.Add("TimeZone", typeof(string));
+        dt.Columns.Add("ManagerEmail", typeof(string));
+        dt.Columns.Add("Manager2Email", typeof(string));
+        dt.Columns.Add("ManagerId", typeof(string));
+        dt.Columns.Add("Manager2Id", typeof(string));
+        dt.Columns.Add("UserID", typeof(string));
+
+        foreach (var item in distinctTimeData)
+        {
+          try
+          {
+            // ✅ Safe conversions
+            int empNum = Convert.ToInt32(item.EmployeeNumber);
+
+            DateTime createdDate = item.Date;
+
+            DateTime? timeIn = TryParseDate(item.TimeIn);
+            DateTime? timeOut = TryParseDate(item.TimeOut);
+
+            long workingSeconds = item.WorkingHours != null
+                ? (long)item.WorkingHours.TotalSeconds
+                : 0;
+
+            long breakSeconds = (item.TotalTime != null && item.WorkingHours != null &&
+                                 item.TotalTime.TotalSeconds > item.WorkingHours.TotalSeconds)
+                ? (long)(item.TotalTime.TotalSeconds - item.WorkingHours.TotalSeconds)
+                : 0;
+
+            dt.Rows.Add(
+                empNum,
+                createdDate,
+                item.EmployeeName ?? (object)DBNull.Value,
+                item.Department ?? (object)DBNull.Value,
+                item.Policy ?? (object)DBNull.Value,
+                (timeIn.HasValue ? timeIn.Value : (object)DBNull.Value),
+                (timeOut.HasValue ? timeOut.Value : (object)DBNull.Value),
+                workingSeconds,
+                breakSeconds,
+                item.isLateArrival,
+                item.isEarlyDeparture,
+                item.isAbsent,
+                item.leaveTypeID != 0,
+                item.leaveTypeID,
+                item.leaveType ?? (object)DBNull.Value,
+                item.CountryName ?? (object)DBNull.Value,
+                item.TimeZone ?? (object)DBNull.Value,
+                item.ManagerEmail ?? (object)DBNull.Value,
+                item.Manager2Email ?? (object)DBNull.Value,
+                item.ManagerID ?? (object)DBNull.Value,
+                item.Manager2ID ?? (object)DBNull.Value,
+                item.UserID ?? (object)DBNull.Value
+            );
+          }
+          catch (Exception rowEx)
+          {
+            // 🔥 Row-level debugging
+            throw new Exception(
+                $"Error processing EmployeeNumber: {item.EmployeeNumber}, Date: {item.Date}. Details: {rowEx.Message}",
+                rowEx
+            );
+          }
+        }
+
+        using (SqlConnection con = new SqlConnection(leaveConnectionString))
+        {
+          await con.OpenAsync();
+
+          //// Optional: Clear temp table first
+          //using (SqlCommand truncate = new SqlCommand("TRUNCATE TABLE dbo.TempAttendanceData", con))
+          //{
+          //  await truncate.ExecuteNonQueryAsync();
+          //}
+
+          //  Bulk Insert
+          using (SqlBulkCopy bulk = new SqlBulkCopy(con))
+          {
+            bulk.DestinationTableName = "dbo.TempAttendanceData";
+            bulk.BatchSize = 1000;
+            bulk.BulkCopyTimeout = 0;
+
+            //  Explicit column mapping (VERY IMPORTANT)
+            foreach (DataColumn col in dt.Columns)
+            {
+              bulk.ColumnMappings.Add(col.ColumnName, col.ColumnName);
+            }
+
+            await bulk.WriteToServerAsync(dt);
+          }
+          Console.WriteLine("Start insert buld");
+          //  Execute Stored Procedure
+          using (SqlCommand cmd = new SqlCommand("sp_MergeAttendance", con))
+          {
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 0;
+            await cmd.ExecuteNonQueryAsync();
+          }
+          Console.WriteLine("end insert buld");
+        }
+
+        return true;
+      }
+      catch (SqlException sqlEx)
+      {
+        throw new Exception($"SQL Error: {sqlEx.Message}", sqlEx);
+      }
+      catch (Exception ex)
+      {
+        throw new Exception($"General Error: {ex.Message}", ex);
+      }
+    }
+
 
     //public Task ConnectToDBandReturnAttendanceData(DateTime startDate, DateTime endDate)
     public async Task<List<TimeData>> ConnectToDBandReturnAttendanceData(  List<TimeData> LstTimeData)
@@ -50,18 +197,19 @@ namespace LeaveON.Services
             .Select(g => g.FirstOrDefault()) // Select the first occurrence of each group
             .ToList();
 
-
-        foreach (var item in distinctTimeData)
+        int count = 1;
+        foreach (var item in distinctTimeData.OrderBy(k=>k.EmployeeNumber).ToList())
         {
           var value = dbLeaveOn.AttendanceDatas;
           // Check if the user arrives after 9:30 AM
           bool lateArrival = item.TimeIn != DateTime.MinValue && item.TimeIn.TimeOfDay > new TimeSpan(9, 30, 0);
           item.isLateArrival = lateArrival;
           bool earlyDeparture = item.TimeOut != DateTime.MinValue && item.TimeOut.TimeOfDay < new TimeSpan(16, 45, 0);
+
           item.isEarlyDeparture = earlyDeparture;
           // Check if an attendance record already exists for this user on the same date
-          Console.WriteLine("distinctTimeData: " + item.EmployeeName + " for a: " + item.EmployeeNumber + " " + item.Date);
-
+          Console.WriteLine("Total Row:"+ distinctTimeData.Count()+" row Count = " + count + " Name= "+ item.EmployeeName + " for a: " + item.EmployeeNumber + " " + item.Date);
+          count += 1;
           bool exists = dbLeaveOn.AttendanceDatas
               .Any(ad => ad.BioStarEmpNum == item.EmployeeNumber &&
                           DbFunctions.TruncateTime(ad.CreatedDate) == item.Date.Date);
@@ -216,12 +364,23 @@ namespace LeaveON.Services
       // {
       int UserId = aspNetUser.BioStarEmpNum.Value; //Assigns the current UserId for processing.
 
-        cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
-        cmd.Parameters.AddWithValue("@UserId", UserId);
-        cmd.Parameters.AddWithValue("@StartDate", startDate);
-        cmd.Parameters.AddWithValue("@EndDate", endDate);
+      //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
+      //cmd.Parameters.AddWithValue("@UserId", UserId);
+      //cmd.Parameters.AddWithValue("@StartDate", startDate);
+      //cmd.Parameters.AddWithValue("@EndDate", endDate);
+      cmd = new SqlCommand(@"
+SELECT user_id, devdt, bsevtdt, DEVID, devnm 
+FROM punchlog 
+WHERE USER_ID = @UserId 
+AND  convert(date,devdt) >= @StartDate 
+AND convert(date,devdt) <=   @EndDate
+ORDER BY devdt", con);
 
-        dr = cmd.ExecuteReader();//SqlCommand and SqlDataReader (cmd, dr) are initialized.
+      cmd.Parameters.AddWithValue("@UserId", UserId);
+      cmd.Parameters.AddWithValue("@StartDate", startDate);
+      cmd.Parameters.AddWithValue("@EndDate", endDate);
+
+      dr = cmd.ExecuteReader();//SqlCommand and SqlDataReader (cmd, dr) are initialized.
 
         DataTable dt = new DataTable();//A new DataTable dt is created for storing data related to the current user.
 
@@ -308,8 +467,8 @@ namespace LeaveON.Services
         //After Reading All Data
         dr.Close();
         DataView view = dt.DefaultView;
-        Console.WriteLine($"UserId: {dt.Rows}");
-        Console.WriteLine($"dt.Rows.Count: {dt.Rows.Count}");
+        //Console.WriteLine($"UserId: {dt.Rows}");
+        //Console.WriteLine($"dt.Rows.Count: {dt.Rows.Count}");
         view.Sort = "devdt ASC";
         //The DataTable dt's default view is sorted by 'devdt' in ascending order: view.Sort = "devdt ASC";.
 
@@ -435,7 +594,7 @@ namespace LeaveON.Services
               previousCountryName = countryName;
             }
 
-            /* ✅ ADD DAILY RECORD (NO NEED separate last-loop fix anymore) */
+            /*  ADD DAILY RECORD (NO NEED separate last-loop fix anymore) */
             if (firsTimeIn.Year != 2001 && lastTimeOut.Year != 2001)
             {
               TotalTime = TotalTime.Add(lastTimeOut - firsTimeIn);
@@ -510,11 +669,11 @@ namespace LeaveON.Services
 
         int iEmpNum = aspNetUser.BioStarEmpNum.Value;
 
-        DateTime latestTimeData = LstTimeData
-                .Where(x => x.Date.DayOfWeek != DayOfWeek.Saturday && x.Date.DayOfWeek != DayOfWeek.Sunday) // Exclude weekends
-                .OrderByDescending(x => x.Date)
-                .Select(x => x.Date.Date)
-                .FirstOrDefault();
+        //DateTime latestTimeData = LstTimeData
+        //        .Where(x => x.Date.DayOfWeek != DayOfWeek.Saturday && x.Date.DayOfWeek != DayOfWeek.Sunday) // Exclude weekends
+        //        .OrderByDescending(x => x.Date)
+        //        .Select(x => x.Date.Date)
+        //        .FirstOrDefault();
 
         List<DateTime> lstThisMonthsWeekEnds = GetWeekEndList(startDate, endDate, aspNetUser.UserLeavePolicy?.WeeklyOffDays ?? "6,0");
         //foreach (DateTime weekEndDate in lstThisMonthsWeekEnds)
@@ -570,35 +729,20 @@ namespace LeaveON.Services
                 TimeData weekEndOffDate = new TimeData
                 {
 
-
-
-
-
                   Date = weekEndDay.Date,
                   Day = weekEndDay.Date.ToString("dddd"),
                   Status = "Weekend",
-
-
-
-
-
                   EmployeeName = UserName,
                   EmployeeNumber = UserId,
                   TimeZone = timeZone,
                   CountryName = countryName,
                   Department = aspNetUser.DepartmentName,
                   Policy = userLeavePolicyDescription,
-                  //TimeIn = firsTimeIn,
-                  //TimeOut = lastTimeOut,
-                  //WorkingHours = ThidDayWorkingHours,
-                 // TotalTime = (lastTimeOut - firsTimeIn),
-
                   UserID = aspNetUser.Id,
                   ManagerEmail = aspNetUser.ManagerEmail,
                   Manager2Email = aspNetUser.Manager2Email,
                   ManagerID = aspNetUser.ManagerID,
                   Manager2ID = aspNetUser.Manager2ID,
-
                   isAbsent = false,
                   leaveTypeID = 0,
                   leaveType = String.Empty
@@ -618,93 +762,87 @@ namespace LeaveON.Services
                .FirstOrDefault();
 
         // If no valid data is present, default to startDate
-        if (lastExistingDate == default(DateTime))
+        if ( rowsCount>0 && lastExistingDate == default(DateTime))
         {
           lastExistingDate = startDate;
         }
 
-
-        for (int day = 0; day < totalDays; day++)
-        {
-          DateTime currentDay = startDate.AddDays(day);
-
-          if (currentDay > lastExistingDate)
+         
+          for (int day = 0; day < totalDays; day++)
           {
-            // Stop processing dates after the last available data
-            break;
-          }
-          var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Date == currentDay.Date);
-          var annualOffDay = dbLeaveOn.AnnualOffDays
-              .FirstOrDefault(x => DbFunctions.TruncateTime(x.OffDay) == currentDay.Date
-                             && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
-          // Check for any leave that spans the current day
-          var leave = dbLeaveOn.Leaves
-                .FirstOrDefault(x => DbFunctions.TruncateTime(x.StartDate) <= currentDay.Date
-                             && DbFunctions.TruncateTime(x.EndDate) >= currentDay.Date
-                             && x.IsAccepted1 != null && x.IsAccepted2 != null
-                             && x.UserId == userGuidId);
-          //if (timeDataForDay == null) // Employee was absent
-          // Handle cases where no time data exists for the day
-          if (timeDataForDay == null)
-          {
+            DateTime currentDay = startDate.AddDays(day);
+
+            if (rowsCount > 0 && currentDay > lastExistingDate)
+            {
+              // Stop processing dates after the last available data
+              break;
+            }
+            var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Date == currentDay.Date);
+
+            var annualOffDay = dbLeaveOn.AnnualOffDays
+                .FirstOrDefault(x => DbFunctions.TruncateTime(x.OffDay) == currentDay.Date
+                               && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
+
+            // Check for any leave that spans the current day
+            var leave = dbLeaveOn.Leaves
+                  .FirstOrDefault(x => DbFunctions.TruncateTime(x.StartDate) <= currentDay.Date
+                               && DbFunctions.TruncateTime(x.EndDate) >= currentDay.Date
+                               && x.IsAccepted1 != null && x.IsAccepted2 != null
+                               && x.UserId == userGuidId);
+            //if (timeDataForDay == null) // Employee was absent
+            // Handle cases where no time data exists for the day
+            if (timeDataForDay == null)
+            {
 
               var leaveName = "";
               int leaveTypeID = 0;
-               string status = "Absent"; // Default to "Absent"
+              string status = "Absent"; // Default to "Absent"
               bool isAbsent = true;                 // Check for holiday and leave
-            if (annualOffDay != null)
-            {
-              status = annualOffDay.Description; // Holiday description
-            }
-            else if (leave != null)
-            {
-              // If a leave record exists, retrieve the corresponding leave type name
-                 
-                  var leaveobject= dbLeaveOn.LeaveTypes.Where(l => l.Id == leave.LeaveTypeId).FirstOrDefault();
+              if (annualOffDay != null)
+              {
+                status = annualOffDay.Description; // Holiday description
+              }
+              else if (leave != null)
+              {
+                // If a leave record exists, retrieve the corresponding leave type name
+
+                var leaveobject = dbLeaveOn.LeaveTypes.Where(l => l.Id == leave.LeaveTypeId).FirstOrDefault();
                 leaveTypeID = leaveobject.Id;
-             status = leaveobject.Name; // Leave type ID if on leave
-            }
-             // isAbsent = true;
+                status = leaveobject.Name; // Leave type ID if on leave
+                isAbsent = false;
+              }
+              // isAbsent = true;
               //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
               depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
-                                                                                                                       // Add attendance data for the day
-            attendance = new TimeData()
+                                                                                                                         // Add attendance data for the day
+              attendance = new TimeData()
+              {
+                EmployeeName = UserName,
+                EmployeeNumber = UserId,
+                TimeZone = timeZone,
+                CountryName = countryName,
+                Policy = userLeavePolicyDescription,
+                Department = depName,
+                Date = annualOffDay?.OffDay ?? currentDay,
+                Day = (annualOffDay?.OffDay ?? currentDay).DayOfWeek.ToString(),
+                Status = status,
+                UserID = aspNetUser.Id,
+                ManagerEmail = aspNetUser.ManagerEmail,
+                Manager2Email = aspNetUser.Manager2Email,
+                ManagerID = aspNetUser.ManagerID,
+                Manager2ID = aspNetUser.Manager2ID,
+                isAbsent = isAbsent,
+                leaveTypeID = leaveTypeID,
+                leaveType = leaveName
+              };
+              LstTimeData.Add(attendance);
+            }
+            else if (annualOffDay != null) // Employee worked on an annual holiday
             {
-              EmployeeName = UserName,
-              EmployeeNumber = UserId,
-              TimeZone = timeZone,
-              CountryName = countryName,
-              Policy = userLeavePolicyDescription,
-              Department = depName,
-              Date = annualOffDay?.OffDay ?? currentDay,
-              Day = (annualOffDay?.OffDay ?? currentDay).DayOfWeek.ToString(),
-              Status = status,
-               
-
-              
-             // TimeIn = firsTimeIn,
-             // TimeOut = lastTimeOut,
-             // WorkingHours = ThidDayWorkingHours,
-             // TotalTime = (lastTimeOut - firsTimeIn),
-
-              UserID = aspNetUser.Id,
-              ManagerEmail = aspNetUser.ManagerEmail,
-              Manager2Email = aspNetUser.Manager2Email,
-              ManagerID = aspNetUser.ManagerID,
-              Manager2ID = aspNetUser.Manager2ID,
-
-              isAbsent = isAbsent,
-              leaveTypeID = leaveTypeID,
-              leaveType = leaveName
-            };
-            LstTimeData.Add(attendance);
+              timeDataForDay.Status = annualOffDay.Description; // Append 'Worked' to the holiday description
+            }
           }
-          else if (annualOffDay != null) // Employee worked on an annual holiday
-          {
-            timeDataForDay.Status = annualOffDay.Description; // Append 'Worked' to the holiday description
-          }
-        }
-      
+        
       }
 
 
@@ -720,6 +858,7 @@ namespace LeaveON.Services
      // ViewBag.TotalHours = TotalTime.TotalHours.ToString("N2");
      // ViewBag.TotalWorkingHours = TotalWorkingHours.TotalHours.ToString("N2");
       con.Close();
+
       return Task.FromResult(LstTimeData);
     }
 
@@ -1080,6 +1219,17 @@ namespace LeaveON.Services
         ManagerID = user.ManagerID,
         Manager2ID = user.Manager2ID
       });
+    }
+    private DateTime? TryParseDate(object value)
+    {
+      if (value == null)
+        return null;
+
+      DateTime result;
+      if (DateTime.TryParse(value.ToString(), out result))
+        return result;
+
+      return null;
     }
     private DateTime ConvertToCountryTimeZoneNew(DateTime dateTime, string timeZone)
     {

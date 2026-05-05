@@ -40,11 +40,11 @@ namespace LeaveOnTaskRunner
             //DateTime endDate = new DateTime(2026, 02, 11);
 
             // testing
-        //  DateTime startDate = new DateTime(2026, 02, 27);
-        // DateTime endDate = new DateTime(2026, 03, 01);
+         DateTime startDate = new DateTime(2026,01,01);
+         DateTime endDate = new DateTime(2026, 01, 31);
 
-          DateTime startDate = yesterday;
-         DateTime endDate = today;
+        //  DateTime startDate = yesterday;
+        // DateTime endDate = today;
 
 
 
@@ -66,10 +66,10 @@ namespace LeaveOnTaskRunner
 
            // IConfiguration config = builder.Build();
 
-             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
-            var userLsit=  await service.GetUserActiveList();
-             //userLsit = userLsit.Where(k => k.BioStarEmpNum == 2696).ToList();
-
+            string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
+            var userList=  await service.GetUserActiveList();
+          //  userList = userList.Where(k => k.BioStarEmpNum == 2696).ToList();
+            //userList = userList.Where(k => k.BioStarEmpNum > 3400).ToList();
             SqlConnection con = new SqlConnection(connection);
             con.Open();
 
@@ -83,7 +83,7 @@ namespace LeaveOnTaskRunner
 
              
 
-                InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
+                InsertSyncLog("Sync User Atendance", "", userList.Count(),
                            1, 0, "Start Job", "Sync User Atendance", 0);
 
           //  startDate = new DateTime(2026, 4, 01);
@@ -97,33 +97,32 @@ namespace LeaveOnTaskRunner
 
                // startDate = date;
              //   endDate = date.AddDays(2);
-            foreach (var user in userLsit)
+            foreach (var user in userList.OrderBy(k=>k.BioStarEmpNum).ToList())
             {
 
                 List<TimeData> userData;
                 try
                 {
-                    //(service.GetUserAttendancData(startDate, endDate, con, user, out userData)==1)
-                    //   finalList.AddRange(userData);
 
-
-                   userData =  await service.GetEmployeeAttendacne(startDate, endDate, user);
-                    finalList.AddRange(userData);
-
-
-                }
+                    userData =  await service.GetEmployeeAttendacne(startDate, endDate, user);
+                    if (userData.Count() > 0)
+                    {
+                        finalList.AddRange(userData);
+                    }
+               }
                 catch (Exception ex)
                 {
-                    InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
+                    InsertSyncLog("Sync User Atendance", "", userList.Count(),
                           0, 0, ex.Message.ToString(), "Attendance job", 0);
                 }
                 try
                 {
                     breakeHourList = breakHours.GetBreakHoursForUser(user, startDate, endDate, con);
+                     
                 }
                 catch (Exception ex)
                 {
-                    InsertSyncLog("Sync User Atendance", "", userLsit.Count(),
+                    InsertSyncLog("Sync User Atendance", "", userList.Count(),
                            0, 0, ex.Message.ToString(), "Breake job", 0);
                 }
             
@@ -132,20 +131,21 @@ namespace LeaveOnTaskRunner
             con.Close();
             if (finalList.Count() > 0)
             {
-
-                await service.ConnectToDBandReturnAttendanceData(finalList);
+                string leaveString= ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+                //  await service.ConnectToDBandReturnAttendanceData(finalList);
+                await service.SaveAttendance(finalList, leaveString);
             }
             //Console.WriteLine("Running Break Hours Service..." +i);
             if (breakeHourList.Count() > 0)
             {
                 await breakHours.ConnectToDBandFillBreakHours(breakeHourList);
             }
-           //  }
+       // }
 
 
 
-            //Console.WriteLine("Attendance data processed for: " + yesterday.ToShortDateString());
-        }
+        //Console.WriteLine("Attendance data processed for: " + yesterday.ToShortDateString());
+    }
 
         public static void InsertSyncLog(string jobName, string status, int totalRecords,
                           int inserted, int updated, string errorMessage, string taskType, int? bioStarValue)

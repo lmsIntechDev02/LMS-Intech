@@ -40,7 +40,8 @@ namespace LeaveON.Services
         SELECT user_id, devdt, bsevtdt, DEVID, devnm 
         FROM punchlog 
         WHERE user_id = @UserId 
-        AND devdt BETWEEN @StartDate AND @EndDate 
+        AND  convert(date,devdt) >= @StartDate 
+        AND convert(date,devdt) <=   @EndDate 
         ORDER BY devdt", con))
       {
         cmd.Parameters.AddWithValue("@UserId", userId);
@@ -67,7 +68,6 @@ namespace LeaveON.Services
 
           // timezone logic
           string timeZone = aspNetUser.CountryName?.TimeZone ?? string.Empty;
-
           if (aspNetUser.IsRelocated)
           {
             timeZone = dbLeaveOn.CountryNames

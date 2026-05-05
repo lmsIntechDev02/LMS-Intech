@@ -92,7 +92,7 @@
                             </td>
                             <td>
                               @Html.DisplayFor(modelItem => item.TimeZone)
-                              
+
                             </td>
                             <td>
                               @Html.DisplayFor(modelItem => item.Policy)
@@ -105,8 +105,8 @@
                             </td>
                             @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
 
-                                if (item.WorkingHours != offDayTime && item.Status != "Absent")
-                                {
+                              if (item.WorkingHours != offDayTime && item.Status != "Absent")
+                              {
                                 <td>
                                   @Html.DisplayFor(modelItem => item.TimeIn)
                                 </td>
@@ -139,10 +139,10 @@
                             }
 
                             <td>
+                            @item.Status
 
-                              
-                                @Html.DisplayFor(modelItem => item.Status)
-                            
+                             
+
 
 
                             </td>
@@ -153,7 +153,7 @@
                                   @*@Html.ActionLink("Break Hours", "GetOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />*@
                                   @Html.ActionLink("Break Hours", "ConnectToDBandReturnOffHours", new { reqDate = item.Date.ToString("dd-MM-yyyy"), UserId = item.EmployeeNumber }, new { target = "_blank" })<br />
                                 }
-                               
+
                               }
 
 

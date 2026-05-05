@@ -70,7 +70,7 @@ namespace LeaveON.Services
         //test
        // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "dc70c0b4-e445-43b5-8c24-1ab960c3f431"))
       //live
-       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted==true )
+       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted !=true )
       .Select(x => new EmailAndIDs
       {
         userId = x.BioStarEmpNum.Value,
@@ -235,11 +235,16 @@ namespace LeaveON.Services
 
             //for missing get date list
             List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
-
+            DateTime currentDate = new DateTime();
+            workingMonthDateList=workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
             List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
-            if (workingMonthDateList.Count > userAttendanceMonth.Count)
+            int totalWorkingDaysCount = userAttendanceMonth.Where(k => k.TotalWorkHours.HasValue && k.TotalWorkHours.Value > 0).Count();
+
+            if (workingMonthDateList.Count > totalWorkingDaysCount)
+
             {
-              var list = workingMonthDateList.Where(date => !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+         
+              var list = workingMonthDateList.Where(date => date.Date < currentDate.Date &&!userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
 
 
               var monthyLeaves = leaves
@@ -327,37 +332,25 @@ namespace LeaveON.Services
             {
               shortDaysToCausalLeave = (int)shortHoursYTD / 8;
               shortHoursYTD = shortHoursYTD % 8;
-
-
               availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;
             }
 
 
-            // availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;  //comment becasue only  pick leave type ID=2 and 1
-            // if short hour >8  then go to absent
-            //if (shortDaysToCausalLeave >= 8)
-            //{
-
-
-            //  availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;
-            //}
+            
 
             int totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
 
             //  this if user not mark attensance on  userAttendanceMonth then it will as absent
-            if (totalWorkDays > userAttendanceMonth.Count())
+            if (missedMonthAttendanceDateList.Count()>0)
             {
-                 absentYTD += (totalWorkDays - userAttendanceMonth.Count());
+              absentYTD += missedMonthAttendanceDateList.Count();// (totalWorkDays - userAttendanceMonth.Count());
             }
-
-
 
             double totalWorkSeconds = userAttendanceMonth
                 .Where(a => a.TotalWorkHours.HasValue && a.TotalWorkHours.Value > 0)
                 .Select(a => a.TotalWorkHours.Value)
                 .Distinct()
                 .Sum();
-
             int workingDays = userAttendanceMonth
                 .Where(a => a.TotalWorkHours.HasValue && a.TotalWorkHours.Value > 0)
                 .Select(a => a.CreatedDate.Value.Date)
@@ -1144,8 +1137,8 @@ namespace LeaveON.Services
 
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-          mail.To.Add("laiba.khan@intechww.com");
-          //mail.To.Add("esswaqas@hotmail.com");
+         // mail.To.Add("laiba.khan@intechww.com");
+          mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -2125,21 +2118,37 @@ namespace LeaveON.Services
       {
         //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
-        var allowedDepartments = new[] { "Automation Solutions", "Electricall solutions", "digital solutions", "cybersecurity" };
+        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht" };
+        var allowedDepartments = new[] { "IS&T","FINANCE & ACCOUNTS","Marketing" ,"Project Monitoring & Control" };
 
         //string dep = "FINANCE & ACCOUNTS";
         // Fetch all users who have either ManagerID or Manager2ID
-        var managersIDs = context.AspNetUsers
-                      .Where(u => !string.IsNullOrEmpty(u.ManagerID) && !string.IsNullOrEmpty(u.DepartmentName) &&(allowedDepartments.Any(k=>k.ToLower()==u.DepartmentName.ToLower())  )).Distinct().Select(u => new ManagerDto
-                      {
-                        Id = u.ManagerID,
-                        UserName = u.UserName,
-                        Email = u.Email,
-                        PhoneNumber = u.PhoneNumber,
-                        ManagerName = u.ManagerName,
-                        DepartmentName = u.DepartmentName
-                      })
-        .ToList();
+        //var managersIDs = context.AspNetUsers
+        //              .Where(u => u.IsDeleted != true  && u.IsActive == true  && !string.IsNullOrEmpty(u.ManagerID) && !string.IsNullOrEmpty(u.DepartmentName) &&(allowedDepartments.Any(k=>k.ToLower()==u.DepartmentName.ToLower()))).Distinct().Select(u => new ManagerDto
+        //              {
+        //                Id = u.ManagerID,
+        //                UserName = u.UserName,
+        //                Email = u.Email,
+        //                PhoneNumber = u.PhoneNumber,
+        //                ManagerName = u.ManagerName,
+        //                DepartmentName = u.DepartmentName
+        //              })
+        //.ToList();
+        var managersIDs = from u in context.AspNetUsers
+                          join m in context.AspNetUsers on u.ManagerID equals m.Id
+                          where allowedDepartments.Contains(m.DepartmentName)
+                                && u.IsActive == true
+                                && u.IsDeleted != true
+                          orderby u.DepartmentName
+                          select new ManagerDto
+                          {
+                            Id = u.ManagerID,
+                            UserName = u.UserName,
+                            Email = u.Email,
+                            PhoneNumber = u.PhoneNumber,
+                            ManagerName = m.UserName,   
+                            DepartmentName = u.DepartmentName
+                          };
 
         //var managersIDs = context.AspNetUsers
         //  .Where(user => !string.IsNullOrEmpty(user.ManagerID) || !string.IsNullOrEmpty(user.Manager2ID))
@@ -2165,12 +2174,12 @@ namespace LeaveON.Services
         //.ToList();
 
         // Manager ID to exclude
-       // var excludedManagerID = "708ada81-4409-48a0-905b-769b7b0da6b0";
+        // var excludedManagerID = "708ada81-4409-48a0-905b-769b7b0da6b0";
 
         // Exclude the specific manager ID
         //var filteredManagersIDs = managersIDs
-          //  .Where(h => h.Id != excludedManagerID)
-          //  .ToList();
+        //  .Where(h => h.Id != excludedManagerID)
+        //  .ToList();
 
 
         //foreach (var managerID in managersIDs)

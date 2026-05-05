@@ -129,7 +129,7 @@ namespace LeaveON.UtilityClasses
                     int insertedEmp = 0;
                     int UpdatedEmp = 0;
                     //List<string> loginsList = new List<string>();
-                    var path = @"D:\LeaveON - AD\Intranet\ADUserList.txt";
+                    //var path = @"D:\LeaveON - AD\Intranet\ADUserList.txt";
 
                     using (var searcher = new PrincipalSearcher(userFilter))
                     {
@@ -146,13 +146,13 @@ namespace LeaveON.UtilityClasses
     .Where(x =>
         x.Auth != null &&
         !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
-        x.Auth.Enabled == true && // only active users
+        //x.Auth.Enabled == true && // only active users
         x.De != null &&
-        x.De.Properties["facsimileTelephoneNumber"].Value != null // has BioStar
+        x.De.Properties["facsimileTelephoneNumber"].Value != null // == "3218" has BioStar
     )
     .ToList();
 
-                        //  List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
+                        //List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
                         List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true).ToList<AspNetUser>(); //893
                         //-------
                         //int cntr = 0;
@@ -236,6 +236,10 @@ namespace LeaveON.UtilityClasses
                                     //    continue;
                                     //}
                                 }
+                                if(bioStarValue== 3218)
+                                {
+
+                                }
 
                                 AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == bioStarValue && !(x.IsDeleted == true) && x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
 
@@ -258,14 +262,14 @@ namespace LeaveON.UtilityClasses
                                         if (!string.IsNullOrEmpty(countryname))
                                         { UpdateCountry(countryname); }
                                         insertedEmp += 1;
-                                        InsertEmployee(de);
+                                       // InsertEmployee(de);
                                         // InsertSyncLog(jobName, "Completed", 0, 1, 0, "", "Insert", de);
 
                                     }
                                     catch (Exception ex)
                                     {
 
-                                        InsertSyncLog(jobName, "Error", 0, 1, 0, ex.Message, "Insert", de);
+                                        //InsertSyncLog(jobName, "Error", 0, 1, 0, ex.Message, "Insert", de);
                                         // Skip this record and move to next
                                         Log.Error("Insert new user from {@ADUser}", new
                                         {
@@ -283,13 +287,13 @@ namespace LeaveON.UtilityClasses
                                 {//Update
                                     try
                                     {
-                                        if (!string.IsNullOrEmpty(countryname))
-                                        { UpdateCountry(countryname); }
+                                        //if (!string.IsNullOrEmpty(countryname))
+                                        //{ UpdateCountry(countryname); }
 
                                         var olddbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == aspNetUser.Id && !(x.IsDeleted == true));
-                                        UpdateEmployee(olddbUser, de, countryname);
-                                        // InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
-                                        //}
+                                        //UpdateEmployee(olddbUser, de, countryname);
+                                        //// InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
+                                        ////}
                                     }
                                     catch (Exception ex)
                                     {

@@ -31,9 +31,9 @@ namespace AutomatedReportTaskRunner
             // Initialize the service
             AutomatedReportService service = new AutomatedReportService();  // Make sure any dependencies are resolved
             if (DateTime.Today.Day >= 26)
-                {
+             {
                     service.GetMonthlyReportData(today.Month, today.Year, false);
-                 }
+             }
             else
             {
                 service.GetMonthlyReportData(month, year, false);

@@ -1441,13 +1441,13 @@ namespace LeaveON.Controllers
         {
           DateTime currentDay = new DateTime(reqDate.Year, reqDate.Month, day);
           var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Day == day);
+
           var annualOffDay = dbLeaveOn.AnnualOffDays.FirstOrDefault(x => x.OffDay.HasValue && x.OffDay == currentDay && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
           // Check for any leave that spans the current day
           var leave = dbLeaveOn.Leaves.FirstOrDefault(x => x.StartDate <= currentDay && x.EndDate >= currentDay && x.IsAccepted1 != null && x.IsAccepted2 != null && x.UserId == userGuidId);
           if (timeDataForDay == null) // Employee was absent
           {
             string status = "Absent"; // Default to "Absent"
-                                      // Check for holiday and leave
             if (annualOffDay != null)
             {
               status = annualOffDay.Description; // Holiday description
@@ -1502,7 +1502,7 @@ namespace LeaveON.Controllers
 
     private Task<List<TimeData>> ConnectToDBandReturnAttendanceReport(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
-
+      //UserIds[0] = 2493;
       string countryName = string.Empty;
       string previousCountryName = string.Empty;
       string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;

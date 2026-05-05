@@ -137,7 +137,7 @@ namespace LeaveON.Controllers
       Leave leaveOld = db.Leaves.FirstOrDefault(x => x.Id == leave.Id);
 
 
-      if (leaveOld.LeaveTypeId != 7) // Casual Short Day
+      if (leaveOld.LeaveTypeId == 1 || leaveOld.LeaveTypeId == 2 || leaveOld.LeaveTypeId == 10) // Casual Short Day
       {
         var balance = db.LeaveBalances
       .Where(x =>
@@ -159,10 +159,10 @@ namespace LeaveON.Controllers
 
 
         //  ONLY selected leaves (bulk)
-        var requestedDays = db.Leaves
+        var requestedDays =  db.Leaves
             .Where(x =>
-
-                x.UserId == leaveOld.UserId
+                x.Id == leave.Id
+                && x.UserId == leaveOld.UserId
                 && (x.IsAccepted1 != 1 || x.IsAccepted2 != 1)
                 && x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
                 x.LeaveTypeId == leaveOld.LeaveTypeId)
@@ -170,7 +170,7 @@ namespace LeaveON.Controllers
 
 
         //  Final check
-        if ((approvedDays + requestedDays) > balance)
+        if ((approvedDays+ requestedDays) > balance)
         {
           TempData["ErrorMessage"] = "The selected customer's leave request exceeds the available balance.";
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leaveOld.LineManager1Id);
@@ -184,7 +184,7 @@ namespace LeaveON.Controllers
           string body = sb.ToString();
 
             
-          SendEmail.SendsEmail(leaveOld.AspNetUser.Email, "leave Request Balance Exceeds", body);
+          SendEmail.SendsEmail(leaveOld.AspNetUser.Email, "Leave Request Balance Exceeds", body);
 
           //SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
           return RedirectToAction("Index");
@@ -216,19 +216,12 @@ namespace LeaveON.Controllers
           leave.ResponseDate2 = DateTime.Now;
           if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
         }
-
-
       }
       else
       {
         leave.IsAccepted2 = IsAccepted2;
         leave.Remarks2 = Remarks2;
         leave.ResponseDate2 = DateTime.Now;
-        //if (IsAccepted2 == Consts.ApprovedWithComments)
-        //{
-        //  leave.Remarks2 = string.Empty;
-        //  leave.TotalDays = decimal.Parse(Remarks2);
-        //}
         if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
       }
       //---------------------save and send emails------------------------------------------------
