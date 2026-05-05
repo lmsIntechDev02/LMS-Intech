@@ -142,15 +142,26 @@ namespace LeaveON.UtilityClasses
     {
         Auth = p as AuthenticablePrincipal,
         De = p.GetUnderlyingObject() as DirectoryEntry
-    })
-    .Where(x =>
+    }).Where(x =>
         x.Auth != null &&
         !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
         //x.Auth.Enabled == true && // only active users
+        //x.Auth.UserPrincipalName.Contains("Mahtab") &&
         x.De != null &&
-        x.De.Properties["facsimileTelephoneNumber"].Value != null // == "3218" has BioStar
+         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
+    x.De.Properties["facsimileTelephoneNumber"]
+        .Cast<object>()
+        .Any(v => v.ToString().Trim() == "2899")
     )
     .ToList();
+                        //.Where(x =>
+                        //    x.Auth != null &&
+                        //    !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
+                        //    x.Auth.Enabled == true && // only active users
+                        //    x.De != null &&
+                        //    x.De.Properties["facsimileTelephoneNumber"].Value != null // == "3218" has BioStar
+                        //)
+                        //.ToList();
 
                         //List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
                         List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true).ToList<AspNetUser>(); //893
@@ -262,7 +273,7 @@ namespace LeaveON.UtilityClasses
                                         if (!string.IsNullOrEmpty(countryname))
                                         { UpdateCountry(countryname); }
                                         insertedEmp += 1;
-                                       // InsertEmployee(de);
+                                         InsertEmployee(de);
                                         // InsertSyncLog(jobName, "Completed", 0, 1, 0, "", "Insert", de);
 
                                     }
@@ -287,11 +298,11 @@ namespace LeaveON.UtilityClasses
                                 {//Update
                                     try
                                     {
-                                        //if (!string.IsNullOrEmpty(countryname))
-                                        //{ UpdateCountry(countryname); }
+                                        if (!string.IsNullOrEmpty(countryname))
+                                        { UpdateCountry(countryname); }
 
                                         var olddbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == aspNetUser.Id && !(x.IsDeleted == true));
-                                        //UpdateEmployee(olddbUser, de, countryname);
+                                         UpdateEmployee(olddbUser, de, countryname);
                                         //// InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
                                         ////}
                                     }

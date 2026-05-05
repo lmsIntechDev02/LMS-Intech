@@ -1137,8 +1137,8 @@ namespace LeaveON.Services
 
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-         // mail.To.Add("laiba.khan@intechww.com");
-          mail.To.Add("esswaqas@hotmail.com");
+          mail.To.Add("laiba.khan@intechww.com");
+         // mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -2119,7 +2119,8 @@ namespace LeaveON.Services
         //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht" };
-        var allowedDepartments = new[] { "IS&T","FINANCE & ACCOUNTS","Marketing" ,"Project Monitoring & Control" };
+        //var allowedDepartments = new[] { "IS&T","FINANCE & ACCOUNTS","Marketing" ,"Project Monitoring & Control" };
+        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
         //string dep = "FINANCE & ACCOUNTS";
         // Fetch all users who have either ManagerID or Manager2ID
