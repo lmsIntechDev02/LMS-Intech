@@ -116,6 +116,7 @@ namespace LeaveON.UtilityClasses
 
         public void SyncAppWithAD(string jobName)
         {
+
             string filePath = Path.Combine(HttpRuntime.AppDomainAppPath, "SyncLog.txt");
             System.IO.File.AppendAllText(filePath, DateTime.Now.ToString() + Environment.NewLine);
             try
@@ -148,12 +149,15 @@ namespace LeaveON.UtilityClasses
         //x.Auth.Enabled == true && // only active users
         //x.Auth.UserPrincipalName.Contains("Mahtab") &&
         x.De != null &&
-         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-    x.De.Properties["facsimileTelephoneNumber"]
-        .Cast<object>()
-        .Any(v => v.ToString().Trim() == "2899")
+        x.De.Properties["facsimileTelephoneNumber"].Value != null &&
+         x.De.Properties["facsimileTelephoneNumber"].Count > 0
+    //&&  x.De.Properties["facsimileTelephoneNumber"]
+    //   .Cast<object>()
+    //   .Any(v => v.ToString().Trim() == "2351")
     )
     .ToList();
+
+
                         //.Where(x =>
                         //    x.Auth != null &&
                         //    !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
@@ -165,32 +169,7 @@ namespace LeaveON.UtilityClasses
 
                         //List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
                         List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true).ToList<AspNetUser>(); //893
-                        //-------
-                        //int cntr = 0;
-                        //int non = 0;
-                        //int authFalse = 0;
-                        //AuthenticablePrincipal auth1;
-                        //foreach (var result in AllIntechUsers)
-                        //{
-                        //    auth1 = result as AuthenticablePrincipal;
-                        //    if (auth1.UserPrincipalName == null)
-                        //    {
-                        //        non += 1;
-                        //        continue;
-                        //    }
-                        //    if (auth1 != null && auth1.Enabled == true)
-                        //    {
-                        //        cntr += 1;
-                        //    }
-                        //    if (auth1 != null && auth1.Enabled == false)
-                        //    {
-                        //        authFalse += 1;
-                        //    }
 
-                        //}
-                        //-------
-                        DateTime DateMark = DateTime.ParseExact("30/12/2019", "dd/MM/yyyy", CultureInfo.InvariantCulture);
-                        DateTime lastLogonStr;
                         AuthenticablePrincipal auth;
                         List<string> departmentsList = new List<string>();
                         List<string> countriesList = new List<string>();
@@ -205,35 +184,9 @@ namespace LeaveON.UtilityClasses
                             {
                                 DirectoryEntry de = result.De;
                                 auth = result.Auth;
-
-                                //DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
-                                //auth = result as AuthenticablePrincipal;
-
-                                //if (auth == null || auth.UserPrincipalName == null || string.IsNullOrEmpty(auth.UserPrincipalName))
-                                //{
-
-                                //    // InsertSyncLog(jobName, "dont need this ", totalRecords, 1, 0, "", "continue", de);
-                                //    continue;//we dont need this. simply move to next
-                                //}
-
-                                //if (auth.UserPrincipalName.ToLower().Contains("suha"))
-                                //{
-                                //    //var abc = "";
-                                //    //var abbb = de.Properties["EmployeeId"].Value;
-                                //}
-                                counter += 1;
-
-
-
-
-
-                                //if (auth.UserPrincipalName.Replace(" ", "").ToUpper() == ("maryam.shafique@intechww.com").ToUpper())
-                                //{
-
-                                //}
-
-                                // AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
+                                bool siacc = IsActive(de);
                                 int bioStarValue = 0;
+
                                 var rawValue = de.Properties["facsimileTelephoneNumber"].Value;
 
                                 if (rawValue != null && long.TryParse(rawValue.ToString(), out long val))
@@ -242,27 +195,20 @@ namespace LeaveON.UtilityClasses
                                     {
                                         bioStarValue = (int)val;
                                     }
-                                    //else
-                                    //{
-                                    //    continue;
-                                    //}
-                                }
-                                if(bioStarValue== 3218)
-                                {
 
                                 }
+                           
 
                                 AspNetUser aspNetUser = LstAspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == bioStarValue && !(x.IsDeleted == true) && x.UserName.Replace(" ", "").ToUpper() == auth.UserPrincipalName.Replace(" ", "").ToUpper());
 
                                 if ((aspNetUser == null && auth.Enabled == false) || bioStarValue == 0)
                                 {
-                                    //   InsertSyncLog(jobName, "asp Net User is null ", 0, 1, 0, "", "continue", de);
                                     continue;
                                 }
                                 departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
                                 // countriesList.Add(Convert.ToString(de.Properties["co"].Value));
                                 string countryname = Convert.ToString(de.Properties["co"].Value);
-                                
+
                                 if (aspNetUser == null && auth.Enabled != false)
                                 {//Insert
                                  //it means if user is created before "01/01/2019" then totaDays will be in minus. so not add very old users. only add new users. which are after "01/01/2019"
@@ -273,7 +219,7 @@ namespace LeaveON.UtilityClasses
                                         if (!string.IsNullOrEmpty(countryname))
                                         { UpdateCountry(countryname); }
                                         insertedEmp += 1;
-                                         InsertEmployee(de);
+                                        InsertEmployee(de, LstAspNetUsers);
                                         // InsertSyncLog(jobName, "Completed", 0, 1, 0, "", "Insert", de);
 
                                     }
@@ -302,7 +248,7 @@ namespace LeaveON.UtilityClasses
                                         { UpdateCountry(countryname); }
 
                                         var olddbUser = db.AspNetUsers.FirstOrDefault(x => x.Id == aspNetUser.Id && !(x.IsDeleted == true));
-                                         UpdateEmployee(olddbUser, de, countryname);
+                                        UpdateEmployee(olddbUser, de, countryname, LstAspNetUsers);
                                         //// InsertSyncLog(jobName, "Completed", 0, 0,1, "", "Update", de);
                                         ////}
                                     }
@@ -333,16 +279,16 @@ namespace LeaveON.UtilityClasses
 
                         }
 
+                        //return;
                         var dbDaprtmentList = db.DepartmentNames.ToList();
                         //-----------add department name which does not exist in LMS-DB------------
                         List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
+
                         foreach (string itm in distinctDepartmentNames)
                         {
                             //if(String.IsNullOrEmpty(itm))
                             //    continue;
                             DepartmentName departmentName = db.DepartmentNames.FirstOrDefault(x => x.Name == itm);
-
-
                             if (departmentName == null && !string.IsNullOrEmpty(itm.Trim()))
                             {
                                 InsertSyncLog(jobName, "Insert", 0, 0, 1, itm, "DepartmentName", null);
@@ -432,7 +378,7 @@ namespace LeaveON.UtilityClasses
 
             return !Convert.ToBoolean(flags & 0x0002);
         }
-        private void InsertEmployee(DirectoryEntry de)
+        private void InsertEmployee(DirectoryEntry de, List<AspNetUser> LstAspNetUsers)
         {
             //return;
             AspNetUser emp = new AspNetUser();
@@ -519,7 +465,7 @@ namespace LeaveON.UtilityClasses
 
         }
 
-        private void UpdateEmployee(AspNetUser oldemp, DirectoryEntry de, string countryname)
+        private void UpdateEmployee(AspNetUser oldemp, DirectoryEntry de, string countryname, List<AspNetUser> LstAspNetUsers)
         {
 
             //return;0.
@@ -548,20 +494,17 @@ namespace LeaveON.UtilityClasses
                 {
                     int startIndex = dn.IndexOf("CN=") + 3;
                     int endIndex = dn.IndexOf(",", startIndex);
-
-
-
-
                     managerNameFromAD = endIndex > 0 ? dn.Substring(startIndex, endIndex - startIndex) : dn.Substring(startIndex);
 
 
-                    if (dbUser.ManagerName != managerNameFromAD)
-                    {
-
-                        string normalizedManagerName = managerNameFromAD
-                            .Trim()
-                            .ToLower()
-                            .Replace(" ", ".");
+                      if (!string.IsNullOrEmpty(managerNameFromAD))
+                     {
+                    string normalizedManagerName = managerNameFromAD.Trim();
+                      
+                    //string normalizedManagerName = managerNameFromAD
+                    //        .Trim()
+                    //        .ToLower()
+                    //        .Replace(" ", ".");
                         if (normalizedManagerName == "huseyn.tarek")
                         { normalizedManagerName = "ht"; }
                         switch (normalizedManagerName)
@@ -580,22 +523,31 @@ namespace LeaveON.UtilityClasses
                                 break;
                         }
 
-                        var managerData = db.AspNetUsers
+                    //for testing 
+                        if(dbUser.BioStarEmpNum == 1719)
+                        {
+
+                        }
+                        var aDmanagerIDs = LstAspNetUsers.Where(u => !string.IsNullOrEmpty(u.ManagerName) && u.ManagerName.Trim().ToLower() == normalizedManagerName.Trim().ToLower()).Select(o => o.ManagerID).ToList();
+
+
+                        var admanagerData = db.AspNetUsers
                             .AsEnumerable()
-                            .FirstOrDefault(u =>
-                                !string.IsNullOrEmpty(u.UserName) &&
-                                u.UserName.Split('@')[0].ToLower() == normalizedManagerName);
+                            .FirstOrDefault(u => u.IsActive == true &&
+                                                 u.IsDeleted != true && aDmanagerIDs != null &&
+                                                 aDmanagerIDs.Any(k => k!= null && u.Id.Trim() == k.ToString().Trim()));
+
                         dbUser.ManagerName = managerNameFromAD;
 
-
-                        if (managerData != null)
+                   
+                        if (admanagerData != null && dbUser.ManagerID != admanagerData.Id  )
                         {
-                            dbUser.ManagerID = managerData.Id;
-                            dbUser.ManagerEmail = managerData.UserName;
-                            dbUser.ManagerName = managerData.EmpolyeeName;
+                            dbUser.ManagerID = admanagerData.Id;
+                            dbUser.ManagerEmail = admanagerData.UserName;
+                            dbUser.ManagerName = admanagerData.EmpolyeeName;
                         }
                     }
-                }
+                 }
 
                 // Retrieve "whenCreated" from DirectoryEntry
                 DateTime? whenCreated = de.Properties["whenCreated"].Value != null

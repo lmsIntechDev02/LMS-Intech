@@ -74,6 +74,8 @@ namespace LeaveON.Services
                 .FirstOrDefault(x => x.Name == aspNetUser.CntryNameTemp)?.TimeZone;
           }
 
+       
+
           // your existing processing method
           ProcessBreakHours(punchLogs, aspNetUser, timeZone, lstBreakHours);
         }
@@ -110,6 +112,12 @@ namespace LeaveON.Services
 
         if (!LstCardReadersIn.Contains(currentLog.DeviceId) && LstCardReadersIn.Contains(nextLog.DeviceId))
         {
+
+          // Get Attendance timezone and Country
+         //var atttimeZone = GetAttendacneTimeZone(deviceCode, shortCountryName, aspNetUser);
+          
+
+          //  countryName = atttimeZone.CountryName;
           DateTime timeOutt = ConvertToCountryTimeZoneNew(currentLog.DeviceDate, timeZone);
           DateTime timeInn = ConvertToCountryTimeZoneNew(nextLog.DeviceDate, timeZone);
 

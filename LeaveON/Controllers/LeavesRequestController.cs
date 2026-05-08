@@ -281,9 +281,7 @@ namespace LeaveON.Controllers
       ViewBag.LeaveUserId = userId;
       ViewBag.FiscalYearStart = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearStart;
       ViewBag.FiscalYearEnd = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearEnd;
-     
       ViewBag.ShortLeaveMessage = "test message";
-
       return View();
     }
 

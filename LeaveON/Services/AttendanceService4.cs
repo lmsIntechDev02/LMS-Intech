@@ -23,6 +23,8 @@ namespace LeaveON.Services
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
     //LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
 
+    
+
 
 
     public async Task<List<AspNetUser>> GetUserActiveList()
@@ -337,7 +339,7 @@ namespace LeaveON.Services
     }
 
 
-    public Task<List<TimeData>> GetEmployeeAttendacne(DateTime rstartDate , DateTime rendDate,  AspNetUser aspNetUser)
+    public Task<List<TimeData>> GetEmployeeAttendacne(DateTime rstartDate , DateTime rendDate,  AspNetUser aspNetUser, SqlConnection con)
     {
 
           string formattedStartDate = rstartDate.ToString("dd-MM-yyyy");
@@ -345,7 +347,7 @@ namespace LeaveON.Services
       string countryName = string.Empty;
       string previousCountryName = string.Empty;
       string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
-      SqlConnection con = new SqlConnection(connection);
+      //SqlConnection con = new SqlConnection(connection);
       SqlCommand cmd;
       SqlDataReader dr;
       List<TimeData> LstTimeData = new List<TimeData>();
@@ -359,7 +361,7 @@ namespace LeaveON.Services
                               .AddDays(1).AddSeconds(-1);
 
       int totalDays = (endDate - startDate).Days + 1;
-      con.Open();
+      //con.Open();
       //  foreach (int Id in UserIds)
       // {
       int UserId = aspNetUser.BioStarEmpNum.Value; //Assigns the current UserId for processing.
@@ -528,40 +530,56 @@ ORDER BY devdt", con);
               string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
 
               /* SAME COUNTRY LOGIC (UNCHANGED) */
-              if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
-              {
-                timeZone = "W. Central Africa Standard Time";
-                countryName = "Nigeria Lagos";
-              }
-              else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
-              {
-                timeZone = "W. Central Africa Standard Time";
-                countryName = "Nigeria Port Harcourt";
-              }
-              else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
-              {
-                timeZone = "Pakistan Standard Time";
-                countryName = "Pakistan";
-              }
-              else
-              {
-                switch (shortCountryName)
-                {
-                  case "PK ":
-                  case "PAK":
-                    timeZone = "Pakistan Standard Time";
-                    countryName = "Pakistan";
-                    break;
-                  case "UAE":
-                    timeZone = "Arab Standard Time";
-                    countryName = "United Arab Emirates";
-                    break;
-                  default:
-                    timeZone = aspNetUser.CountryName.TimeZone;
-                    countryName = aspNetUser.CountryName.Name;
-                    break;
-                }
-              }
+              //if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
+              //{
+              //  timeZone = "W. Central Africa Standard Time";
+              //  countryName = "Nigeria Lagos";
+              //}
+              //else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
+              //{
+              //  timeZone = "W. Central Africa Standard Time";
+              //  countryName = "Nigeria Port Harcourt";
+              //}
+              ////else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
+              ////{
+              ////  timeZone = "Pakistan Standard Time";
+              ////  countryName = "Pakistan";
+              ////}
+              //else
+              //{
+                string deviceCode = dayRows[j]["devnm"].ToString().Substring(0, 4);
+
+              // Get Attendance timezone and Country
+              var atttimeZone = GetAttendacneTimeZone(deviceCode, shortCountryName, aspNetUser);
+
+              timeZone = atttimeZone.TimeZone;
+              countryName = atttimeZone.CountryName;
+               
+              //if (deviceMap.ContainsKey(deviceCode))
+              //  {
+              //    countryName = deviceMap[deviceCode].Country;
+              //    timeZone = deviceMap[deviceCode].TimeZone;
+              //  }
+              //  else
+              //  {
+              //    switch (shortCountryName)
+              //    {
+              //      case "PK ":
+              //      case "PAK":
+              //        timeZone = "Pakistan Standard Time";
+              //        countryName = "Pakistan";
+              //        break;
+              //      case "UAE":
+              //        timeZone = "Arab Standard Time";
+              //        countryName = "United Arab Emirates";
+              //        break;
+              //      default:
+              //        timeZone = aspNetUser.CountryName.TimeZone;
+              //        countryName = aspNetUser.CountryName.Name;
+              //        break;
+              //    }
+              //  }
+              //}
 
               DateTime currentTime = ConvertToCountryTimeZoneNew((DateTime)dayRows[j]["devdt"], timeZone);
 
@@ -1260,6 +1278,53 @@ ORDER BY devdt", con);
         startDate = startDate.AddDays(1);
       }
       return weekEndDates;
+    }
+    protected (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone, string attendacneshortCountryName, AspNetUser aspNetUser)
+    {
+      Dictionary<string, (string Country, string TimeZone)> deviceMap =
+        new Dictionary<string, (string, string)>
+    {
+        { "IN01", ("Pakistan", "Pakistan Standard Time") },
+        { "NG-L", ("Nigeria Lagos", "W. Central Africa Standard Time") },
+        { "NG-P", ("Nigeria Port Harcourt", "W. Central Africa Standard Time") },
+        { "IN08", ("United Arab Emirates", "Arabian Standard Time") },
+        { "IN09", ("Saudi Arabia", "Arab Standard Time") },
+        { "IN10", ("India", "India Standard Time") },
+
+        // USA
+        { "IN11", ("United States", "Eastern Standard Time") },
+        { "IN12", ("United States", "Central Standard Time") },
+        { "IN13", ("United States", "Mountain Standard Time") },
+        { "IN14", ("United States", "Pacific Standard Time") }
+    };
+    
+      string countryName = String.Empty;
+      string timeZone = String.Empty;
+      if (deviceMap.ContainsKey(attendacnetimezone))
+      {
+        countryName = deviceMap[attendacnetimezone].Country;
+        timeZone = deviceMap[attendacnetimezone].TimeZone;
+      }
+      else
+      {
+        switch (attendacneshortCountryName)
+        {
+          case "PK ":
+          case "PAK":
+            timeZone = "Pakistan Standard Time";
+            countryName = "Pakistan";
+            break;
+          case "UAE":
+            timeZone = "Arab Standard Time";
+            countryName = "United Arab Emirates";
+            break;
+          default:
+            timeZone = aspNetUser.CountryName.TimeZone;
+            countryName = aspNetUser.CountryName.Name;
+            break;
+        }
+      }
+      return (countryName, timeZone);
     }
 
     private class AttendanceRecord

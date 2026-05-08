@@ -40,8 +40,8 @@ namespace LeaveOnTaskRunner
             //DateTime endDate = new DateTime(2026, 02, 11);
 
             // testing
-         DateTime startDate = new DateTime(2026,01,01);
-         DateTime endDate = new DateTime(2026, 01, 31);
+         DateTime startDate = new DateTime(2026,04,16);
+         DateTime endDate = new DateTime(2026, 04, 30);
 
         //  DateTime startDate = yesterday;
         // DateTime endDate = today;
@@ -69,7 +69,7 @@ namespace LeaveOnTaskRunner
             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
             var userList=  await service.GetUserActiveList();
           //  userList = userList.Where(k => k.BioStarEmpNum == 2696).ToList();
-            //userList = userList.Where(k => k.BioStarEmpNum > 3400).ToList();
+             userList = userList.Where(k => k.BioStarEmpNum == 1166).ToList();
             SqlConnection con = new SqlConnection(connection);
             con.Open();
 
@@ -104,7 +104,7 @@ namespace LeaveOnTaskRunner
                 try
                 {
 
-                    userData =  await service.GetEmployeeAttendacne(startDate, endDate, user);
+                    userData =  await service.GetEmployeeAttendacne(startDate, endDate, user, con);
                     if (userData.Count() > 0)
                     {
                         finalList.AddRange(userData);

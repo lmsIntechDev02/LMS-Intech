@@ -123,9 +123,9 @@ namespace LeaveON.UtilityClasses
       .ToList();
 
 
-      filteredLeaves = filteredLeaves
-      .Where(leave => !leaveBalance.Contains(leave.Id))
-      .ToList();
+      //filteredLeaves = filteredLeaves
+      //.Where(leave => !leaveBalance.Contains(leave.Id))
+      //.ToList();
 
       /*  var findCompensatoryLeave = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == 0 && x.UserId == UserId && x.UserLeavePolicyId == policyId && x.Balance > 0);
          if (findCompensatoryLeave != null)
