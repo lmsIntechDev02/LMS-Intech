@@ -29,6 +29,10 @@ namespace LeaveON.Services
     DateTime endDate,
     SqlConnection con)
     {
+      if (con.State == ConnectionState.Closed)
+      {
+        con.Open();
+      }
       List<BreakHour> lstBreakHours = new List<BreakHour>();
 
       if (!aspNetUser.BioStarEmpNum.HasValue)

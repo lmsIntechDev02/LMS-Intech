@@ -1670,43 +1670,53 @@ namespace LeaveON.Controllers
 
           for (int j = 0; j < dayRows.Count; j++)
           {
-            string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
+            //string timezone = dayRows[j]["devnm"].ToString();
+            //string alocation = alocationss.Split('-')[1].Split(' ')[0];
+            //string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
 
-            /* SAME COUNTRY LOGIC (UNCHANGED) */
-            if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
-            {
-              timeZone = "W. Central Africa Standard Time";
-              countryName = "Nigeria Lagos";
-            }
-            else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
-            {
-              timeZone = "W. Central Africa Standard Time";
-              countryName = "Nigeria Port Harcourt";
-            }
-            else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
-            {
-              timeZone = "Pakistan Standard Time";
-              countryName = "Pakistan";
-            }
-            else
-            {
-              switch (shortCountryName)
-              {
-                case "PK ":
-                case "PAK":
-                  timeZone = "Pakistan Standard Time";
-                  countryName = "Pakistan";
-                  break;
-                case "UAE":
-                  timeZone = "Arab Standard Time";
-                  countryName = "United Arab Emirates";
-                  break;
-                default:
-                  timeZone = aspNetUser.CountryName.TimeZone;
-                  countryName = aspNetUser.CountryName.Name;
-                  break;
-              }
-            }
+            //string deviceCode = dayRows[j]["devnm"].ToString().Substring(0, 4);
+
+            // Get Attendance timezone and Country
+
+            var atttimeZone = GetAttendacneTimeZone(dayRows[j]["devnm"].ToString());
+            timeZone = atttimeZone.TimeZone;
+            countryName = atttimeZone.CountryName;
+
+            ///* SAME COUNTRY LOGIC (UNCHANGED) */
+            //if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
+            //{
+            //  timeZone = "W. Central Africa Standard Time";
+            //  countryName = "Nigeria Lagos";
+            //}
+            //else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
+            //{
+            //  timeZone = "W. Central Africa Standard Time";
+            //  countryName = "Nigeria Port Harcourt";
+            //}
+            //else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
+            //{
+            //  timeZone = "Pakistan Standard Time";
+            //  countryName = "Pakistan";
+            //}
+            //else
+            //{
+            //  switch (shortCountryName)
+            //  {
+            //    case "PK ":
+            //    case "PAK":
+            //      timeZone = "Pakistan Standard Time";
+            //      countryName = "Pakistan";
+            //      break;
+            //    case "UAE":
+            //      timeZone = "Arab Standard Time";
+            //      countryName = "United Arab Emirates";
+            //      break;
+            //    default:
+            //      timeZone = aspNetUser.CountryName.TimeZone;
+            //      countryName = aspNetUser.CountryName.Name;
+            //      break;
+            //  }
+            //}
 
             DateTime currentTime = ConvertToCountryTimeZoneNew((DateTime)dayRows[j]["devdt"], timeZone);
 
@@ -1805,6 +1815,11 @@ namespace LeaveON.Controllers
           {
             TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date);
 
+            TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (weekEndDate.Date.AddDays(-1)).Date);
+            
+            string lastAttendacnelcoation = lastAttendacnelcoationEnd != null?  lastAttendacnelcoationEnd.TimeZone: countryName;
+
+
             if (thisWeekEnd != null)
             {
               thisWeekEnd.Status = "Weekend";
@@ -1815,18 +1830,19 @@ namespace LeaveON.Controllers
               {
                 EmployeeName = UserName,
                 EmployeeNumber = iEmpNum,
-                TimeZone = countryName,
+                TimeZone = countryName != lastAttendacnelcoation ? lastAttendacnelcoation: countryName,
                 Department = depName,
                 Policy = userLeavePolicyDescription,
                 Date = weekEndDate,
                 Day = weekEndDate.ToString("dddd"),
                 Status = "Weekend"
               };
-              offDays.Add(weekEndOffDate);
+              //offDays.Add(weekEndOffDate);
+              LstTimeData.Add(weekEndOffDate);
             }
           }
         }
-        LstTimeData.AddRange(offDays);
+        //LstTimeData.AddRange(offDays);
 
          // Find the latest date for which timing data exists in the database (max date in LstTimeData)
          var lastExistingDate = LstTimeData
@@ -1867,6 +1883,10 @@ namespace LeaveON.Controllers
           {
             string status = "Absent"; // Default to "Absent"
                                       // Check for holiday and leave
+            string timezone = countryName;
+
+            
+
             if (annualOffDay != null)
             {
               status = annualOffDay.Description; // Holiday description
@@ -1880,6 +1900,12 @@ namespace LeaveON.Controllers
                   .FirstOrDefault();
               status = leaveTypeName; // Leave type ID if on leave
             }
+            string lastAttendacnelcoation = countryName;
+            if (status == "Absent")
+            {
+              TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (currentDay.Date.AddDays(-1)).Date);
+                lastAttendacnelcoation = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.TimeZone : countryName;
+            }
             //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
             depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
               // Add attendance data for the day
@@ -1887,7 +1913,7 @@ namespace LeaveON.Controllers
             {
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = countryName != lastAttendacnelcoation ? lastAttendacnelcoation : countryName,
               Policy = userLeavePolicyDescription,
               Department = depName,
               Date = annualOffDay?.OffDay ?? currentDay,
@@ -2459,7 +2485,7 @@ namespace LeaveON.Controllers
           string formattedEndDate = endDate.ToString("dd-MM-yyyy");
           var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
           LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
-          // LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
+          //  LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
 
         }
         //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
@@ -3609,7 +3635,80 @@ namespace LeaveON.Controllers
 
       return Task.FromResult(LstTimeData);
     }
+    protected (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
+    {
+      string timezone = attendacnetimezone.Split('-')[1].Split(' ')[0];
 
+      string countryCode = timezone;//.Split('-')[1];
+
+      switch (countryCode.ToUpper())
+      {
+          case "UAE":
+          countryCode = "AE";
+          break;
+
+          case "KSA":
+          countryCode = "SA";
+          break;
+      }
+
+
+
+
+      RegionInfo region = new RegionInfo(countryCode);
+      string countryName = region.EnglishName;
+      var timeZone = TimeZoneInfo
+         .GetSystemTimeZones()
+         .FirstOrDefault(tz =>
+             tz.DisplayName.Contains(countryName) ||
+             tz.Id.Contains(countryName));
+      return (countryName, timeZone.Id.ToString());
+    //  Dictionary<string, (string Country, string TimeZone)> deviceMap =
+    //    new Dictionary<string, (string, string)>
+
+    //{
+    //    { "IN01", ("Pakistan", "Pakistan Standard Time") },
+    //    { "NG-L", ("Nigeria Lagos", "W. Central Africa Standard Time") },
+    //    { "NG-P", ("Nigeria Port Harcourt", "W. Central Africa Standard Time") },
+    //    { "IN08", ("United Arab Emirates", "Arabian Standard Time") },
+    //    { "IN09", ("Saudi Arabia", "Arab Standard Time") },
+    //    { "IN10", ("India", "India Standard Time") },
+
+    //    // USA
+    //    { "IN11", ("United States", "Eastern Standard Time") },
+    //    { "IN12", ("United States", "Central Standard Time") },
+    //    { "IN13", ("United States", "Mountain Standard Time") },
+    //    { "IN14", ("United States", "Pacific Standard Time") }
+    //};
+
+    //  string countryName = String.Empty;
+    //  string timeZone = String.Empty;
+    //  if (deviceMap.ContainsKey(attendacnetimezone))
+    //  {
+    //    countryName = deviceMap[attendacnetimezone].Country;
+    //    timeZone = deviceMap[attendacnetimezone].TimeZone;
+    //  }
+    //  else
+    //  {
+    //    switch (attendacneshortCountryName)
+    //    {
+    //      case "PK ":
+    //      case "PAK":
+    //        timeZone = "Pakistan Standard Time";
+    //        countryName = "Pakistan";
+    //        break;
+    //      case "UAE":
+    //        timeZone = "Arab Standard Time";
+    //        countryName = "United Arab Emirates";
+    //        break;
+    //      default:
+    //        timeZone = aspNetUser.CountryName.TimeZone;
+    //        countryName = aspNetUser.CountryName.Name;
+    //        break;
+    //    }
+    //  }
+    //  return (countryName, timeZone);
+    }
     private Task<List<TimeData>> GetMonthWiseData(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
       DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);

@@ -49,7 +49,7 @@ namespace LeaveON.Services
             .Select(g => g.First())
             .ToList();
 
-        // ✅ Correct DataTable schema (match SQL)
+        //  Correct DataTable schema (match SQL)
         dt.Columns.Add("BioStarEmpNum", typeof(int));
         dt.Columns.Add("CreatedDate", typeof(DateTime));
         dt.Columns.Add("UserName", typeof(string));
@@ -151,10 +151,11 @@ namespace LeaveON.Services
             {
               bulk.ColumnMappings.Add(col.ColumnName, col.ColumnName);
             }
+            Console.WriteLine("Save Data as bulk in DB. ");
 
             await bulk.WriteToServerAsync(dt);
           }
-          Console.WriteLine("Start insert buld");
+          Console.WriteLine("Start insert bulk Attendacen.");
           //  Execute Stored Procedure
           using (SqlCommand cmd = new SqlCommand("sp_MergeAttendance", con))
           {
@@ -162,9 +163,8 @@ namespace LeaveON.Services
             cmd.CommandTimeout = 0;
             await cmd.ExecuteNonQueryAsync();
           }
-          Console.WriteLine("end insert buld");
+          Console.WriteLine("end insert bulk Attendacen.");
         }
-
         return true;
       }
       catch (SqlException sqlEx)
@@ -342,12 +342,16 @@ namespace LeaveON.Services
     public Task<List<TimeData>> GetEmployeeAttendacne(DateTime rstartDate , DateTime rendDate,  AspNetUser aspNetUser, SqlConnection con)
     {
 
-          string formattedStartDate = rstartDate.ToString("dd-MM-yyyy");
-          string formattedEndDate = rendDate.ToString("dd-MM-yyyy");
+      string formattedStartDate = rstartDate.ToString("dd-MM-yyyy");
+      string formattedEndDate = rendDate.ToString("dd-MM-yyyy");
       string countryName = string.Empty;
       string previousCountryName = string.Empty;
       string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
       //SqlConnection con = new SqlConnection(connection);
+      if (con.State == ConnectionState.Closed)
+      {
+        con.Open();
+      }
       SqlCommand cmd;
       SqlDataReader dr;
       List<TimeData> LstTimeData = new List<TimeData>();
@@ -633,17 +637,8 @@ ORDER BY devdt", con);
               bool isAbsent = false;
               attendance = new TimeData()
               {
-
-
-
-
-
                 Date = firsTimeIn.Date,
                 Day = firsTimeIn.DayOfWeek.ToString(),
-
-
-
-
                 EmployeeName = UserName,
                 EmployeeNumber = UserId,
                 TimeZone = timeZone,
@@ -736,9 +731,12 @@ ORDER BY devdt", con);
           //   DateTime weekEndDate = DateTime.ParseExact(weekEndDay, "MM-dd-yyyy", CultureInfo.InvariantCulture);
           TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDay.Date && x.EmployeeNumber == UserId);
 
-        ///  TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDay.da);
-
-            if (thisWeekEnd != null)
+          ///  TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDay.da);
+          TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (weekEndDay.Date.AddDays(-1)).Date && x.EmployeeNumber == UserId);
+          string lastAttendacneCountry = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.CountryName : countryName;
+          string lastAttendacnetimezone = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.TimeZone : timeZone;
+          
+          if (thisWeekEnd != null)
             {
               thisWeekEnd.Status = "Weekend";
             }
@@ -752,8 +750,8 @@ ORDER BY devdt", con);
                   Status = "Weekend",
                   EmployeeName = UserName,
                   EmployeeNumber = UserId,
-                  TimeZone = timeZone,
-                  CountryName = countryName,
+                  TimeZone = timeZone!= lastAttendacnetimezone? lastAttendacnetimezone: timeZone,
+                  CountryName = countryName != lastAttendacneCountry ? lastAttendacneCountry : countryName,
                   Department = aspNetUser.DepartmentName,
                   Policy = userLeavePolicyDescription,
                   UserID = aspNetUser.Id,
@@ -765,12 +763,13 @@ ORDER BY devdt", con);
                   leaveTypeID = 0,
                   leaveType = String.Empty
               };
-              offDays.Add(weekEndOffDate);
+              //offDays.Add(weekEndOffDate);
+            LstTimeData.Add(weekEndOffDate);
             }
          
         }
-        if(offDays.Count()>0)
-        LstTimeData.AddRange(offDays);
+        //if(offDays.Count()>0)
+        //LstTimeData.AddRange(offDays);
 
         // Find the latest date for which timing data exists in the database (max date in LstTimeData)
         var lastExistingDate = LstTimeData
@@ -829,16 +828,24 @@ ORDER BY devdt", con);
                 status = leaveobject.Name; // Leave type ID if on leave
                 isAbsent = false;
               }
-              // isAbsent = true;
-              //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
-              depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
+            string lastAttendacneCountry = countryName;
+            string lastAttendacnetimezone = timeZone;
+            if (status == "Absent")
+            {
+              TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (currentDay.Date.Date.AddDays(-1)).Date && x.EmployeeNumber == UserId);
+                lastAttendacneCountry = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.CountryName : countryName;
+                lastAttendacnetimezone = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.TimeZone : timeZone;
+            }
+            // isAbsent = true;
+            //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
+            depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
                                                                                                                          // Add attendance data for the day
               attendance = new TimeData()
               {
                 EmployeeName = UserName,
                 EmployeeNumber = UserId,
-                TimeZone = timeZone,
-                CountryName = countryName,
+                TimeZone = timeZone != lastAttendacnetimezone ? lastAttendacnetimezone : timeZone,
+                CountryName = countryName != lastAttendacneCountry ? lastAttendacneCountry : countryName, 
                 Policy = userLeavePolicyDescription,
                 Department = depName,
                 Date = annualOffDay?.OffDay ?? currentDay,

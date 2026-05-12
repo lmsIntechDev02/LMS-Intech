@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,58 +22,45 @@ namespace LeaveOnTaskRunner
         {
             //// Calculate 'yesterday'
             DateTime yesterday = DateTime.Today.AddDays(-2);
-            DateTime today = DateTime.Today;
-
-            //// Initialize the service
-            //AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved
-
-            //// Call the method with 'yesterday' for both startDate and endDate
-            //service.ConnectToDBandFillAttendanceData(yesterday, today);
-
-            // Define specific start and end dates
-            /*   DateTime startDate = new DateTime(DateTime.Today.Year - 1, 6, 1);  
-               DateTime endDate = new DateTime(DateTime.Today.Year - 1, 6, 30);  */
-
-
-            //DateTime startDate = new DateTime(DateTime.Today.Year, 1, 1);
-            //DateTime endDate = new DateTime(DateTime.Today.Year, 1, 2);
-            // DateTime startDate = new DateTime(2026, 01, 01);
-            //DateTime endDate = new DateTime(2026, 02, 11);
+            DateTime today = DateTime.Today.AddDays(-1);  
 
             // testing
-         DateTime startDate = new DateTime(2026,04,16);
-         DateTime endDate = new DateTime(2026, 04, 30);
+            DateTime startDate = new DateTime(2026, 05, 08);
+            DateTime endDate = new DateTime(2026, 05, 08);
 
-        //  DateTime startDate = yesterday;
-        // DateTime endDate = today;
+            // DateTime startDate = yesterday;
+            // DateTime endDate = today;
 
+            List<string> ids = new List<string>
+{
+"2304",
+"3320",
+"2135",
+"1938",
+"2021",
+"2298",
+"3326",
+"2013",
+"2553",
+"2465",
+"3327",
+"1781",
+"3324",
+"2590"
+};
 
-
-            // Initialize the service
-            //  AttendanceService service = new AttendanceService();  // Make sure any dependencies are resolved
+            //Initialize the service
+            //AttendanceService service = new AttendanceService();  
+            //Make sure any dependencies are resolved
             AttendanceService4 service = new AttendanceService4();
             BreakHoursService breakHours = new BreakHoursService();
-            // Call the method with 'startDate' and 'endDate'
-            // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
-            // await service.ConnectToDBandFillAttendanceData(startDate, endDate);
-
-            //  for (int i = 12; i < 28; i++)//9 copm
-            //{
-            //   DateTime startDate = new DateTime(2026, 3, i);
-            //  DateTime endDate = startDate; // same date, no need to recreate
-           // var builder = new ConfigurationBuilder()
-           //.SetBasePath(Directory.GetCurrentDirectory())
-           //.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-           // IConfiguration config = builder.Build();
-
-            string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;";
-            var userList=  await service.GetUserActiveList();
-          //  userList = userList.Where(k => k.BioStarEmpNum == 2696).ToList();
-             userList = userList.Where(k => k.BioStarEmpNum == 1166).ToList();
+            string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;"
+            var userList = await service.GetUserActiveList();
+              userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
+            //userList = userList.Where(k => k.BioStarEmpNum == 1166).ToList();
             SqlConnection con = new SqlConnection(connection);
             con.Open();
-
+             
 
 
 
@@ -81,35 +69,25 @@ namespace LeaveOnTaskRunner
             List<BreakHour> breakeHourList = new List<BreakHour>();
 
 
-             
 
-                InsertSyncLog("Sync User Atendance", "", userList.Count(),
-                           1, 0, "Start Job", "Sync User Atendance", 0);
 
-          //  startDate = new DateTime(2026, 4, 01);
-          //  endDate = new DateTime(2026, 4, 03);
+            InsertSyncLog("Sync User Atendance", "", userList.Count(),
+                       1, 0, "Start Job", "Sync User Atendance", 0);
 
-          //  for (DateTime date = lsstartDate; date <= lsendDate; date = date.AddDays(1))
-           // {
-               // Console.WriteLine(date.ToString("yyyy-MM-dd"));
 
-                // Your logic here
-
-               // startDate = date;
-             //   endDate = date.AddDays(2);
-            foreach (var user in userList.OrderBy(k=>k.BioStarEmpNum).ToList())
+            foreach (var user in userList.OrderBy(k => k.BioStarEmpNum).ToList())
             {
 
                 List<TimeData> userData;
                 try
                 {
 
-                    userData =  await service.GetEmployeeAttendacne(startDate, endDate, user, con);
+                    userData = await service.GetEmployeeAttendacne(startDate, endDate, user, con);
                     if (userData.Count() > 0)
                     {
                         finalList.AddRange(userData);
                     }
-               }
+                }
                 catch (Exception ex)
                 {
                     InsertSyncLog("Sync User Atendance", "", userList.Count(),
@@ -118,20 +96,20 @@ namespace LeaveOnTaskRunner
                 try
                 {
                     breakeHourList = breakHours.GetBreakHoursForUser(user, startDate, endDate, con);
-                     
+
                 }
                 catch (Exception ex)
                 {
                     InsertSyncLog("Sync User Atendance", "", userList.Count(),
                            0, 0, ex.Message.ToString(), "Breake job", 0);
                 }
-            
+
             }
 
             con.Close();
             if (finalList.Count() > 0)
             {
-                string leaveString= ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+                string leaveString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
                 //  await service.ConnectToDBandReturnAttendanceData(finalList);
                 await service.SaveAttendance(finalList, leaveString);
             }
@@ -140,19 +118,19 @@ namespace LeaveOnTaskRunner
             {
                 await breakHours.ConnectToDBandFillBreakHours(breakeHourList);
             }
-       // }
+            // }
 
 
 
-        //Console.WriteLine("Attendance data processed for: " + yesterday.ToShortDateString());
-    }
+            //Console.WriteLine("Attendance data processed for: " + yesterday.ToShortDateString());
+        }
 
         public static void InsertSyncLog(string jobName, string status, int totalRecords,
                           int inserted, int updated, string errorMessage, string taskType, int? bioStarValue)
         {
             string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
-             
+
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
