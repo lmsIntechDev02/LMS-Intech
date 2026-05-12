@@ -1677,10 +1677,16 @@ namespace LeaveON.Controllers
             //string deviceCode = dayRows[j]["devnm"].ToString().Substring(0, 4);
 
             // Get Attendance timezone and Country
+            //GetAttendacneTimeZone
+            var atttimeZone = Repository.Common.Common.GetAttendacneTimeZone(dayRows[j]["devnm"].ToString());
 
-            var atttimeZone = GetAttendacneTimeZone(dayRows[j]["devnm"].ToString());
             timeZone = atttimeZone.TimeZone;
             countryName = atttimeZone.CountryName;
+            if(String.IsNullOrEmpty(timeZone) || String.IsNullOrEmpty(countryName))
+            {
+              timeZone = aspNetUser.CountryName.TimeZone;
+              countryName = aspNetUser.CountryName.Name;
+            }
 
             ///* SAME COUNTRY LOGIC (UNCHANGED) */
             //if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
@@ -3635,80 +3641,80 @@ namespace LeaveON.Controllers
 
       return Task.FromResult(LstTimeData);
     }
-    protected (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
-    {
-      string timezone = attendacnetimezone.Split('-')[1].Split(' ')[0];
-
-      string countryCode = timezone;//.Split('-')[1];
-
-      switch (countryCode.ToUpper())
-      {
-          case "UAE":
-          countryCode = "AE";
-          break;
-
-          case "KSA":
-          countryCode = "SA";
-          break;
-      }
-
-
-
-
-      RegionInfo region = new RegionInfo(countryCode);
-      string countryName = region.EnglishName;
-      var timeZone = TimeZoneInfo
-         .GetSystemTimeZones()
-         .FirstOrDefault(tz =>
-             tz.DisplayName.Contains(countryName) ||
-             tz.Id.Contains(countryName));
-      return (countryName, timeZone.Id.ToString());
-    //  Dictionary<string, (string Country, string TimeZone)> deviceMap =
-    //    new Dictionary<string, (string, string)>
-
+    //protected (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
     //{
-    //    { "IN01", ("Pakistan", "Pakistan Standard Time") },
-    //    { "NG-L", ("Nigeria Lagos", "W. Central Africa Standard Time") },
-    //    { "NG-P", ("Nigeria Port Harcourt", "W. Central Africa Standard Time") },
-    //    { "IN08", ("United Arab Emirates", "Arabian Standard Time") },
-    //    { "IN09", ("Saudi Arabia", "Arab Standard Time") },
-    //    { "IN10", ("India", "India Standard Time") },
+    //  string timezone = attendacnetimezone.Split('-')[1].Split(' ')[0];
 
-    //    // USA
-    //    { "IN11", ("United States", "Eastern Standard Time") },
-    //    { "IN12", ("United States", "Central Standard Time") },
-    //    { "IN13", ("United States", "Mountain Standard Time") },
-    //    { "IN14", ("United States", "Pacific Standard Time") }
-    //};
+    //  string countryCode = timezone;//.Split('-')[1];
 
-    //  string countryName = String.Empty;
-    //  string timeZone = String.Empty;
-    //  if (deviceMap.ContainsKey(attendacnetimezone))
+    //  switch (countryCode.ToUpper())
     //  {
-    //    countryName = deviceMap[attendacnetimezone].Country;
-    //    timeZone = deviceMap[attendacnetimezone].TimeZone;
-    //  }
-    //  else
-    //  {
-    //    switch (attendacneshortCountryName)
-    //    {
-    //      case "PK ":
-    //      case "PAK":
-    //        timeZone = "Pakistan Standard Time";
-    //        countryName = "Pakistan";
-    //        break;
     //      case "UAE":
-    //        timeZone = "Arab Standard Time";
-    //        countryName = "United Arab Emirates";
-    //        break;
-    //      default:
-    //        timeZone = aspNetUser.CountryName.TimeZone;
-    //        countryName = aspNetUser.CountryName.Name;
-    //        break;
-    //    }
+    //      countryCode = "AE";
+    //      break;
+
+    //      case "KSA":
+    //      countryCode = "SA";
+    //      break;
     //  }
-    //  return (countryName, timeZone);
-    }
+
+
+
+
+    //  RegionInfo region = new RegionInfo(countryCode);
+    //  string countryName = region.EnglishName;
+    //  var timeZone = TimeZoneInfo
+    //     .GetSystemTimeZones()
+    //     .FirstOrDefault(tz =>
+    //         tz.DisplayName.Contains(countryName) ||
+    //         tz.Id.Contains(countryName));
+    //  return (countryName, timeZone.Id.ToString());
+    ////  Dictionary<string, (string Country, string TimeZone)> deviceMap =
+    ////    new Dictionary<string, (string, string)>
+
+    ////{
+    ////    { "IN01", ("Pakistan", "Pakistan Standard Time") },
+    ////    { "NG-L", ("Nigeria Lagos", "W. Central Africa Standard Time") },
+    ////    { "NG-P", ("Nigeria Port Harcourt", "W. Central Africa Standard Time") },
+    ////    { "IN08", ("United Arab Emirates", "Arabian Standard Time") },
+    ////    { "IN09", ("Saudi Arabia", "Arab Standard Time") },
+    ////    { "IN10", ("India", "India Standard Time") },
+
+    ////    // USA
+    ////    { "IN11", ("United States", "Eastern Standard Time") },
+    ////    { "IN12", ("United States", "Central Standard Time") },
+    ////    { "IN13", ("United States", "Mountain Standard Time") },
+    ////    { "IN14", ("United States", "Pacific Standard Time") }
+    ////};
+
+    ////  string countryName = String.Empty;
+    ////  string timeZone = String.Empty;
+    ////  if (deviceMap.ContainsKey(attendacnetimezone))
+    ////  {
+    ////    countryName = deviceMap[attendacnetimezone].Country;
+    ////    timeZone = deviceMap[attendacnetimezone].TimeZone;
+    ////  }
+    ////  else
+    ////  {
+    ////    switch (attendacneshortCountryName)
+    ////    {
+    ////      case "PK ":
+    ////      case "PAK":
+    ////        timeZone = "Pakistan Standard Time";
+    ////        countryName = "Pakistan";
+    ////        break;
+    ////      case "UAE":
+    ////        timeZone = "Arab Standard Time";
+    ////        countryName = "United Arab Emirates";
+    ////        break;
+    ////      default:
+    ////        timeZone = aspNetUser.CountryName.TimeZone;
+    ////        countryName = aspNetUser.CountryName.Name;
+    ////        break;
+    ////    }
+    ////  }
+    ////  return (countryName, timeZone);
+    //}
     private Task<List<TimeData>> GetMonthWiseData(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
       DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
