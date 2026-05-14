@@ -6,7 +6,415 @@ namespace Repository.Common
     {
         public static (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
         {
+            //string devName =  attendacnetimezone.ToUpper().Trim();
+
+            attendacnetimezone= "IN08-UAE Reception-OUT";
+
+
+
+
+            // Special handling for Nigeria
+            // NG-L and NG-P both should return Nigeria
+            // Nigeria special handling
+            if (attendacnetimezone.StartsWith("NG-L"))
+            {
+                return ("Nigeria Lagos", "W. Central Africa Standard Time");
+            }
+
+            if (attendacnetimezone.StartsWith("NG-P"))
+            {
+                return ("Nigeria Port Harcourt", "W. Central Africa Standard Time");
+            }
+            //string shortCountryName = "";
+            //string timeZone = "";
+            //string countryName = "";
+
+            //// Special Nigeria locations
+            //if (devName.StartsWith("NG-L"))
+            //{
+            //    return ("Nigeria Lagos", "W. Central Africa Standard Time");
+            //}
+
+            //if (devName.StartsWith("NG-P"))
+            //{
+            //    return ("Nigeria Port Harcourt", "W. Central Africa Standard Time");
+            //}
+
+            //// Split values
+            //string[] parts = devName
+            //    .Replace("(", "")
+            //    .Replace(")", "")
+            //    .Split(new char[] { '-', ' '  }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Detect country code dynamically
+            if (string.IsNullOrWhiteSpace(attendacnetimezone))
+                return ("", "");
+
+            string devName = attendacnetimezone.ToUpper().Trim();
+            // Replace special characters with spaces
+            devName = devName
+                .Replace("_", " ")
+                .Replace("-", " ")
+                .Replace("=", " ")
+                .Replace("'", " ")
+                .Replace("(", " ")
+                .Replace(")", " ")
+                .Replace("/", " ")
+                .Replace("\\", " ")
+                .Replace(".", " ");
+
+            // Remove only LAST IN / OUT
+            devName = System.Text.RegularExpressions.Regex.Replace(
+                devName,
+                @"\s+(IN|OUT)\s*$",
+                "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            // Ignore unwanted words
+            string[] ignoreWords =
+            {
+        "RECEPTION",
+        "DOOR",
+        "BACKDOOR",
+        "FACE",
+        "FACTORY",
+        "WAREHOUSE",
+        "FACILITY",
+        "OFFICE",
+        "SERVER",
+        "ROOM",
+        "MAIN",
+        "FLOOR",
+        "GF",
+        "FF",
+        "PHC",
+        "PH",
+        "LO",
+        "DEVICE",
+        "PANEL",
+        "SA",
+        "NTC"
+    };
+
+
+            foreach (string word in ignoreWords)
+            {
+                devName = System.Text.RegularExpressions.Regex.Replace(
+                    devName,
+                    $@"\b{word}\b",
+                    "",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            }
+
+            //devName = devName.Replace("(", "")
+            //                 .Replace(")", "")
+            //                 .Trim();
+            devName = System.Text.RegularExpressions.Regex.Replace(devName, @"\s+", " ").Trim();
+            string shortCountryName = "";
+            string countryName = "";
+            string timeZone = "";
+
+            // Split values
+            string[] parts = devName.Split(' ');
+
+            //string shortCountryName = "";
+            //string timeZone = "";
+            //string countryName = "";
+
+          
+
+            // Split values
+            //string[] parts = devName
+            //    .Split(new char[] { '-', ' ' ,'_'}, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string part in parts)
+            {
+                switch (part)
+                {
+                    case "PK":
+                    case "PAK":
+                    case "UAE":
+                    case "ARE":
+                    case "KSA":
+                    case "SAU":
+                    case "USA":
+                    case "US":
+                    case "NGA":
+                    case "NG":
+                    case "GBR":
+                    case "UK":
+                    case "IRQ":
+                    case "QAT":
+                    case "OMN":
+                    case "EGY":
+                    case "AGO":
+                    case "KAZ":
+                    case "IND":
+                    case "IN":
+                    case "BGD":
+                    case "CHN":
+                    case "JPN":
+                    case "DEU":
+                    case "GER":
+                    case "FRA":
+                    case "CAN":
+                    case "AUS":
+                    case "TUR":
+                    case "ZAF":
+                    case "MYS":
+                    case "SGP":
+                    case "THA":
+                    case "IDN":
+                    case "BRA":
+                    case "MEX":
+                    case "RUS":
+                    case "ITA":
+                    case "ESP":
+                    case "NLD":
+                    case "CHE":
+                    case "SWE":
+                    case "NOR":
+                    case "DNK":
+                    case "NZL":
+                    case "KOR":
+                    case "LKA":
+                    case "NPL":
+                    case "AFG":
+
+                        shortCountryName = part;
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(shortCountryName))
+                    break;
+            }
+
+            switch (shortCountryName)
+            {
+                case "PK":
+                case "PAK":
+                    countryName = "Pakistan";
+                    timeZone = "Pakistan Standard Time";
+                    break;
+
+                case "UAE":
+                case "ARE":
+                    countryName = "United Arab Emirates";
+                    timeZone = "Arabian Standard Time";
+                    break;
+
+                case "KSA":
+                case "SAU":
+                    countryName = "Saudi Arabia";
+                    timeZone = "Arab Standard Time";
+                    break;
+
+                case "USA":
+                case "US":
+                    countryName = "United States";
+                    timeZone = "Central Standard Time";
+                    break;
+
+                case "NGA":
+                case "NG":
+                    countryName = "Nigeria";
+                    timeZone = "W. Central Africa Standard Time";
+                    break;
+
+                case "GBR":
+                case "UK":
+                    countryName = "United Kingdom";
+                    timeZone = "GMT Standard Time";
+                    break;
+
+                case "IRQ":
+                    countryName = "Iraq";
+                    timeZone = "Arabic Standard Time";
+                    break;
+
+                case "QAT":
+                    countryName = "Qatar";
+                    timeZone = "Arab Standard Time";
+                    break;
+
+                case "OMN":
+                    countryName = "Oman";
+                    timeZone = "Arabian Standard Time";
+                    break;
+
+                case "EGY":
+                    countryName = "Egypt";
+                    timeZone = "Egypt Standard Time";
+                    break;
+
+                case "AGO":
+                    countryName = "Angola";
+                    timeZone = "W. Central Africa Standard Time";
+                    break;
+
+                case "KAZ":
+                    countryName = "Kazakhstan";
+                    timeZone = "West Asia Standard Time";
+                    break;
+
+                case "IND":
+                case "IN":
+                    countryName = "India";
+                    timeZone = "India Standard Time";
+                    break;
+
+                case "BGD":
+                    countryName = "Bangladesh";
+                    timeZone = "Bangladesh Standard Time";
+                    break;
+
+                case "CHN":
+                    countryName = "China";
+                    timeZone = "China Standard Time";
+                    break;
+
+                case "JPN":
+                    countryName = "Japan";
+                    timeZone = "Tokyo Standard Time";
+                    break;
+
+                case "DEU":
+                case "GER":
+                    countryName = "Germany";
+                    timeZone = "W. Europe Standard Time";
+                    break;
+
+                case "FRA":
+                    countryName = "France";
+                    timeZone = "Romance Standard Time";
+                    break;
+
+                case "CAN":
+                    countryName = "Canada";
+                    timeZone = "Canada Central Standard Time";
+                    break;
+
+                case "AUS":
+                    countryName = "Australia";
+                    timeZone = "AUS Eastern Standard Time";
+                    break;
+
+                case "TUR":
+                    countryName = "Turkey";
+                    timeZone = "Turkey Standard Time";
+                    break;
+
+                case "ZAF":
+                    countryName = "South Africa";
+                    timeZone = "South Africa Standard Time";
+                    break;
+
+                case "MYS":
+                    countryName = "Malaysia";
+                    timeZone = "Singapore Standard Time";
+                    break;
+
+                case "SGP":
+                    countryName = "Singapore";
+                    timeZone = "Singapore Standard Time";
+                    break;
+
+                case "THA":
+                    countryName = "Thailand";
+                    timeZone = "SE Asia Standard Time";
+                    break;
+
+                case "IDN":
+                    countryName = "Indonesia";
+                    timeZone = "SE Asia Standard Time";
+                    break;
+
+                case "BRA":
+                    countryName = "Brazil";
+                    timeZone = "E. South America Standard Time";
+                    break;
+
+                case "MEX":
+                    countryName = "Mexico";
+                    timeZone = "Central Standard Time (Mexico)";
+                    break;
+
+                case "RUS":
+                    countryName = "Russia";
+                    timeZone = "Russian Standard Time";
+                    break;
+
+                case "ITA":
+                    countryName = "Italy";
+                    timeZone = "W. Europe Standard Time";
+                    break;
+
+                case "ESP":
+                    countryName = "Spain";
+                    timeZone = "Romance Standard Time";
+                    break;
+
+                case "NLD":
+                    countryName = "Netherlands";
+                    timeZone = "W. Europe Standard Time";
+                    break;
+
+                case "CHE":
+                    countryName = "Switzerland";
+                    timeZone = "W. Europe Standard Time";
+                    break;
+
+                case "SWE":
+                    countryName = "Sweden";
+                    timeZone = "W. Europe Standard Time";
+                    break;
+
+                case "NOR":
+                    countryName = "Norway";
+                    timeZone = "W. Europe Standard Time";
+                    break;
+
+                case "DNK":
+                    countryName = "Denmark";
+                    timeZone = "Romance Standard Time";
+                    break;
+
+                case "NZL":
+                    countryName = "New Zealand";
+                    timeZone = "New Zealand Standard Time";
+                    break;
+
+                case "KOR":
+                    countryName = "South Korea";
+                    timeZone = "Korea Standard Time";
+                    break;
+
+                case "LKA":
+                    countryName = "Sri Lanka";
+                    timeZone = "Sri Lanka Standard Time";
+                    break;
+
+                case "NPL":
+                    countryName = "Nepal";
+                    timeZone = "Nepal Standard Time";
+                    break;
+
+                case "AFG":
+                    countryName = "Afghanistan";
+                    timeZone = "Afghanistan Standard Time";
+                    break;
+
+                default:
+                    countryName = "";
+                    timeZone = "";
+                    break;
+            }
+
+            return (countryName, timeZone);
+        }
+        public static (string CountryName, string TimeZone) GetAttendacneTimeZone2(string attendacnetimezone)
+        {
             string devName = attendacnetimezone.ToUpper();
+
 
             string shortCountryName = devName.Length >= 3
                 ? devName.Substring(0, 3)
@@ -27,6 +435,27 @@ namespace Repository.Common
             }
             else
             {
+               if(devName.Contains("-"))
+                {
+                    if (devName.Split('-').Length > 1)
+                    {
+                        shortCountryName = devName.Split('-')[1].ToString()+"-"+ devName.Split('-')[0].Substring(0, 1);
+                    }
+                    else
+                    {
+                        shortCountryName = devName.Split('-')[1].Split(' ')[0].ToString();
+                    }
+                    
+                   
+                }
+                else  
+                {
+                    shortCountryName = devName.Split(' ')[1].ToString();
+                }
+
+                
+
+
                 switch (shortCountryName)
                 {
                     // Pakistan

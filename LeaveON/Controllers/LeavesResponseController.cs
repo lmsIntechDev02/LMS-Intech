@@ -139,58 +139,78 @@ namespace LeaveON.Controllers
 
       if (leaveOld.LeaveTypeId == 1 || leaveOld.LeaveTypeId == 2 || leaveOld.LeaveTypeId == 10) // Casual Short Day
       {
-        var balance = db.LeaveBalances
-      .Where(x =>
-          x.UserLeavePolicyId == leaveOld.UserLeavePolicyID &&
-          x.UserId == leaveOld.UserId &&
-          x.LeaveTypeId == leaveOld.LeaveTypeId)
-      .Sum(x => (decimal?)x.Balance) ?? 0;
+      //  var polyce = db.UserLeavePolicies.FirstOrDefault(k => k.Id == leaveOld.UserLeavePolicyID);
+      //  var allowleave = polyce.UserLeavePolicyDetails.FirstOrDefault(k => k.LeaveTypeId == leaveOld.LeaveTypeId).Allowed;
+
+      //  var balanceobject = db.LeaveBalances
+      //.Where(x =>
+      //    x.UserLeavePolicyId == leaveOld.UserLeavePolicyID &&
+      //    x.UserId == leaveOld.UserId &&
+      //    x.LeaveTypeId == leaveOld.LeaveTypeId).ToList();
+
+      //  decimal leaveBalance = 0;
+      //  if (balanceobject.Count > 0)
+      //  {
+      //    leaveBalance = balanceobject.Sum(x => (decimal?)x.Balance) ?? 0;
+      //  }
+      //  else
+      //  {
+      //      leaveBalance = Convert.ToDecimal(allowleave);
+      //  }
+
+      //  var balance = db.LeaveBalances
+      //.Where(x =>
+      //    x.UserLeavePolicyId == leaveOld.UserLeavePolicyID &&
+      //    x.UserId == leaveOld.UserId &&
+      //    x.LeaveTypeId == leaveOld.LeaveTypeId)
+      //.Sum(x => (decimal?)x.Balance) ?? 0;
 
 
-        var approvedDays = db.Leaves
-            .Where(x =>
-                x.UserId == leaveOld.UserId &&
-                x.Id != leave.Id &&
-                x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
-                x.IsAccepted1 == 1 &&
-                x.IsAccepted2 == 1 &&
-                x.LeaveTypeId == leaveOld.LeaveTypeId)
-            .Sum(x => (decimal?)x.TotalDays) ?? 0;
+      //  var approvedDays = db.Leaves
+      //      .Where(x =>
+      //          x.UserId == leaveOld.UserId &&
+      //          x.Id != leave.Id &&
+      //          x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
+      //          x.IsAccepted1 == 1 &&
+      //          x.IsAccepted2 == 1 &&
+      //          x.LeaveTypeId == leaveOld.LeaveTypeId)
+      //      .Sum(x => (decimal?)x.TotalDays) ?? 0;
 
 
-        //  ONLY selected leaves (bulk)
-        var requestedDays =  db.Leaves
-            .Where(x =>
-                x.Id == leave.Id
-                && x.UserId == leaveOld.UserId
-                && (x.IsAccepted1 != 1 || x.IsAccepted2 != 1)
-                && x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
-                x.LeaveTypeId == leaveOld.LeaveTypeId)
-            .Sum(x => (decimal?)x.TotalDays) ?? 0;
+      //  //  ONLY selected leaves (bulk)
+      //  var requestedDays =  db.Leaves
+      //      .Where(x =>
+      //          x.Id == leave.Id
+      //          && x.UserId == leaveOld.UserId
+      //          && (x.IsAccepted1 != 1 || x.IsAccepted2 != 1)
+      //          && x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
+      //          x.LeaveTypeId == leaveOld.LeaveTypeId)
+      //      .Sum(x => (decimal?)x.TotalDays) ?? 0;
 
 
-        //  Final check
-        if ((approvedDays+ requestedDays) > balance)
-        {
-          TempData["ErrorMessage"] = "The selected customer's leave request exceeds the available balance.";
-          AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leaveOld.LineManager1Id);
+        //  Final check///
+       // if ((approvedDays + requestedDays) > leaveBalance)
+          //if ((requestedDays) > leaveBalance)
+          //{
+          //  TempData["ErrorMessage"] = "The selected customer's leave request exceeds the available balance.";
+          //  AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leaveOld.LineManager1Id);
 
 
-          string name = leaveOld.AspNetUser.EmpolyeeName;
-          StringBuilder sb = new StringBuilder();
-          sb.AppendLine("Dear" + name + ",");
-          sb.AppendLine("Your leave request cannot be processed as it exceeds your available leave balance.");
-          sb.AppendLine("Please contact your manager for further assistance.");
-          string body = sb.ToString();
+          //  string name = leaveOld.AspNetUser.EmpolyeeName;
+          //  StringBuilder sb = new StringBuilder();
+          //  sb.AppendLine("Dear" + name + ",");
+          //  sb.AppendLine("Your leave request cannot be processed as it exceeds your available leave balance.");
+          //  sb.AppendLine("Please contact your manager for further assistance.");
+          //  string body = sb.ToString();
 
-            
-          SendEmail.SendsEmail(leaveOld.AspNetUser.Email, "Leave Request Balance Exceeds", body);
 
-          //SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
-          return RedirectToAction("Index");
-        }
+          //  SendEmail.SendsEmail(leaveOld.AspNetUser.Email, "Leave Request Balance Exceeds", body);
+
+          //  //SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
+          //  return RedirectToAction("Index");
+          //}
       }
-
+       
       leave = leaveOld;
 
 

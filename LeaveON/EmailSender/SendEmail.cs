@@ -41,10 +41,12 @@ namespace LeaveON.EmailSender
       string LeavON_Password = ConfigurationManager.AppSettings["LeavON_Password"];
 
       string receiverEmail = String.Empty;
-
-      if (!string.IsNullOrWhiteSpace(siteName))
+      if (HttpContext.Current.Request.IsLocal)
       {
-        receiverEmail = siteName;
+        if (!string.IsNullOrWhiteSpace(siteName))
+        {
+          receiverEmail = siteName;
+        }
       }
       else
       {
@@ -234,9 +236,12 @@ namespace LeaveON.EmailSender
       string senderPassword = ConfigurationManager.AppSettings["LeavON_Password"];
       string rs = ConfigurationManager.AppSettings["localEmail"]; // this for local tesitng
 
-      if (!string.IsNullOrWhiteSpace(rs))
+      if (HttpContext.Current.Request.IsLocal)
       {
-        receiverEmail = rs;
+        if (!string.IsNullOrWhiteSpace(rs))
+        {
+          receiverEmail = rs;
+        }
       }
       
 

@@ -533,6 +533,18 @@ ORDER BY devdt", con);
             {
               string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
 
+
+              var atttimeZone = Repository.Common.Common.GetAttendacneTimeZone(dayRows[j]["devnm"].ToString());
+
+              timeZone = atttimeZone.TimeZone;
+              countryName = atttimeZone.CountryName;
+              if (String.IsNullOrEmpty(timeZone) || String.IsNullOrEmpty(countryName))
+              {
+                timeZone = aspNetUser.CountryName.TimeZone;
+                countryName = aspNetUser.CountryName.Name;
+              }
+
+
               /* SAME COUNTRY LOGIC (UNCHANGED) */
               //if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
               //{
@@ -551,14 +563,14 @@ ORDER BY devdt", con);
               ////}
               //else
               //{
-                string deviceCode = dayRows[j]["devnm"].ToString().Substring(0, 4);
+              // string deviceCode = dayRows[j]["devnm"].ToString().Substring(0, 4);
 
               // Get Attendance timezone and Country
-              var atttimeZone = GetAttendacneTimeZone(deviceCode, shortCountryName, aspNetUser);
+              //var atttimeZone = GetAttendacneTimeZone(deviceCode, shortCountryName, aspNetUser);
 
-              timeZone = atttimeZone.TimeZone;
-              countryName = atttimeZone.CountryName;
-               
+              //timeZone = atttimeZone.TimeZone;
+              //countryName = atttimeZone.CountryName;
+
               //if (deviceMap.ContainsKey(deviceCode))
               //  {
               //    countryName = deviceMap[deviceCode].Country;
@@ -789,11 +801,11 @@ ORDER BY devdt", con);
           {
             DateTime currentDay = startDate.AddDays(day);
 
-            if (rowsCount > 0 && currentDay > lastExistingDate)
-            {
-              // Stop processing dates after the last available data
-              break;
-            }
+            //if (rowsCount > 0 && currentDay > lastExistingDate)
+            //{
+            //  // Stop processing dates after the last available data
+            //  break;
+            //}
             var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Date == currentDay.Date);
 
             var annualOffDay = dbLeaveOn.AnnualOffDays

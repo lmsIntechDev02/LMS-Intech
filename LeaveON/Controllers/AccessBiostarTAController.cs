@@ -1237,6 +1237,8 @@ namespace LeaveON.Controllers
         {
           string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0, 3);
 
+
+
           if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
           {
             timeZone = "W. Central Africa Standard Time";
@@ -2057,6 +2059,8 @@ namespace LeaveON.Controllers
             if (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday)
             {
               status = "Weekend";
+             
+           
             }
             else
             {
@@ -2069,6 +2073,7 @@ namespace LeaveON.Controllers
               if (!string.IsNullOrEmpty(officialOffDay))
               {
                 status = officialOffDay;
+                totalWorkingHours = TimeSpan.Parse("00.00:00");
               }
 
               else
@@ -2079,7 +2084,7 @@ namespace LeaveON.Controllers
                                       && DbFunctions.TruncateTime(l.StartDate) <= currentDate.Date
                                       && DbFunctions.TruncateTime(l.EndDate) >= currentDate.Date
                                       && l.IsAccepted1 == 1
-                                      && l.IsAccepted2 == 1)   // ✅ Only approved leaves
+                                      && l.IsAccepted2 == 1)    
                                   .Join(dbLeaveOn.LeaveTypes,
                                       l => l.LeaveTypeId,
                                       lt => lt.Id,

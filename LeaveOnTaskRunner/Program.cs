@@ -22,14 +22,14 @@ namespace LeaveOnTaskRunner
         {
             //// Calculate 'yesterday'
             DateTime yesterday = DateTime.Today.AddDays(-2);
-            DateTime today = DateTime.Today.AddDays(-1);  
+            DateTime today = DateTime.Today;//.AddDays(-1);  
 
             // testing
-            DateTime startDate = new DateTime(2026, 05, 08);
-            DateTime endDate = new DateTime(2026, 05, 08);
+            DateTime startDate = new DateTime(2026, 03, 16);
+            DateTime endDate = new DateTime(2026, 03, 25);
 
-            // DateTime startDate = yesterday;
-            // DateTime endDate = today;
+             // DateTime startDate = yesterday;
+             //DateTime endDate = today;
 
             List<string> ids = new List<string>
 {
@@ -56,14 +56,13 @@ namespace LeaveOnTaskRunner
             BreakHoursService breakHours = new BreakHoursService();
             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;"
             var userList = await service.GetUserActiveList();
-              userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
-            //userList = userList.Where(k => k.BioStarEmpNum == 1166).ToList();
+            //  userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
+
+             userList = userList.Where(k => k.BioStarEmpNum == 2696).ToList();
+
             SqlConnection con = new SqlConnection(connection);
             con.Open();
              
-
-
-
             List<TimeData> finalList = new List<TimeData>();
             List<PunchLog> punchLogs = new List<PunchLog>();
             List<BreakHour> breakeHourList = new List<BreakHour>();
