@@ -1680,7 +1680,9 @@ namespace LeaveON.Controllers
 
             // Get Attendance timezone and Country
             //GetAttendacneTimeZone
+            //Repository.Common.Common.GetAttendacneTimeZone22();
             var atttimeZone = Repository.Common.Common.GetAttendacneTimeZone(dayRows[j]["devnm"].ToString());
+          
 
             timeZone = atttimeZone.TimeZone;
             countryName = atttimeZone.CountryName;

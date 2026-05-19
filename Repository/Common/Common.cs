@@ -6,22 +6,138 @@ namespace Repository.Common
     {
         public static (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
         {
+            string shortCountryName = attendacnetimezone.Substring(0, 3);
+            string timeZone = "";
+            string countryName = "";
+            
+            
+            if (attendacnetimezone.Substring(0, 4) == "NG-L")
+            {
+                timeZone = "W. Central Africa Standard Time";
+                countryName = "Nigeria Lagos";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "NG-P")
+            {
+                timeZone = "W. Central Africa Standard Time";
+                countryName = "Nigeria Port Harcourt";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "IN01")
+            {
+                timeZone = "Pakistan Standard Time";
+                countryName = "Pakistan";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "IN03")
+            {
+                timeZone = "W. Central Africa Standard Time";
+                countryName = "Nigeria";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "IN04")
+            {
+                timeZone = "W. Central Africa Standard Time";
+                countryName = "Angola";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "IN05")
+            {
+                timeZone = "Arab Standard Time";
+                countryName = "Saudi Arabia";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "IN07")
+            {
+                timeZone = "Arab Standard Time";
+                countryName = "Iraq";
+            }
+            else if (attendacnetimezone.Substring(0, 4) == "IN08")
+            {
+                timeZone = "Arab Standard Time";
+                countryName = "United Arab Emirates";
+            }
+            else
+            {
+                switch (shortCountryName)
+                {
+                    case "PK ":
+                        timeZone = "Pakistan Standard Time";
+                        countryName = "Pakistan";
+                        break;
+                    case "PAK":
+                        timeZone = "Pakistan Standard Time";
+                        countryName = "Pakistan";
+                        break;
+                    case "UAE":
+                        timeZone = "Arab Standard Time";
+                        countryName = "United Arab Emirates";
+                        break;
+                    case "KSA":
+                        timeZone = "Arab Standard Time";
+                        countryName = "Saudi Arabia";
+                        break;
+                    case "GBR":
+                        timeZone = "GMT Standard Time";
+                        countryName = "United Kingdom";
+                        break;
+                    case "USA":
+                        timeZone = "Central Standard Time";
+                        countryName = "United States";
+                        break;
+                    case "NGA":
+                        timeZone = "W. Central Africa Standard Time";
+                        countryName = "Nigeria";
+                        break;
+                    case "NG-":
+                        timeZone = "W. Central Africa Standard Time";
+                        countryName = "Nigeria";
+                        break;
+                    case "EGY":
+                        timeZone = "Egypt Standard Time";
+                        countryName = "Egypt";
+                        break;
+                    case "IRQ":
+                        timeZone = "Arabic Standard Time";
+                        countryName = "Iraq";
+                        break;
+                    case "OMN":
+                        timeZone = "Arabian Standard Time";
+                        countryName = "Oman";
+                        break;
+                    case "QAT":
+                        timeZone = "Arab Standard Time";
+                        countryName = "Qatar";
+                        break;
+                    case "AGO":
+                        timeZone = "W. Central Africa Standard Time";
+                        countryName = "Angola";
+                        break;
+                    case "KAZ":
+                        timeZone = "West Asia Standard Time";
+                        countryName = "Kazakhstan";
+                        break;
+                    // Add more cases for other countries
+                    default:
+                        timeZone = String.Empty; // Or handle the default case based on your requirements
+                        countryName = String.Empty;
+                        break;
+                }
+            }
+                return (countryName, timeZone);
+        }
+        public static (string CountryName, string TimeZone) GetAttendacneTimeZone1(string attendacnetimezone)
+        {
             //string devName =  attendacnetimezone.ToUpper().Trim();
 
-            attendacnetimezone= "IN08-UAE Reception-OUT";
+            //attendacnetimezone= "IN08-UAE Reception-OUT";
 
-
+            
 
 
             // Special handling for Nigeria
             // NG-L and NG-P both should return Nigeria
             // Nigeria special handling
-            if (attendacnetimezone.StartsWith("NG-L"))
+            if (attendacnetimezone.Substring(0, 4) == "NG-L")
             {
                 return ("Nigeria Lagos", "W. Central Africa Standard Time");
             }
 
-            if (attendacnetimezone.StartsWith("NG-P"))
+            if (attendacnetimezone.Substring(0, 4) == "NG-P")
             {
                 return ("Nigeria Port Harcourt", "W. Central Africa Standard Time");
             }
@@ -718,6 +834,94 @@ namespace Repository.Common
             }
 
             return (countryName, timeZone);
+        } 
+        
+        public  static void GetAttendacneTimeZone22()
+        {
+            string[] attendanceLocations =
+  {
+    "PK First Floor-IN",
+    "PK Face Reception-OUT",
+    "IN01-PK First Floor B-OUT",
+    "IN01-PK First Floor B-IN",
+    "IN01-PK_GF Face Reception-IN",
+    "IN05-KSA-Riyadh-IN",
+    "KSA Riyadh IN",
+    "PK BackDoor-IN",
+    "PK Reception-OUT",
+    "PK First Floor B-OUT",
+    "KSA Factory NTC",
+    "NG-PH Main Door",
+    "IN05-KSA Factory NTC",
+    "IN01-PK BackDoor-IN",
+    "IN01-PK_GF Face Reception-OUT",
+    "IN03-NG-PHC-GF-OUT",
+    "PK Reception-IN",
+    "KSA Factory-IN",
+    "NG-LO BackDoor-IN",
+    "IN07-IRQ-Face Reception-IN",
+    "NG-PH Reception-IN",
+    "UAE Factory Device",
+    "NG-PHC Reception OUT",
+    "NG-PH Reception-Out",
+    "IN01-PK First Floor A-OUT",
+    "IN03-NG-LO Reception-IN",
+    "IN05-KSA Reception-OUT",
+    "IN03-NG-LO BackDoor-Out",
+    "IN03-NG-PHC Reception-IN",
+    "IN03-NG-PHC-GF-IN",
+    "PK First Floor-OUT",
+    "NG-LO Reception-IN",
+    "KSA Facility to Office-IN",
+    "IN07-IRQ-Face Reception-OUT",
+    "PK BackDoor-OUT",
+    "NG-LO BackDoor-Out",
+    "UAE Warehouse Door",
+    "NG-PHC Reception-IN",
+    "IN01-PK Face Reception-IN",
+    "IN03-NG-PHC Reception-OUT",
+    "IN03-NG-PHC-FF-OUT",
+    "IN05-ACS Facility Office-IN",
+    "PK First Floor B-IN",
+    "NG-PHC Door-OUT",
+    "IN03-NG-LO Reception-Out",
+    "IN03-NG-PHC-FF-IN",
+    "NG-PH Door-Out",
+    "PK Face Reception-IN",
+    "KSA Riyadh Office OUT",
+    "IN01-PK BackDoor-OUT",
+    "KSA Reception-OUT",
+    "UAE Reception-IN",
+    "KSA Factory-Out",
+    "IN05-KSA Factory-OUT",
+    "IN08-UAE Reception-OUT",
+    "KSA Reception-IN",
+    "IN05-KSA Factory-IN",
+    "Panel Room PK",
+    "UAE Reception-OUT",
+    "PK First Floor A-IN",
+    "IN01-PK Face Reception-OUT",
+    "NG-PH Door-IN",
+    "KSA Riyadh Office IN",
+    "NG-PHC Reception IN",
+    "IN01-PK First Floor A-IN",
+    "NG-PH Main Door (SA)",
+    "PK Server Room",
+    "PK First Floor A-OUT",
+    "IN08-UAE Warehouse Door",
+    "IN08-UAE Reception-IN",
+    "NG-LO Reception-Out",
+    "IN05-ACS-Facility Office-IN",
+    "IN05-KSA Reception-IN",
+    "IN05-KSA Factory-NTC"
+};
+
+            foreach (string item in attendanceLocations)
+            {
+                var result = GetAttendacneTimeZone(item);
+
+                 
+            }
         }
     }
 }

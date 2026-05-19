@@ -139,6 +139,7 @@ namespace LeaveON.Controllers
 
       if (leaveOld.LeaveTypeId == 1 || leaveOld.LeaveTypeId == 2 || leaveOld.LeaveTypeId == 10) // Casual Short Day
       {
+
       //  var polyce = db.UserLeavePolicies.FirstOrDefault(k => k.Id == leaveOld.UserLeavePolicyID);
       //  var allowleave = polyce.UserLeavePolicyDetails.FirstOrDefault(k => k.LeaveTypeId == leaveOld.LeaveTypeId).Allowed;
 

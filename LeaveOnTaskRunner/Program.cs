@@ -25,11 +25,11 @@ namespace LeaveOnTaskRunner
             DateTime today = DateTime.Today;//.AddDays(-1);  
 
             // testing
-            DateTime startDate = new DateTime(2026, 03, 16);
-            DateTime endDate = new DateTime(2026, 03, 25);
+            //DateTime startDate = new DateTime(2026, 04, 01);
+           // DateTime endDate = new DateTime(2026, 04, 30);
 
-             // DateTime startDate = yesterday;
-             //DateTime endDate = today;
+              DateTime startDate = yesterday;
+             DateTime endDate = today;
 
             List<string> ids = new List<string>
 {
@@ -58,7 +58,7 @@ namespace LeaveOnTaskRunner
             var userList = await service.GetUserActiveList();
             //  userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
 
-             userList = userList.Where(k => k.BioStarEmpNum == 2696).ToList();
+            // userList = userList.Where(k => k.BioStarEmpNum == 2696).ToList();
 
             SqlConnection con = new SqlConnection(connection);
             con.Open();
