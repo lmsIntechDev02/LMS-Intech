@@ -520,8 +520,8 @@ ORDER BY devdt", con);
           foreach (var dayGroup in groupedData)
           {
             var dayRows = dayGroup.OrderBy(r => Convert.ToDateTime(r["devdt"])).ToList();
-            // var ddr = dayGroup.FirstOrDefault();
-            //  var dd =   Convert.ToDateTime(ddr["devdt"]) ;
+              var ddr = dayGroup.FirstOrDefault();
+               var dd =   Convert.ToDateTime(ddr["devdt"]) ;
             // Reset per day
             firsTimeIn = blankDateTime;
             lastTimeOut = blankDateTime;

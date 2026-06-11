@@ -26,8 +26,7 @@ namespace LeaveON.Controllers
     // GET: Leaves
     public async Task<ActionResult> Index()
     {
-      //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
-      //var leaves = db.Leaves.Include(l => l.LeaveType);
+    
       string LoggedInUserId = User.Identity.GetUserId();
       var leaves = db.Leaves.Where(x => x.IsQuotaRequest == false && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
       return View(await leaves.ToListAsync());

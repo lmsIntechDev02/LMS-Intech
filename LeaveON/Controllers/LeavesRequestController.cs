@@ -42,6 +42,7 @@ namespace LeaveON.Controllers
       string LoggedInUserId = User.Identity.GetUserId();
       IQueryable<Leave> leaves = db.Leaves.Where(x => x.UserId == LoggedInUserId && x.IsQuotaRequest == true).AsQueryable<Leave>();
       return View(await leaves.ToListAsync());
+
     }
 
     public async Task<ActionResult> LeaveReport(string StartDate, string EndDate, List<string> UserIds)
@@ -686,9 +687,10 @@ namespace LeaveON.Controllers
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == CompensatoryLeaveTypeId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       TimeSpan duration = leave.EndDate - leave.StartDate;
-      leave.TotalDays = duration.Days + 1; //total days including weekends
 
+      leave.TotalDays = duration.Days + 1; //total days including weekends
       leave.IsQuotaRequest = true;
+
       if (ModelState.IsValid)
       {
         db.Leaves.Add(leave);
@@ -713,8 +715,11 @@ namespace LeaveON.Controllers
         ///////////////
 
         await db.SaveChangesAsync();
+
         AspNetUser admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+
         SendEmail.SendEmailUsingLeavON(leave,   leave.AspNetUser, admin1, "LeaveRequest");
+
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
         //SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
         return RedirectToAction("QuotaRequestHistory");
