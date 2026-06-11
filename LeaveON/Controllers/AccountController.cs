@@ -161,51 +161,140 @@ namespace LeaveON.Controllers
     [AllowAnonymous]
     public ActionResult Login(string returnUrl, string ADUser)
     {
+      LoginViewModel model = new LoginViewModel();
+      return View(model);
+    }
+    //[AllowAnonymous]
+    //public ActionResult Login(string returnUrl, string ADUser)
+    //{
+    
 
 
-      // test user
-      //ADUser = "m.yousaf@intechww.com";
-      //ADUser = "salman.ashraf@intechww.com";
-      ADUser = "laiba.khan@intechww.com";
-      // ADUser = "asif.zafar@intechww.com";
-      //   ADUser = "maryam.shafique@intechww.com";
-      //ADUser = "laima.imran@intechww.com";
-      //  ADUser = "Farhan.Ghaffar@intechww.com";
-      //ADUser = "usama.nawaz@intechww.com";
+    //  // test user
+    //  //ADUser = "m.yousaf@intechww.com";
+    //  //ADUser = "salman.ashraf@intechww.com";
+    //  ADUser = "laiba.khan@intechww.com";
+    //  // ADUser = "asif.zafar@intechww.com";
+    //  //   ADUser = "maryam.shafique@intechww.com";
+    //  //ADUser = "laima.imran@intechww.com";
+    //  //  ADUser = "Farhan.Ghaffar@intechww.com";
+    //  //ADUser = "usama.nawaz@intechww.com";
 
 
-      AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
+    //  AspNetUser user = db.AspNetUsers.Where(x => x.UserName.Trim().ToUpper() == ADUser.Trim().ToUpper()).FirstOrDefault();
 
-      // if (user != null && !UserManager.IsInRole(user.Id, "User"))
-      // {
-      // UserManager.AddToRole(user.Id, "User");
-      // UserManager.AddToRole(user.Id, "Manager");
-      // }
+    //  // if (user != null && !UserManager.IsInRole(user.Id, "User"))
+    //  // {
+    //  // UserManager.AddToRole(user.Id, "User");
+    //  // UserManager.AddToRole(user.Id, "Manager");
+    //  // }
 
-      if (user != null)
+    //  if (user != null)
+    //  {
+    //    var userRoles = UserManager.GetRoles(user.Id);
+    //    if (userRoles == null || !userRoles.Any())
+    //    {
+    //      // Assign "User" role to the user
+    //      UserManager.AddToRole(user.Id, "User");
+    //    }
+    //  }
+
+    //  if (user?.UserLeavePolicyId == null)
+    //  {
+    //    TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
+    //    return RedirectToAction("General", "Error");
+    //  }
+
+
+    //  ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
+    //  ViewBag.ReturnUrl = returnUrl;
+
+    //  return View();
+    //}
+
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public ActionResult Login(LoginViewModel model, string returnUrl)
+    {
+      //if (!ModelState.IsValid)
+      //{
+      //  return View(model);
+      //}
+
+      //string domain = "intechww.com"; // Your AD Domain
+
+      //bool isValidADUser = false;
+
+      //try
+      //{
+      //  using (PrincipalContext pc = new PrincipalContext(
+      //      ContextType.Domain,
+      //      domain))
+      //  {
+      //    isValidADUser = pc.ValidateCredentials(
+      //        model.Email,
+      //        model.Password);
+      //  }
+      //}
+      //catch (Exception ex)
+      //{
+      //  ModelState.AddModelError("", ex.Message);
+      //  return View(model);
+      //}
+
+      //if (!isValidADUser)
+      //{
+      //  ModelState.AddModelError("", "Invalid username or password.");
+      //  return View(model);
+      //}
+
+      string ADUser = model.Email;
+
+      // Find user from application database
+      var user = UserManager.FindByName(ADUser);
+
+      if (user == null)
       {
-        var userRoles = UserManager.GetRoles(user.Id);
-        if (userRoles == null || !userRoles.Any())
-        {
-          // Assign "User" role to the user
-          UserManager.AddToRole(user.Id, "User");
-        }
+        ModelState.AddModelError("", "User does not exist in application database.");
+        return View(model);
       }
 
-      if (user?.UserLeavePolicyId == null)
+      // Assign default role if none exists
+      var userRoles = UserManager.GetRoles(user.Id);
+
+      if (userRoles == null || !userRoles.Any())
       {
-        TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
+        UserManager.AddToRole(user.Id, "User");
+      }
+
+      // Check Leave Policy
+      if (user.UserLeavePolicyId == null)
+      {
+        TempData["ErrorMessage"] =
+            "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
+
         return RedirectToAction("General", "Error");
       }
 
+      // Create local application login
+      var identity = UserManager.CreateIdentity(
+          user,
+          DefaultAuthenticationTypes.ApplicationCookie);
 
-      ViewBag.ADUser = ADUser;//"bsserviceaccount@intechww.com";//ADUser;
+      AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+
+      AuthenticationManager.SignIn(new Microsoft.Owin.Security.AuthenticationProperties
+      {
+        IsPersistent = model.RememberMe
+      }, identity);
+
+      ViewBag.ADUser = ADUser;
       ViewBag.ReturnUrl = returnUrl;
 
-      return View();
+      return RedirectToAction("Index", "Dashboard");
     }
-
-
     public void GetLog()
     {
       var path = Server.MapPath(@"~/UsersAndProperties.txt");
@@ -236,32 +325,34 @@ namespace LeaveON.Controllers
       catch (Exception ex) { }
     }
 
-    // Standard password login — kept as-is
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
-    {
-      if (!ModelState.IsValid)
-      {
-        return RedirectToAction("Error404", "Error");
-      }
 
-      var result = await SignInManager.PasswordSignInAsync(model.Email, "Leaves12*", model.RememberMe, shouldLockout: false);
-      switch (result)
-      {
-        case SignInStatus.Success:
-          return RedirectToAction("index", "Dashboard");
-        case SignInStatus.LockedOut:
-          return View("Lockout");
-        case SignInStatus.RequiresVerification:
-          return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-        case SignInStatus.Failure:
-        default:
-          ModelState.AddModelError("", "Invalid login attempt.");
-          return RedirectToAction("Error404", "Error");
-      }
-    }
+
+    // Standard password login — kept as-is
+    //[HttpPost]
+    //[AllowAnonymous]
+    //[ValidateAntiForgeryToken]
+    //public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
+    //{
+    //  if (!ModelState.IsValid)
+    //  {
+    //    return RedirectToAction("Error404", "Error");
+    //  }
+
+    //  var result = await SignInManager.PasswordSignInAsync(model.Email, "Leaves12*", model.RememberMe, shouldLockout: false);
+    //  switch (result)
+    //  {
+    //    case SignInStatus.Success:
+    //      return RedirectToAction("index", "Dashboard");
+    //    case SignInStatus.LockedOut:
+    //      return View("Lockout");
+    //    case SignInStatus.RequiresVerification:
+    //      return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+    //    case SignInStatus.Failure:
+    //    default:
+    //      ModelState.AddModelError("", "Invalid login attempt.");
+    //      return RedirectToAction("Error404", "Error");
+    //  }
+    //}
 
     [AllowAnonymous]
     public async Task<ActionResult> VerifyCode(string provider, string returnUrl, bool rememberMe)
@@ -547,7 +638,7 @@ namespace LeaveON.Controllers
     public ActionResult SignOut()
     {
       AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-      return RedirectToAction("Logout", "Account");
+      return RedirectToAction("Login", "Account");
     }
 
     [AllowAnonymous]
@@ -559,7 +650,7 @@ namespace LeaveON.Controllers
     public ActionResult LoginAgain()
     {
 
-      return RedirectToAction("AuthLogin", "Account");
+      return RedirectToAction("Login", "Account");
     }
     [AllowAnonymous]
     public ActionResult ExternalLoginFailure() => View();
