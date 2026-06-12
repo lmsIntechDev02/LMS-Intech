@@ -159,8 +159,9 @@ namespace LeaveON.Controllers
     // FIXED: [AllowAnonymous] here is correct — this action only receives
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
     [AllowAnonymous]
-    public ActionResult Login(string returnUrl, string ADUser)
+    public ActionResult Login(string returnUrl )
     {
+      ViewBag.ReturnUrl = returnUrl;
       LoginViewModel model = new LoginViewModel();
       return View(model);
     }
@@ -218,37 +219,36 @@ namespace LeaveON.Controllers
     [ValidateAntiForgeryToken]
     public ActionResult Login(LoginViewModel model, string returnUrl)
     {
-      //if (!ModelState.IsValid)
-      //{
-      //  return View(model);
-      //}
+      if (!ModelState.IsValid)
+      {
+        return View(model);
+      }
+      string domain = "intechww.com"; // Your AD Domain
 
-      //string domain = "intechww.com"; // Your AD Domain
+      bool isValidADUser = false;
 
-      //bool isValidADUser = false;
+      try
+      {
+        using (PrincipalContext pc = new PrincipalContext(
+            ContextType.Domain,
+            domain))
+        {
+          isValidADUser = pc.ValidateCredentials(
+              model.Email,
+              model.Password);
+        }
+      }
+      catch (Exception ex)
+      {
+        ModelState.AddModelError("", ex.Message);
+        return View(model);
+      }
 
-      //try
-      //{
-      //  using (PrincipalContext pc = new PrincipalContext(
-      //      ContextType.Domain,
-      //      domain))
-      //  {
-      //    isValidADUser = pc.ValidateCredentials(
-      //        model.Email,
-      //        model.Password);
-      //  }
-      //}
-      //catch (Exception ex)
-      //{
-      //  ModelState.AddModelError("", ex.Message);
-      //  return View(model);
-      //}
-
-      //if (!isValidADUser)
-      //{
-      //  ModelState.AddModelError("", "Invalid username or password.");
-      //  return View(model);
-      //}
+      if (!isValidADUser)
+      {
+        ModelState.AddModelError("", "Invalid username or password.");
+        return View(model);
+      }
 
       string ADUser = model.Email;
 
@@ -291,9 +291,14 @@ namespace LeaveON.Controllers
       }, identity);
 
       ViewBag.ADUser = ADUser;
-      ViewBag.ReturnUrl = returnUrl;
-
-      return RedirectToAction("Index", "Dashboard");
+     // ViewBag.ReturnUrl = returnUrl;
+      if (!string.IsNullOrEmpty(returnUrl))
+      {
+        return RedirectToLocal(returnUrl);
+      }
+      else {
+        return RedirectToAction("Index", "Dashboard");
+      }
     }
     public void GetLog()
     {

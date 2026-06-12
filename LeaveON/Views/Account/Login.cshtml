@@ -49,7 +49,7 @@
     <div class="card">
       <div class="card-body register-card-body">
         @*<p class="login-box-msg">Signing in to start your session... please wait</p>*@
-        @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", autocomplete = "off", role = "form", name = "accountLogin", id = "accountLogin" }))
+        @using (Html.BeginForm("Login", "Account", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", autocomplete = "off", role = "form", name = "accountLogin", id = "accountLogin" }))
         {
 
           @Html.AntiForgeryToken()
