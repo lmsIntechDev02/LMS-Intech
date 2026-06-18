@@ -124,7 +124,6 @@ namespace LeaveON.UtilityClasses
                 using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
                 {
                     var userFilter = new UserPrincipal(context);
-
                     byte empFound = 0;
                     int counter = 0;
                     int insertedEmp = 0;

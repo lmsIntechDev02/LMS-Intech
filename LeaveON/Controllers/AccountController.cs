@@ -253,9 +253,12 @@ namespace LeaveON.Controllers
       string ADUser = model.Email;
 
       // Find user from application database
-      var user = UserManager.FindByName(ADUser);
+      //var user = UserManager.FindByName(ADUser);
+        var user = UserManager.Users.FirstOrDefault(x =>
+          x.UserName == ADUser && x.IsActive==true ) ;
 
-      if (user == null)
+      if (user == null  )
+
       {
         ModelState.AddModelError("", "User does not exist in application database.");
         return View(model);
