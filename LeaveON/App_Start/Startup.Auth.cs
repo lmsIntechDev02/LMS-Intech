@@ -48,8 +48,9 @@ namespace LeaveON
         AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
         LoginPath = new PathString("/Account/Login"),
 
-        ExpireTimeSpan = TimeSpan.FromMinutes(5),
-        SlidingExpiration = false,
+        //ExpireTimeSpan = TimeSpan.FromMinutes(5),
+        ExpireTimeSpan = TimeSpan.FromDays(30),
+        SlidingExpiration = true,
 
         Provider = new CookieAuthenticationProvider
         {
@@ -58,7 +59,7 @@ namespace LeaveON
                 validateInterval: TimeSpan.FromMinutes(5),
                 regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
         }
-      });
+      });;
       // Use a cookie to temporarily store information about a user logging in with a third party login provider
       app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 

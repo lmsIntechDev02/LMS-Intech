@@ -159,8 +159,18 @@ namespace LeaveON.Controllers
     // FIXED: [AllowAnonymous] here is correct — this action only receives
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
     [AllowAnonymous]
-    public ActionResult Login(string returnUrl )
+    public ActionResult Login(string returnUrl)
     {
+      if (User.Identity.IsAuthenticated)
+      {
+        if (!string.IsNullOrEmpty(returnUrl) &&
+            Url.IsLocalUrl(returnUrl))
+        {
+          return Redirect(returnUrl);
+        }
+
+        return RedirectToAction("Index", "Dashboard");
+      }
       ViewBag.ReturnUrl = returnUrl;
       LoginViewModel model = new LoginViewModel();
       return View(model);
@@ -168,7 +178,7 @@ namespace LeaveON.Controllers
     //[AllowAnonymous]
     //public ActionResult Login(string returnUrl, string ADUser)
     //{
-    
+
 
 
     //  // test user
@@ -223,20 +233,12 @@ namespace LeaveON.Controllers
       {
         return View(model);
       }
-      string domain = "intechww.com"; // Your AD Domain
 
       bool isValidADUser = false;
 
       try
       {
-        using (PrincipalContext pc = new PrincipalContext(
-            ContextType.Domain,
-            domain))
-        {
-          isValidADUser = pc.ValidateCredentials(
-              model.Email,
-              model.Password);
-        }
+        isValidADUser = ValidateADuser(model);
       }
       catch (Exception ex)
       {
@@ -250,21 +252,19 @@ namespace LeaveON.Controllers
         return View(model);
       }
 
-      string ADUser = model.Email;
+      string ADUser = model.Email.Trim();
 
-      // Find user from application database
-      //var user = UserManager.FindByName(ADUser);
-        var user = UserManager.Users.FirstOrDefault(x =>
-          x.UserName == ADUser && x.IsActive==true ) ;
+      // Get active application user
+      var user = UserManager.Users.FirstOrDefault(x =>
+          x.UserName == ADUser && x.IsActive==true );
 
-      if (user == null  )
-
+      if (user == null)
       {
-        ModelState.AddModelError("", "User does not exist in application database.");
+        ModelState.AddModelError("", "User does not exist in the application or is inactive.");
         return View(model);
       }
 
-      // Assign default role if none exists
+      // Assign default role if no role exists
       var userRoles = UserManager.GetRoles(user.Id);
 
       if (userRoles == null || !userRoles.Any())
@@ -281,26 +281,87 @@ namespace LeaveON.Controllers
         return RedirectToAction("General", "Error");
       }
 
-      // Create local application login
+      // Always Remember Me
+      model.RememberMe = true;
+
       var identity = UserManager.CreateIdentity(
           user,
           DefaultAuthenticationTypes.ApplicationCookie);
 
-      AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+      AuthenticationManager.SignOut(
+          DefaultAuthenticationTypes.ApplicationCookie);
 
-      AuthenticationManager.SignIn(new Microsoft.Owin.Security.AuthenticationProperties
-      {
-        IsPersistent = model.RememberMe
-      }, identity);
+      AuthenticationManager.SignIn(
+          new AuthenticationProperties
+          {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30),
+            AllowRefresh = true
+          },
+          identity);
 
-      ViewBag.ADUser = ADUser;
-     // ViewBag.ReturnUrl = returnUrl;
-      if (!string.IsNullOrEmpty(returnUrl))
+      if (!string.IsNullOrWhiteSpace(returnUrl) &&
+          Url.IsLocalUrl(returnUrl))
       {
-        return RedirectToLocal(returnUrl);
+        return Redirect(returnUrl);
       }
-      else {
-        return RedirectToAction("Index", "Dashboard");
+
+      return RedirectToAction("Index", "Dashboard");
+    }
+
+    public bool ValidateADuser(LoginViewModel model)
+    {
+      bool isValidADUser = false;
+      bool isActiveADUser = false;
+      string domain = "intechww.com";
+      using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, domain))
+      {
+        isValidADUser = pc.ValidateCredentials(
+            model.Email,
+            model.Password);
+
+        if (isValidADUser)
+        {
+          string aDusername = model.Email.Split('@')[0];
+          UserPrincipal user = UserPrincipal.FindByIdentity(
+              pc,
+              IdentityType.SamAccountName,
+              aDusername);
+
+           isActiveADUser = true;
+          //if (user != null && user.Enabled == true)
+          //{
+          //  DirectoryEntry de =
+          //      user.GetUnderlyingObject() as DirectoryEntry;
+
+          //  string distinguishedName =
+          //      de.Properties["distinguishedName"].Value?.ToString() ?? "";
+
+          //  isActiveADUser =
+          //      distinguishedName.Contains("OU=O365");
+
+          //  // Optional: Check facsimileTelephoneNumber
+          //  string employeeNo =
+          //      de.Properties["facsimileTelephoneNumber"].Value?.ToString();
+
+          //  if (string.IsNullOrEmpty(employeeNo))
+          //  {
+          //    isActiveADUser = false;
+          //  }
+          //}
+        }
+      }
+
+      if (!isValidADUser || !isActiveADUser)
+      {
+
+        return false;
+        //ModelState.AddModelError("", "User is not an active AD user.");
+        //return View(model);
+      }
+      else
+      {
+        return true;
       }
     }
     public void GetLog()
