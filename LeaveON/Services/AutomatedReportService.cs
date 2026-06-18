@@ -68,20 +68,20 @@ namespace LeaveON.Services
         //  var users = context.AspNetUsers.Where(y => y.CntryName != "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
         // users = users.Where(k => k.UserID == "2840417a-7247-44bf-bf71-0e98ae6bb956").ToList();
         //test
-       // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "dc70c0b4-e445-43b5-8c24-1ab960c3f431"))
-      //live
-       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted !=true )
-      .Select(x => new EmailAndIDs
-      {
-        userId = x.BioStarEmpNum.Value,
-        email = x.Email,
-        userLeavePolicyID = x.UserLeavePolicyId,
-        UserID = x.Id,
-        JoiningDate = x.JoiningDate,
-        EmployeeName = x.EmpolyeeName,
-        DepartmentName= x.DepartmentName
-      })
-      .ToList();
+        // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "32044600-a0de-47c8-910e-d859c71ea97b"))
+        //live
+        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted != true)
+        .Select(x => new EmailAndIDs
+        {
+          userId = x.BioStarEmpNum.Value,
+          email = x.Email,
+          userLeavePolicyID = x.UserLeavePolicyId,
+          UserID = x.Id,
+          JoiningDate = x.JoiningDate,
+          EmployeeName = x.EmpolyeeName,
+          DepartmentName = x.DepartmentName
+        })
+        .ToList();
 
         return users;
       }
@@ -150,18 +150,16 @@ namespace LeaveON.Services
       var legitimacyCheckers = GetLegitemacyChckers();
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
-
       managerEmails = GetManagersIDs();
 
       List<string> managerids = new List<string>();
       if (managerEmails.Any())
       {
-        managerids = managerEmails.GroupBy(k=>k.Id).Select(k => k.FirstOrDefault().Id).ToList();
+        managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
       }
-
       managerids = new List<string>
-            {
-      "708ada81-4409-48a0-905b-769b7b0da6b0"
+          {
+       "708ada81-4409-48a0-905b-769b7b0da6b0"
 
             };
 
@@ -178,7 +176,6 @@ namespace LeaveON.Services
 
           DateTime startOfMonth = new DateTime(year, month, 1);
           DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
-
           var userIds = users.Select(u => u.UserID).ToList();
           var policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
                                .Select(u => u.userLeavePolicyID.Value)
@@ -191,9 +188,13 @@ namespace LeaveON.Services
                        && a.CreatedDate <= endOfMonth)
               .ToList();
 
+
+          var cDate = DateTime.Today;
+
           var attendanceYear = context.AttendanceDatas
               .Where(a => userIds.Contains(a.UserID)
-                       && a.CreatedDate.HasValue)
+                       && a.CreatedDate.HasValue
+                       && a.CreatedDate < cDate)
               .ToList();
 
           var leaves = context.Leaves
@@ -213,11 +214,7 @@ namespace LeaveON.Services
           var holidays = context.AnnualOffDays
               .Where(o => policyIds.Contains((int)o.UserLeavePolicyId))
               .ToList();
-
           List<EmployeeReportData> reportList = new List<EmployeeReportData>();
-
-
-
           foreach (var user in users)
           {
             if (!user.userLeavePolicyID.HasValue)
@@ -235,16 +232,16 @@ namespace LeaveON.Services
 
             //for missing get date list
             List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
-            DateTime currentDate = new DateTime();
-            workingMonthDateList=workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
+            DateTime currentDate = (DateTime.Now).AddDays(-1);
+            workingMonthDateList = workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
             List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
             int totalWorkingDaysCount = userAttendanceMonth.Where(k => k.TotalWorkHours.HasValue && k.TotalWorkHours.Value > 0).Count();
 
             if (workingMonthDateList.Count > totalWorkingDaysCount)
 
             {
-         
-              var list = workingMonthDateList.Where(date => date.Date < currentDate.Date &&!userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+
+              var list = workingMonthDateList.Where(date => date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
 
 
               var monthyLeaves = leaves
@@ -314,8 +311,8 @@ namespace LeaveON.Services
                 a.IsAbsent == true
                 && !publicHolidays.Contains(a.CreatedDate.Value.Date)
                 && !absenteesYTD.Any(l => a.CreatedDate >= l.StartDate && a.CreatedDate <= l.EndDate));
-
             decimal availedLeaveYTD = userLeavesYTD.Sum(l => (decimal)l.TotalDays);
+
 
             int shortHoursYTD = (int)context.Leaves
                 .Where(l => l.UserId == user.UserID
@@ -336,12 +333,12 @@ namespace LeaveON.Services
             }
 
 
-            
+
 
             int totalWorkDays = GetWorkingDays(year, month, user.userLeavePolicyID);
 
             //  this if user not mark attensance on  userAttendanceMonth then it will as absent
-            if (missedMonthAttendanceDateList.Count()>0)
+            if (missedMonthAttendanceDateList.Count() > 0)
             {
               absentYTD += missedMonthAttendanceDateList.Count();// (totalWorkDays - userAttendanceMonth.Count());
             }
@@ -399,7 +396,7 @@ namespace LeaveON.Services
             }
             else
             {
-              empname = !String.IsNullOrEmpty(user.EmployeeName)? user.email.Split('@')[0].Replace('.', ' '): string.Empty;
+              empname = !String.IsNullOrEmpty(user.EmployeeName) ? user.email.Split('@')[0].Replace('.', ' ') : string.Empty;
             }
             reportList.Add(new EmployeeReportData
             {
@@ -1081,6 +1078,8 @@ namespace LeaveON.Services
     }
     // Generate Manager Report
 
+
+
     public void GeneratePDFManager1(
         List<EmployeeReportData> reportData,
         int totalWorkDays,
@@ -1138,7 +1137,7 @@ namespace LeaveON.Services
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
           mail.To.Add("laiba.khan@intechww.com");
-         // mail.To.Add("esswaqas@hotmail.com");
+          //mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -1320,6 +1319,70 @@ namespace LeaveON.Services
           }
 
           document.Add(table);
+
+          //document.NewPage();
+
+          // Add space from top
+          Paragraph space = new Paragraph(" ");
+          space.SpacingBefore = 30f;
+          document.Add(space);
+
+          Font notesTitleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
+          Font notesFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+
+          Paragraph notesTitle = new Paragraph(
+              "Key Notes Included in the Report:",
+              notesTitleFont);
+
+          notesTitle.Alignment = Element.ALIGN_LEFT;
+          notesTitle.SpacingAfter = 20f;
+
+          document.Add(notesTitle);
+          Font boldFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+          Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+
+          Paragraph p = new Paragraph();
+          p.SetLeading(0, 1.5f);
+          territoryTable.SpacingAfter = 20f;
+          // Casual Leave* 
+          p.Add(new Chunk("* Casual Leave / Annual Leave: ", boldFont));
+          p.Add(new Chunk("Entitlement is based on the current year leave policy and will be prorated according to the employee’s joining date.\n\n", normalFont));
+
+          // Absents
+          p.Add(new Chunk("* Absents (YTD): ", boldFont));
+          p.Add(new Chunk("Total absent days recorded year-to-date, calculated from the joining date up to the current fiscal year period.\n\n", normalFont));
+
+          // Short Hours
+          p.Add(new Chunk("* Short Hours (YTD): ", boldFont));
+          p.Add(new Chunk("Total casual short leave occurrences recorded year-to-date, prorated according to the employee’s joining date.\n\n", normalFont));
+
+          // Avg Entry
+          p.Add(new Chunk("* Avg. Entry Time: ", boldFont));
+          p.Add(new Chunk("Average office arrival time based on monthly attendance logs and the employee’s login territory.\n\n", normalFont));
+
+          // Avg Exit
+          p.Add(new Chunk("* Avg. Exit Time: ", boldFont));
+          p.Add(new Chunk("Average office departure time based on monthly attendance logs and the employee’s logout territory.\n\n", normalFont));
+
+          // Avg Office Time
+          p.Add(new Chunk("* Avg. Time in Office: ", boldFont));
+          p.Add(new Chunk("Average productive office duration per working day, calculated between check-in and check-out timings.\n\n", normalFont));
+
+          // Availed Leave
+          p.Add(new Chunk("* Availed Leave (YTD): ", boldFont));
+          p.Add(new Chunk("Total leaves utilized during the current year as per policy.\n\n", normalFont));
+
+          // Available Leave
+          p.Add(new Chunk("* Available Leave Balance: ", boldFont));
+          p.Add(new Chunk("Remaining leave balance after adjustment of utilized leaves as per policy.\n\n", normalFont));
+
+          // Important Note
+          p.Add(new Chunk("Important Note: ", boldFont));
+          p.Add(new Chunk("Higher absenteeism may occur due to pending leave approvals, missing LMS entries, unmarked business trips, or pending attendance regularization requests.For any discrepancy, clarification, or correction, employees may contact their respective HR Business Partner(HRBP).\n\n", normalFont));
+
+
+          document.Add(p);
+
           document.Close();
 
           mail.Attachments.Add(new Attachment(new MemoryStream(memoryStream.ToArray()),
@@ -2118,9 +2181,11 @@ namespace LeaveON.Services
       {
         //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
-        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht" };
-        //var allowedDepartments = new[] { "IS&T","FINANCE & ACCOUNTS","Marketing" ,"Project Monitoring & Control" };
-        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
+        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" };
+        // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
+        var allowedDepartments = new[] { "IIS", "Digital Solutions" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
+        //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
         //string dep = "FINANCE & ACCOUNTS";
         // Fetch all users who have either ManagerID or Manager2ID
@@ -2147,7 +2212,7 @@ namespace LeaveON.Services
                             UserName = u.UserName,
                             Email = u.Email,
                             PhoneNumber = u.PhoneNumber,
-                            ManagerName = m.UserName,   
+                            ManagerName = m.UserName,
                             DepartmentName = u.DepartmentName
                           };
 
