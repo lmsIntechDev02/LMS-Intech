@@ -60,9 +60,7 @@ namespace Intranet.Controllers
 
         public ActionResult TestSync()
         {  
-
             ViewBag.Message = "Your application description page.";
-
             return View();
         }
 

@@ -124,17 +124,7 @@ namespace LeaveON.UtilityClasses
                 List<string> userIds = new List<string>
 {
     "119",
-    "1995",
-    "7075",
-    "2178",
-    "2124",
-    "2325",
-    "286",
-    "1365",
-    "1742",
-    "1785",
-    "1881",
-    "2097"
+    
 };
 
                 using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
