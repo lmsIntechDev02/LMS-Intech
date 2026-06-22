@@ -800,7 +800,7 @@ Muhammad Israr;
 
 
 lastlogon: 
-134263212251812550; 
+134263469750594055; 
 
 
 samaccounttype: 
@@ -896,7 +896,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-13128; 
+13152; 
 
 
 useraccountcontrol: 
@@ -1534,7 +1534,7 @@ SP Services;
 
 
 lastlogon: 
-134263269000681297; 
+134263467005342388; 
 
 
 samaccounttype: 
@@ -4164,7 +4164,7 @@ lockouttime:
 
 
 badpasswordtime: 
-134263267210081753; 
+134263465209875068; 
 
 
 instancetype: 
@@ -4470,7 +4470,7 @@ S Backup;
 
 
 lastlogon: 
-134263260891812873; 
+134263458892923212; 
 
 
 samaccounttype: 
@@ -7419,7 +7419,7 @@ AD 360;
 
 
 lastlogon: 
-134263265947576111; 
+134263470327895290; 
 
 
 samaccounttype: 
@@ -8022,7 +8022,7 @@ Usman Javed;
 
 
 lastlogon: 
-134261740657553255; 
+134263301978841879; 
 
 
 samaccounttype: 
@@ -8127,7 +8127,7 @@ LDAP://CN=Usman Javed,OU=IT,OU=ISnT,DC=intechww,DC=com;
 
 
 logoncount: 
-16751; 
+16753; 
 
 
 useraccountcontrol: 
@@ -9428,7 +9428,7 @@ Inam Rehman;
 
 
 lastlogon: 
-134262689449145245; 
+134263272204318848; 
 
 
 samaccounttype: 
@@ -9516,7 +9516,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-4203; 
+4208; 
 
 
 useraccountcontrol: 
@@ -16156,7 +16156,7 @@ Amir Bashir;
 
 
 lastlogon: 
-134263256130212666; 
+134263434834756202; 
 
 
 samaccounttype: 
@@ -16252,7 +16252,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-8509; 
+8524; 
 
 
 proxyaddresses: 
@@ -16397,7 +16397,7 @@ System.Byte[];
 
 
 usnchanged: 
-765086958; 
+765699783; 
 
 
 c: 
@@ -16409,7 +16409,7 @@ System.Byte[];
 
 
 whenchanged: 
-6/10/2026 10:16:13 AM; 
+6/19/2026 11:05:37 AM; 
 
 
 name: 
@@ -16425,7 +16425,7 @@ Pakistan;
 
 
 lockouttime: 
-134227978818489066; 
+134263407310080456; 
 
 
 instancetype: 
@@ -23041,7 +23041,7 @@ Kashif Ijaz;
 
 
 lastlogon: 
-134263246513296109; 
+134263447942337624; 
 
 
 samaccounttype: 
@@ -23117,7 +23117,7 @@ lockouttime:
 
 
 badpasswordtime: 
-134255615756892223; 
+134263381051586561; 
 
 
 instancetype: 
@@ -23133,7 +23133,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-7701; 
+7709; 
 
 
 proxyaddresses: 
@@ -24939,7 +24939,7 @@ Waqar Ahmad;
 
 
 lastlogon: 
-134263218208412313; 
+134263463633334090; 
 
 
 samaccounttype: 
@@ -25035,7 +25035,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-7279; 
+7289; 
 
 
 proxyaddresses: 
@@ -26361,7 +26361,7 @@ System.Byte[];
 
 
 lastlogontimestamp: 
-134253806377774754; 
+134263308331507571; 
 
 
 l: 
@@ -26373,7 +26373,7 @@ whencreated:
 
 
 usnchanged: 
-764942038; 
+765687021; 
 
 
 manager: 
@@ -26393,7 +26393,7 @@ SA;
 
 
 whenchanged: 
-6/8/2026 8:23:57 AM; 
+6/19/2026 8:20:35 AM; 
 
 
 codepage: 
@@ -39932,7 +39932,7 @@ Ghulam Mustafa;
 
 
 lastlogon: 
-134260955334057176; 
+134263337098667830; 
 
 
 samaccounttype: 
@@ -40024,7 +40024,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-3726; 
+3729; 
 
 
 proxyaddresses: 
@@ -54009,7 +54009,7 @@ Olaoluwa Adebayo;
 
 
 lastlogon: 
-134262544031179500; 
+134263456200911586; 
 
 
 samaccounttype: 
@@ -54106,7 +54106,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-2860; 
+2867; 
 
 
 useraccountcontrol: 
@@ -67121,7 +67121,7 @@ Aneel Baig;
 
 
 lastlogon: 
-134263268009442309; 
+134263329144415891; 
 
 
 samaccounttype: 
@@ -67214,7 +67214,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-12157; 
+12163; 
 
 
 proxyaddresses: 
@@ -67366,7 +67366,7 @@ Rehan Afgan;
 
 
 lastlogon: 
-134262611506865551; 
+134263429820141055; 
 
 
 samaccounttype: 
@@ -67458,7 +67458,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-8846; 
+8852; 
 
 
 proxyaddresses: 
@@ -68465,7 +68465,7 @@ Abdus Salam;
 
 
 lastlogon: 
-134263202299957997; 
+134263449539510864; 
 
 
 samaccounttype: 
@@ -68557,7 +68557,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-11111; 
+11135; 
 
 
 proxyaddresses: 
@@ -73441,7 +73441,7 @@ System.Byte[];
 
 
 usnchanged: 
-765674686; 
+765696140; 
 
 
 manager: 
@@ -73449,7 +73449,7 @@ CN=Waseem Butt,OU=O365,OU=UnG,OU=PK,OU=MEACIS,OU=INTECH,DC=intechww,DC=com;
 
 
 whenchanged: 
-6/19/2026 5:33:37 AM; 
+6/19/2026 10:13:14 AM; 
 
 
 name: 
@@ -73461,7 +73461,7 @@ Lahore;
 
 
 lockouttime: 
-134263208179308408; 
+134263375928606167; 
 
 
 msnpallowdialin: 
@@ -74585,7 +74585,7 @@ Sajjad Hussain;
 
 
 lastlogon: 
-134263259179104751; 
+134263467918598009; 
 
 
 samaccounttype: 
@@ -74661,7 +74661,7 @@ lockouttime:
 
 
 badpasswordtime: 
-134261621621543239; 
+134263436582460928; 
 
 
 instancetype: 
@@ -74677,7 +74677,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-16877; 
+16937; 
 
 
 useraccountcontrol: 
@@ -76215,7 +76215,7 @@ Asad Ghaffar;
 
 
 lastlogon: 
-134263246809193425; 
+134263440703390351; 
 
 
 samaccounttype: 
@@ -76307,7 +76307,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-2674; 
+2684; 
 
 
 proxyaddresses: 
@@ -78557,7 +78557,7 @@ Aqeel Muazzam;
 
 
 lastlogon: 
-134263259500795991; 
+134263461724525872; 
 
 
 samaccounttype: 
@@ -78577,7 +78577,7 @@ System.Byte[];
 
 
 lastlogontimestamp: 
-134254516439870973; 
+134263278416132531; 
 
 
 l: 
@@ -78589,7 +78589,7 @@ whencreated:
 
 
 usnchanged: 
-764987918; 
+765683507; 
 
 
 manager: 
@@ -78609,7 +78609,7 @@ PK;
 
 
 whenchanged: 
-6/9/2026 4:07:24 AM; 
+6/19/2026 7:30:41 AM; 
 
 
 codepage: 
@@ -78649,7 +78649,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-11147; 
+11158; 
 
 
 proxyaddresses: 
@@ -79878,7 +79878,7 @@ Nazakat Hussain;
 
 
 lastlogon: 
-134263196045179876; 
+134263414198656241; 
 
 
 samaccounttype: 
@@ -79970,7 +79970,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-8390; 
+8396; 
 
 
 useraccountcontrol: 
@@ -116003,7 +116003,7 @@ Atif Ali;
 
 
 lastlogon: 
-134263234194258656; 
+134263429587737924; 
 
 
 samaccounttype: 
@@ -116071,7 +116071,7 @@ lockouttime:
 
 
 badpasswordtime: 
-134260716375838266; 
+134263287215468456; 
 
 
 instancetype: 
@@ -116087,7 +116087,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-2870; 
+2878; 
 
 
 useraccountcontrol: 
@@ -141501,7 +141501,7 @@ Usifoh Caleb;
 
 
 lastlogon: 
-134262632282761324; 
+134263382189383857; 
 
 
 samaccounttype: 
@@ -141593,7 +141593,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-1289; 
+1291; 
 
 
 useraccountcontrol: 
@@ -144845,7 +144845,7 @@ Rameez Zubair;
 
 
 lastlogon: 
-134263264708661281; 
+134263451977117363; 
 
 
 samaccounttype: 
@@ -144945,7 +144945,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-7071; 
+7082; 
 
 
 useraccountcontrol: 
@@ -146995,7 +146995,7 @@ Kelechi Okereke;
 
 
 lastlogon: 
-134261826514024613; 
+134263310473496309; 
 
 
 samaccounttype: 
@@ -147087,7 +147087,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-1460; 
+1464; 
 
 
 useraccountcontrol: 
@@ -148296,7 +148296,7 @@ Sohail Raza;
 
 
 lastlogon: 
-134263255985455130; 
+134263438992981704; 
 
 
 samaccounttype: 
@@ -148372,7 +148372,7 @@ lockouttime:
 
 
 badpasswordtime: 
-134256356944095944; 
+134263378509673660; 
 
 
 instancetype: 
@@ -148388,7 +148388,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-13855; 
+13882; 
 
 
 useraccountcontrol: 
@@ -148504,7 +148504,7 @@ Wonodi Kenneth;
 
 
 lastlogon: 
-134261332519578855; 
+134263396672861508; 
 
 
 samaccounttype: 
@@ -148604,7 +148604,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-1506; 
+1510; 
 
 
 useraccountcontrol: 
@@ -151668,7 +151668,7 @@ System.Byte[];
 
 
 lastlogontimestamp: 
-134254738434615794; 
+134263438078841622; 
 
 
 l: 
@@ -151680,7 +151680,7 @@ whencreated:
 
 
 usnchanged: 
-765017617; 
+765703163; 
 
 
 manager: 
@@ -151700,7 +151700,7 @@ NG;
 
 
 whenchanged: 
-6/9/2026 10:30:09 AM; 
+6/19/2026 11:56:59 AM; 
 
 
 codepage: 
@@ -154449,7 +154449,7 @@ Junaid Ikram;
 
 
 lastlogon: 
-134263250305978610; 
+134263468208436564; 
 
 
 samaccounttype: 
@@ -154549,7 +154549,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-10543; 
+10566; 
 
 
 useraccountcontrol: 
@@ -158775,7 +158775,7 @@ Mubeen Sheraz;
 
 
 lastlogon: 
-134263184565428923; 
+134263459267600093; 
 
 
 samaccounttype: 
@@ -158851,7 +158851,7 @@ lockouttime:
 
 
 badpasswordtime: 
-134249664416279456; 
+134263450589313917; 
 
 
 instancetype: 
@@ -158871,7 +158871,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-6853; 
+6865; 
 
 
 useraccountcontrol: 
@@ -159013,7 +159013,7 @@ Zohaib Sajjad;
 
 
 lastlogon: 
-134263224540467821; 
+134263452383889662; 
 
 
 samaccounttype: 
@@ -159107,7 +159107,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-10263; 
+10278; 
 
 
 useraccountcontrol: 
@@ -161976,7 +161976,7 @@ Imran Shahid;
 
 
 lastlogon: 
-134263215202392054; 
+134263362658797880; 
 
 
 samaccounttype: 
@@ -162068,7 +162068,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-3059; 
+3060; 
 
 
 useraccountcontrol: 
@@ -162543,7 +162543,7 @@ Mudassar Aslam;
 
 
 lastlogon: 
-134263267429609653; 
+134263334029491122; 
 
 
 samaccounttype: 
@@ -162639,7 +162639,7 @@ CN=Person,CN=Schema,CN=Configuration,DC=intechww,DC=com;
 
 
 logoncount: 
-9700; 
+9705; 
 
 
 useraccountcontrol: 
