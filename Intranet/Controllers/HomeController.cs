@@ -16,25 +16,25 @@ namespace Intranet.Controllers
         private LeaveONEntities db = new LeaveONEntities();
         public ActionResult Index(string ReturnUrl)
         {
-            //GetLog();
-            //List<string> loginsList = new List<string>();
-            //PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-            //UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+            GetLog();
+            List<string> loginsList = new List<string>();
+            PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+            UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
 
-            //loginsList.Add(currentUser.UserPrincipalName);
+            loginsList.Add(currentUser.UserPrincipalName);
 
-            //var path = Server.MapPath(@"~/myLog.txt");
-            //System.IO.File.AppendAllLines(path, loginsList);
+            var path = Server.MapPath(@"~/myLog.txt");
+            System.IO.File.AppendAllLines(path, loginsList);
 
-            //string ReturnUrlValue = "/";
+            string ReturnUrlValue = "/";
 
-            //if (string.IsNullOrEmpty(ReturnUrl)) ReturnUrl = "/";
+            if (string.IsNullOrEmpty(ReturnUrl)) ReturnUrl = "/";
 
-            //string ADUserValue = currentUser.UserPrincipalName;
+            string ADUserValue = currentUser.UserPrincipalName;
 
-            return View();
+          //  return View();
             //currently using
-            //return Redirect("https://lms.intechww.com:1002/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); //this for production
+           return Redirect("https://lms.intechww.com:1002/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); //this for production
 
            // return Redirect("http://lms-stage.intechww.com/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue);//this for staging
           //  return Redirect("https://localhost:44380/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); // this is for testing
@@ -46,7 +46,7 @@ namespace Intranet.Controllers
             ScheduledTasks scheduledTasks = new ScheduledTasks();
             try
             {
-                scheduledTasks.SyncAppWithAD("Home Sync Task");
+                //scheduledTasks.SyncAppWithAD("Home Sync Task");
             }
             catch (Exception ex)
             {
