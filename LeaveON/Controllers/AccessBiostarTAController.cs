@@ -2734,44 +2734,85 @@ namespace LeaveON.Controllers
       }
 
     }
-
     [HttpPost]
     public ActionResult GetUsersByDepartments(List<string> departmentNames)
     {
-
       string userId = User.Identity.GetUserId();
-   
-      List <AspNetUser> userList= new List<AspNetUser>();
+
       if (departmentNames == null || !departmentNames.Any())
       {
-        //return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
-
-        ViewBag.Employees = userList;
+        ViewBag.Employees = new List<AspNetUser>();
         return PartialView("_EmployeeList");
       }
+
       var loginUser = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+      var twoYearsAgo = DateTime.Today.AddYears(-2);
+
+      List<AspNetUser> userList;
+
       if (User.IsInRole("Admin"))
       {
-        userList = dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue && u.BioStarEmpNum.Value > 0 && u.IsActive == true && u.IsDeleted != true).ToList();
+        userList = (from u in dbLeaveOn.AspNetUsers
+                    join a in dbLeaveOn.AttendanceDatas
+                        on u.BioStarEmpNum equals a.BioStarEmpNum
+                    where a.CreatedDate >= twoYearsAgo
+                          && departmentNames.Contains(u.DepartmentName)
+                          && u.BioStarEmpNum.HasValue
+                          && u.BioStarEmpNum.Value > 0
+                          && u.IsActive == true
+                          && u.IsDeleted != true
+                    group u by u.BioStarEmpNum into g
+                    select g.FirstOrDefault())
+               .ToList()   // Execute SQL here
+               .Select(u => new AspNetUser
+               {
+                 BioStarEmpNum = u.BioStarEmpNum,
+                
+                 UserName = !string.IsNullOrEmpty(u.EmpolyeeName)
+                       ? u.EmpolyeeName
+                       : u.UserName.Split('@')[0].Replace('.', ' ')
+               })
+               .OrderBy(x => x.UserName)
+               .ToList();
+
       }
       else if (User.IsInRole("Manager") || User.IsInRole("User"))
       {
+        userList = (from u in dbLeaveOn.AspNetUsers
+                    join a in dbLeaveOn.AttendanceDatas
+                        on u.BioStarEmpNum equals a.BioStarEmpNum
+                    where a.CreatedDate >= twoYearsAgo
+                          && departmentNames.Contains(u.DepartmentName)
+                          && u.ManagerID == loginUser.Id 
+                          && u.BioStarEmpNum.HasValue
+                          && u.BioStarEmpNum.Value > 0
+                          && u.IsActive == true
+                          && u.IsDeleted != true
+                    group u by u.BioStarEmpNum into g
+                    select g.FirstOrDefault())
+            .ToList()   // Execute SQL here
+            .Select(u => new AspNetUser
+            {
+              BioStarEmpNum = u.BioStarEmpNum,
 
-        userList= dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName) && u.ManagerID == loginUser.Id && u.BioStarEmpNum.HasValue && u.BioStarEmpNum.Value > 0 && u.IsActive == true && u.IsDeleted != true).ToList();
+              UserName = !string.IsNullOrEmpty(u.EmpolyeeName)
+                    ? u.EmpolyeeName
+                    : u.UserName.Split('@')[0].Replace('.', ' ')
+            })
+            .OrderBy(x => x.UserName)
+            .ToList();
       }
-       
-       var userlist = userList.Select(k => new AspNetUser
+      else
       {
-        UserName = k.UserName.Split('@')[0].Replace('.', ' '),
-        BioStarEmpNum = k.BioStarEmpNum
-      }).ToList();
+        userList = new List<AspNetUser>();
+      }
 
-      ViewBag.Employees = userlist;
-  
-     
+      ViewBag.Employees = userList;
 
       return PartialView("_EmployeeList");
     }
+
+ 
     [HttpPost]
     public ActionResult GetUsersByDepartmentss(List<string> departmentNames)
     {

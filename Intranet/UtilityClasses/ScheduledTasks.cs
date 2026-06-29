@@ -123,7 +123,7 @@ namespace LeaveON.UtilityClasses
             {
                 List<string> userIds = new List<string>
 {
-    "119",
+    "2914",
     
 };
 
@@ -152,6 +152,7 @@ namespace LeaveON.UtilityClasses
     })
     .Where(x =>
         x.Auth != null &&
+         //x.Auth.Enabled == true &&
         x.De != null &&
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
         //x.De.Properties["facsimileTelephoneNumber"]
@@ -159,8 +160,11 @@ namespace LeaveON.UtilityClasses
         //    .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
             (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
-                .Contains("OU=O365")
-            
+                .Contains("OU=O365") 
+               // ||
+              //  (x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disabled Objects")
+
+
         )
     )
     //.Select(x => new
@@ -182,6 +186,7 @@ namespace LeaveON.UtilityClasses
     .Where(x =>
         x.Auth != null &&
         x.De != null &&
+       // x.Auth.Enabled != true &&
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
         //x.De.Properties["facsimileTelephoneNumber"]
         //    .Cast<object>()
@@ -189,10 +194,14 @@ namespace LeaveON.UtilityClasses
         (
              
             (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
-                .Contains("OU=Disabled Objects")
+               .Contains("OU=Disabled Objects")
+        //||
+        // (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
+        //.Contains("OU=O365")
         )
     )
     .Select(x => new
+
     {
         Name = x.Auth.Name,
         Email = x.Auth.UserPrincipalName,
@@ -205,63 +214,9 @@ namespace LeaveON.UtilityClasses
 
 
 
-                        //                        var AllActiveIntechUsers = searcher.FindAll()
-                        //    .Cast<Principal>()
-                        //    .Select(p => new
-                        //    {
-                        //        Auth = p as AuthenticablePrincipal,
-                        //        De = p.GetUnderlyingObject() as DirectoryEntry
-                        //    }).Where(x =>
-                        //        x.Auth != null &&
-                        //        !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
-                        //         x.Auth.Enabled == true && // only active users
-                        //        //x.Auth.UserPrincipalName.Contains("Mahtab") &&
-                        //        x.De != null &&
-                        //        x.De.Properties["facsimileTelephoneNumber"].Value != null &&
-                        //        x.De.Properties["facsimileTelephoneNumber"].Count > 0
-                        //         &&  x.De.Properties["facsimileTelephoneNumber"]
-                        //      .Cast<object>()
-                        //       .Any(v => userIds.Any(m=>m.Trim()== v.ToString().Trim() ))
-                        //    )
-                        //    .ToList();
 
-                        //            var inactiveUserinAd = searcher.FindAll()
-                        //.Cast<Principal>()
-                        //.Select(p => new
-                        //{
-                        //    Auth = p as AuthenticablePrincipal,
-                        //    De = p.GetUnderlyingObject() as DirectoryEntry
-                        //}).Where(x =>
-                        //    x.Auth != null &&
-                        //    !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
-                        //     x.Auth.Enabled == false && // only active users
-                        //    //x.Auth.UserPrincipalName.Contains("Mahtab") &&
-                        //    x.De != null &&
-                        //    x.De.Properties["facsimileTelephoneNumber"].Value != null &&
-                        //    x.De.Properties["facsimileTelephoneNumber"].Count > 0
-
-                        //)
-                        //.Select(x => new
-                        //{
-                        //    UserName = x.Auth.Name,
-                        //    Email = x.Auth.UserPrincipalName,
-                        //    FaxNumber = x.De.Properties["facsimileTelephoneNumber"].Value?.ToString()
-                        //})
-                        //.ToList();
-
-
-                        //.Where(x =>
-                        //    x.Auth != null &&
-                        //    !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
-                        //    x.Auth.Enabled == true && // only active users
-                        //    x.De != null &&
-                        //    x.De.Properties["facsimileTelephoneNumber"].Value != null // == "3218" has BioStar
-                        //)
-                        //.ToList();
-
-                        //List<AspNetUser> LstAspNetUsers = db.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted!= true && x.BioStarEmpNum== 1793).ToList<AspNetUser>(); //893
                         List<AspNetUser> userList =  db.AspNetUsers.Where(x => x.IsDeleted != true).ToList<AspNetUser>();
-                        
+                       /// return;
                         List<AspNetUser> inActiveUserList = userList.Where(x => x.BioStarEmpNum.HasValue    && x.IsDeleted != true && inactiveUserinAd.Any(k=> k.FaxNumber == x.BioStarEmpNum.ToString())).ToList<AspNetUser>();
                         UpdateInactiveADuserinLeaveonUser(inActiveUserList);
 
