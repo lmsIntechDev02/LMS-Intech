@@ -143,6 +143,24 @@ namespace LeaveON.UtilityClasses
 
                         /////////////find in app database
                         ///
+//                        var AllIntechUsers = searcher.FindAll()
+//.Cast<Principal>()
+//.Select(p => new
+//{
+//    Auth = p as AuthenticablePrincipal,
+//    De = p.GetUnderlyingObject() as DirectoryEntry
+//})
+//.Where(x =>
+//  x.Auth != null &&
+//  !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
+//  x.Auth.Enabled == true && // only active users
+//  x.De != null &&
+//  x.De.Properties["facsimileTelephoneNumber"].Value != null  // has BioStar
+ 
+
+//)
+//.ToList();
+                        ///
                         var AllActiveIntechUsers = searcher.FindAll()
     .Cast<Principal>()
     .Select(p => new
@@ -152,17 +170,17 @@ namespace LeaveON.UtilityClasses
     })
     .Where(x =>
         x.Auth != null &&
-         //x.Auth.Enabled == true &&
+        x.Auth.Enabled == true &&
         x.De != null &&
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
         //x.De.Properties["facsimileTelephoneNumber"]
         //    .Cast<object>()
         //    .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
-            (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
-                .Contains("OU=O365") 
-               // ||
-              //  (x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disabled Objects")
+             !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
+            .Contains("OU=Disabled Objects")
+        // ||
+        //  (x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disabled Objects")
 
 
         )
@@ -216,7 +234,7 @@ namespace LeaveON.UtilityClasses
 
 
                         List<AspNetUser> userList =  db.AspNetUsers.Where(x => x.IsDeleted != true).ToList<AspNetUser>();
-                       /// return;
+                       //  return;
                         List<AspNetUser> inActiveUserList = userList.Where(x => x.BioStarEmpNum.HasValue    && x.IsDeleted != true && inactiveUserinAd.Any(k=> k.FaxNumber == x.BioStarEmpNum.ToString())).ToList<AspNetUser>();
                         UpdateInactiveADuserinLeaveonUser(inActiveUserList);
 
