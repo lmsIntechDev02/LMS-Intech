@@ -115,6 +115,8 @@ namespace LeaveON.UtilityClasses
         }
 
         public void SyncAppWithAD(string jobName)
+        
+        
         {
 
             string filePath = Path.Combine(HttpRuntime.AppDomainAppPath, "SyncLog.txt");
@@ -123,8 +125,13 @@ namespace LeaveON.UtilityClasses
             {
                 List<string> userIds = new List<string>
 {
-    "2914",
-    
+  "1128",
+  "1435",
+  "1427",
+  "1209",
+  "1757",
+  "2333"
+
 };
 
                 using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
@@ -171,11 +178,12 @@ namespace LeaveON.UtilityClasses
     .Where(x =>
         x.Auth != null &&
         x.Auth.Enabled == true &&
+        //x.Auth.EmployeeId !="" &&
         x.De != null &&
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-        //x.De.Properties["facsimileTelephoneNumber"]
-        //    .Cast<object>()
-        //    .Any(v => userIds.Contains(v.ToString().Trim())) &&
+        x.De.Properties["facsimileTelephoneNumber"]
+           .Cast<object>()
+            .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
              !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
             .Contains("OU=Disabled Objects")
@@ -206,9 +214,9 @@ namespace LeaveON.UtilityClasses
         x.De != null &&
        // x.Auth.Enabled != true &&
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-        //x.De.Properties["facsimileTelephoneNumber"]
-        //    .Cast<object>()
-        //    .Any(v => userIds.Contains(v.ToString().Trim())) &&
+        x.De.Properties["facsimileTelephoneNumber"]
+            .Cast<object>()
+           .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
              
             (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
@@ -248,7 +256,7 @@ namespace LeaveON.UtilityClasses
 
                         //string conn = db.Database.Connection.ConnectionString;
                         //int totalRecords = AllIntechUsers.Count();
-
+                        return;
                         foreach (var result in AllActiveIntechUsers)
                         {
 
@@ -345,7 +353,7 @@ namespace LeaveON.UtilityClasses
 
                         }
 
-                        //return;
+                        return;
                         var dbDaprtmentList = db.DepartmentNames.ToList();
                         //-----------add department name which does not exist in LMS-DB------------
                         List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
