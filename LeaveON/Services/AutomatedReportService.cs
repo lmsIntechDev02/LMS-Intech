@@ -70,7 +70,7 @@ namespace LeaveON.Services
         //test
         // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "32044600-a0de-47c8-910e-d859c71ea97b"))
         //live
-        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted != true)
+        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted != true && !String.IsNullOrEmpty(y.DepartmentName))
         .Select(x => new EmailAndIDs
         {
           userId = x.BioStarEmpNum.Value,
@@ -157,11 +157,11 @@ namespace LeaveON.Services
       {
         managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
       }
-       //managerids = new List<string>
-       //   {
-       // "df758c75-435b-4f64-b2b8-b399699cd561"
+      //managerids = new List<string>
+      //    {
+      //  "6c75398c-4f4c-4ff5-baed-814c75138588"
 
-       //     };
+      //      };
 
       managerEmails = GetManagersListById(managerids);
 
@@ -171,10 +171,10 @@ namespace LeaveON.Services
         {
           var users = GetUserEmailsAndIDs(managerEmail.Id);
 
-          // users = users.Where(k => k.userId == 3178).ToList();
+           ///users = users.Where(k => k.userId == 1080).ToList();
           if (users == null || users.Count == 0)
             continue;
-
+          List<int> policyIds = new List<int>();
           DateTime startOfMonth = new DateTime(year, month, 1);
           DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
           var userIds = users.Select(u => u.UserID).ToList();
@@ -182,7 +182,10 @@ namespace LeaveON.Services
           //                     .Select(u => u.userLeavePolicyID.Value)
           //                     .Distinct()
           //                     .ToList();
-
+          policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+                               .Select(u => u.userLeavePolicyID.Value)
+                               .Distinct()
+                               .ToList();
           var attendanceMonth = context.AttendanceDatas
               .Where(a => userIds.Contains(a.UserID)
                        && a.CreatedDate >= startOfMonth
@@ -190,7 +193,7 @@ namespace LeaveON.Services
               .ToList();
 
           //string policyName = String.Empty;
-          List<int> policyIds = new List<int>();
+        
           List<String> policyName = new List<String>();
           List<UserLeavePolicy> userpolicyList = new List<UserLeavePolicy>();
 
@@ -198,10 +201,18 @@ namespace LeaveON.Services
           {
             policyName = attendanceMonth.Select(u => u.UserLeavePolicyID).Distinct().ToList();
           }
-          if (policyName.Count() > 0)
+          if (policyName.Where(k=> !string.IsNullOrEmpty(k)).Count() > 0)
           {
             userpolicyList = context.UserLeavePolicies.Where(p => policyName.Any(l => l.Trim().ToLower() == p.Description.Trim().ToLower())).ToList();
-            policyIds = userpolicyList.Select(u => u.Id).Distinct().ToList();
+            if(policyIds.Count() > 0)
+            {
+              policyIds.AddRange(userpolicyList.Select(u => u.Id).Distinct().ToList());
+            }
+            else
+            {
+
+            policyIds =  userpolicyList.Select(u => u.Id).Distinct().ToList();
+            }
           }
           else
           {
@@ -249,14 +260,31 @@ namespace LeaveON.Services
               continue;
 
             int userIdInt = Convert.ToInt32(user.userId);
-            var policy = leavePolicies.FirstOrDefault(); //leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
-
-            DateTime fiscalStart = policy.FiscalYearStart.Value;
-            DateTime fiscalEnd = policy.FiscalYearEnd.Value;
-
             var userAttendanceMonth = attendanceMonth
-                .Where(a => a.BioStarEmpNum == userIdInt && a.CreatedDate >= user.JoiningDate)
-                .ToList();
+               .Where(a => a.BioStarEmpNum == userIdInt && a.CreatedDate >= user.JoiningDate)
+               .ToList();
+            DateTime fiscalStart =  new DateTime();
+            DateTime fiscalEnd = new DateTime();
+            String attedancePolicy = userAttendanceMonth.Count()>0? userAttendanceMonth.FirstOrDefault().UserLeavePolicyID: String.Empty;
+            UserLeavePolicy policy = new UserLeavePolicy();
+
+            if (!String.IsNullOrEmpty(attedancePolicy))
+            {
+              policy = leavePolicies.FirstOrDefault(k=>k.Description.ToLower().Trim()== attedancePolicy.ToLower().Trim()); //leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
+                fiscalStart = policy.FiscalYearStart.Value;
+                fiscalEnd = policy.FiscalYearEnd.Value;
+            }
+            else
+            {
+                policy = leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
+              fiscalStart = policy.FiscalYearStart.Value;
+              fiscalEnd = policy.FiscalYearEnd.Value;
+            }
+
+
+    
+
+           
 
             //for missing get date list
             List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
@@ -1164,8 +1192,8 @@ namespace LeaveON.Services
 
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-          mail.To.Add("laiba.khan@intechww.com");
-         // mail.To.Add("esswaqas@hotmail.com");
+           mail.To.Add("laiba.khan@intechww.com");
+          //mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -2218,7 +2246,7 @@ namespace LeaveON.Services
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "Project Monitoring & Control", "Sales", "FINANCE & ACCOUNTS" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        var allowedDepartments = new[] { "WELLHEAD & SKIDS" , "IIS" , "Digital Solutions" };  //, "Solution Centre" , "Project Monitoring & Control" 
         //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
         //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 

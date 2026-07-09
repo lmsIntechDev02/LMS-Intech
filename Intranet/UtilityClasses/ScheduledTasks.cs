@@ -115,8 +115,8 @@ namespace LeaveON.UtilityClasses
         }
 
         public void SyncAppWithAD(string jobName)
-        
-        
+
+
         {
 
             string filePath = Path.Combine(HttpRuntime.AppDomainAppPath, "SyncLog.txt");
@@ -144,7 +144,7 @@ namespace LeaveON.UtilityClasses
                     int UpdatedEmp = 0;
                     //List<string> loginsList = new List<string>();
                     //var path = @"D:\LeaveON - AD\Intranet\ADUserList.txt";
-
+                    InsertSyncLog(jobName, "Start User sync Job", 0, 1, 0, "", "Insert", null);
                     using (var searcher = new PrincipalSearcher(userFilter))
                     {
 
@@ -160,14 +160,22 @@ namespace LeaveON.UtilityClasses
 //.Where(x =>
 //  x.Auth != null &&
 //  !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
-//  x.Auth.Enabled == true && // only active users
+//  //x.Auth.Enabled == true && // only active users
 //  x.De != null &&
-//  x.De.Properties["facsimileTelephoneNumber"].Value != null  // has BioStar
- 
+//  x.De.Properties["facsimileTelephoneNumber"].Value != null &&  // has BioStar
+//   x.De.Properties["facsimileTelephoneNumber"]
+//           .Cast<object>()
+//            .Any(v => userIds.Contains(v.ToString().Trim())) &&
+//        (
+//             !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
+//            .Contains("OU=Disabled Objects")
+//        &&
+//           !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disable Objects")
+//        )
 
 //)
 //.ToList();
-                        ///
+//                        ///
                         var AllActiveIntechUsers = searcher.FindAll()
     .Cast<Principal>()
     .Select(p => new
@@ -177,18 +185,21 @@ namespace LeaveON.UtilityClasses
     })
     .Where(x =>
         x.Auth != null &&
-        x.Auth.Enabled == true &&
-        //x.Auth.EmployeeId !="" &&
-        x.De != null &&
-        x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-        x.De.Properties["facsimileTelephoneNumber"]
-           .Cast<object>()
-            .Any(v => userIds.Contains(v.ToString().Trim())) &&
+     //x.Auth.Enabled == true &&
+
+     //x.Auth.EmployeeId !="" &&
+      x.De != null &&
+      IsActive(x.De) &&
+      x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
+
+       //x.De.Properties["facsimileTelephoneNumber"]
+       //     .Cast<object>()
+       //      .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
              !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
             .Contains("OU=Disabled Objects")
-        // ||
-        //  (x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disabled Objects")
+         &&
+            !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disable Objects")
 
 
         )
@@ -212,18 +223,23 @@ namespace LeaveON.UtilityClasses
     .Where(x =>
         x.Auth != null &&
         x.De != null &&
-       // x.Auth.Enabled != true &&
+        // x.Auth.Enabled != true &&
+         
+       
+         
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-        x.De.Properties["facsimileTelephoneNumber"]
-            .Cast<object>()
-           .Any(v => userIds.Contains(v.ToString().Trim())) &&
+         //x.De.Properties["facsimileTelephoneNumber"]
+         //    .Cast<object>()
+         //  .Any(v => userIds.Contains(v.ToString().Trim()))
+           
+         //    &&
         (
-             
+
             (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
                .Contains("OU=Disabled Objects")
-        //||
-        // (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
-        //.Contains("OU=O365")
+         ||
+         (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
+         .Contains("OU=Disable Objects")
         )
     )
     .Select(x => new
@@ -232,7 +248,7 @@ namespace LeaveON.UtilityClasses
         Name = x.Auth.Name,
         Email = x.Auth.UserPrincipalName,
         Enabled = x.Auth.Enabled,
-        
+
         DistinguishedName = x.De.Properties["distinguishedName"].Value?.ToString(),
         FaxNumber = x.De.Properties["facsimileTelephoneNumber"].Value?.ToString()
     })
@@ -241,22 +257,16 @@ namespace LeaveON.UtilityClasses
 
 
 
-                        List<AspNetUser> userList =  db.AspNetUsers.Where(x => x.IsDeleted != true).ToList<AspNetUser>();
-                       //  return;
-                        List<AspNetUser> inActiveUserList = userList.Where(x => x.BioStarEmpNum.HasValue    && x.IsDeleted != true && inactiveUserinAd.Any(k=> k.FaxNumber == x.BioStarEmpNum.ToString())).ToList<AspNetUser>();
+                        List<AspNetUser> userList = db.AspNetUsers.Where(x => x.IsDeleted != true).ToList<AspNetUser>();
+                        //  return;
+                        List<AspNetUser> inActiveUserList = userList.Where(x => x.BioStarEmpNum.HasValue && x.IsDeleted != true && inactiveUserinAd.Any(k => k.FaxNumber == x.BioStarEmpNum.ToString())).ToList<AspNetUser>();
                         UpdateInactiveADuserinLeaveonUser(inActiveUserList);
 
-                      //  db.SaveChanges();
-
-                       // List<AspNetUser> activeUserList = userList.Where(x => x.IsActive == true && x.IsDeleted != true).ToList<AspNetUser>(); //893
-
+                        
                         AuthenticablePrincipal auth;
                         List<string> departmentsList = new List<string>();
                         List<string> countriesList = new List<string>();
 
-                        //string conn = db.Database.Connection.ConnectionString;
-                        //int totalRecords = AllIntechUsers.Count();
-                        return;
                         foreach (var result in AllActiveIntechUsers)
                         {
 
@@ -286,9 +296,9 @@ namespace LeaveON.UtilityClasses
                                 if (aspNetUser == null && auth.Enabled != false)
                                 {//Insert
 
-                                 //it means if user is created before "01/01/2019" then totaDays will be in minus. so not add very old users. only add new users. which are after "01/01/2019"
-                                 //this is just to fast the process
-                                 //if (TimeDifference.TotalDays < 0) continue;
+                                    //it means if user is created before "01/01/2019" then totaDays will be in minus. so not add very old users. only add new users. which are after "01/01/2019"
+                                    //this is just to fast the process
+                                    //if (TimeDifference.TotalDays < 0) continue;
                                     try
                                     {
                                         if (!string.IsNullOrEmpty(countryname))
@@ -353,7 +363,7 @@ namespace LeaveON.UtilityClasses
 
                         }
 
-                        return;
+                     //   return;
                         var dbDaprtmentList = db.DepartmentNames.ToList();
                         //-----------add department name which does not exist in LMS-DB------------
                         List<string> distinctDepartmentNames = departmentsList.Distinct().ToList();
@@ -396,7 +406,7 @@ namespace LeaveON.UtilityClasses
                         }
 
                         db.SaveChanges();
-
+                        InsertSyncLog(jobName, "End User sync Job", 0, 1, 0, "", "Insert", null);
                         //System.IO.File.WriteAllLines(path, loginsList);
                         ////////////////////////////now find in AD
 
@@ -513,7 +523,7 @@ namespace LeaveON.UtilityClasses
                 int startIndex = dn.IndexOf("CN=") + 3;
                 int endIndex = dn.IndexOf(",", startIndex);
                 string managerNameFromAD = endIndex > 0 ? dn.Substring(startIndex, endIndex - startIndex) : dn.Substring(startIndex);
-                if (!String.IsNullOrEmpty(managerNameFromAD)) 
+                if (!String.IsNullOrEmpty(managerNameFromAD))
                 {
 
                     // var aDmanagerIDs = LstAspNetUsers.Where(u => !string.IsNullOrEmpty(u.ManagerName) && u.ManagerName.Trim().ToLower() == managerNameFromAD.Trim().ToLower()).Select(o => o.ManagerID).ToList();
@@ -561,12 +571,12 @@ namespace LeaveON.UtilityClasses
                     //        u.UserName.Split('@')[0].ToLower() == normalizedManagerName);
 
                     if (admanagerData != null)
-                {
-                    emp.ManagerName = managerNameFromAD;
-                    emp.ManagerEmail = admanagerData.UserName;
-                    emp.ManagerID = admanagerData.Id;
+                    {
+                        emp.ManagerName = managerNameFromAD;
+                        emp.ManagerEmail = admanagerData.UserName;
+                        emp.ManagerID = admanagerData.Id;
+                    }
                 }
-            }
             }
 
             db.AspNetUsers.Add(emp);
@@ -606,14 +616,14 @@ namespace LeaveON.UtilityClasses
                     managerNameFromAD = endIndex > 0 ? dn.Substring(startIndex, endIndex - startIndex) : dn.Substring(startIndex);
 
 
-                      if (!string.IsNullOrEmpty(managerNameFromAD))
-                     {
-                    string normalizedManagerName = managerNameFromAD.Trim();
-                      
-                    //string normalizedManagerName = managerNameFromAD
-                    //        .Trim()
-                    //        .ToLower()
-                    //        .Replace(" ", ".");
+                    if (!string.IsNullOrEmpty(managerNameFromAD))
+                    {
+                        string normalizedManagerName = managerNameFromAD.Trim();
+
+                        //string normalizedManagerName = managerNameFromAD
+                        //        .Trim()
+                        //        .ToLower()
+                        //        .Replace(" ", ".");
                         if (normalizedManagerName == "huseyn.tarek")
                         { normalizedManagerName = "ht"; }
                         switch (normalizedManagerName)
@@ -632,8 +642,8 @@ namespace LeaveON.UtilityClasses
                                 break;
                         }
 
-                    
-                       // var aDmanagerIDs = LstAspNetUsers.Where(u => u.IsActive == true && !string.IsNullOrEmpty(u.ManagerName) && u.ManagerName.Trim().ToLower() == normalizedManagerName.Trim().ToLower()).Select(o => o.ManagerID).ToList();
+
+                        // var aDmanagerIDs = LstAspNetUsers.Where(u => u.IsActive == true && !string.IsNullOrEmpty(u.ManagerName) && u.ManagerName.Trim().ToLower() == normalizedManagerName.Trim().ToLower()).Select(o => o.ManagerID).ToList();
 
 
                         var admanagerData = LstAspNetUsers
@@ -646,8 +656,8 @@ namespace LeaveON.UtilityClasses
                                                  );
 
                         //set  name from AD
-                       // dbUser.ManagerName = managerNameFromAD;
-                        if (admanagerData != null && dbUser.ManagerID != admanagerData.Id  )
+                        // dbUser.ManagerName = managerNameFromAD;
+                        if (admanagerData != null && dbUser.ManagerID != admanagerData.Id)
                         {
                             dbUser.ManagerID = admanagerData.Id;
                             dbUser.ManagerEmail = admanagerData.UserName;
@@ -656,7 +666,7 @@ namespace LeaveON.UtilityClasses
                             //dbUser.ManagerName = admanagerData.EmpolyeeName;
                         }
                     }
-                 }
+                }
 
                 // Retrieve "whenCreated" from DirectoryEntry
                 DateTime? whenCreated = de.Properties["whenCreated"].Value != null
