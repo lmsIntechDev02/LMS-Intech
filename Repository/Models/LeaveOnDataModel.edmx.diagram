@@ -4,13 +4,12 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="41b3342e1acf4fda99c28be56ef0d5bf" Name="Diagram1" ZoomLevel="54">
+      <Diagram DiagramId="41b3342e1acf4fda99c28be56ef0d5bf" Name="Diagram1" ZoomLevel="139">
         <EntityTypeShape EntityType="LeaveONModels.AnnualLeaveManager" Width="1.5" PointX="0.75" PointY="3.75" />
         <EntityTypeShape EntityType="LeaveONModels.AnnualOffDay" Width="1.5" PointX="5.25" PointY="22.125" />
         <EntityTypeShape EntityType="LeaveONModels.AspNetUserClaim" Width="1.5" PointX="7.75" PointY="25.25" />
         <EntityTypeShape EntityType="LeaveONModels.AspNetUserLogin" Width="1.5" PointX="7.5" PointY="22.25" />
         <EntityTypeShape EntityType="LeaveONModels.CountryName" Width="1.5" PointX="0.75" PointY="11.25" />
-        <EntityTypeShape EntityType="LeaveONModels.DepartmentName" Width="1.5" PointX="2.75" PointY="0.75" />
         <EntityTypeShape EntityType="LeaveONModels.Leave" Width="1.5" PointX="7.5" PointY="11.75" />
         <EntityTypeShape EntityType="LeaveONModels.LeaveBalance" Width="1.5" PointX="10.5" PointY="16.25" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.LeaveType" Width="1.5" PointX="5.25" PointY="9.75" />
@@ -41,6 +40,7 @@
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_CountryNames_CountryNames" />
         <AssociationConnector Association="LeaveONModels.AspNetUserRoles" />
+        <EntityTypeShape EntityType="LeaveONModels.DepartmentName" Width="1.5" PointX="0.75" PointY="0.75" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

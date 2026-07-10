@@ -39,10 +39,18 @@ namespace Repository.Models
 
     }
 
-        [MetadataType(typeof(ILeave_MetadataType))]
+    [MetadataType(typeof(ILeave_MetadataType))]
     public partial class Leave : ILeave_MetadataType
     {
         /* Id property has already existed in the mapped class */
+        public DateTime StartDate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DateTime EndDate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public decimal? TotalDays { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string LineManager1Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string LineManager2Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public LeaveType LeaveType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string Remarks1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string Remarks2 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
 

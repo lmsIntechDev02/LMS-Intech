@@ -57,50 +57,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Common.cs" />
-    <Compile Include="Models\AnnualLeaveManager.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AnnualOffDay.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetRole.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetUser.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\AspNetUserClaim.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetUserLeavePolicy_Metadata.cs" />
-    <Compile Include="Models\AspNetUserLogin.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\AspNetUser_Metadata.cs" />
-    <Compile Include="Models\AttendanceData.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\BreakHour.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\CountryName.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\C__MigrationHistory.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\DepartmentName.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\HR_Monthly_Leaves_Report.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Leave.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\LeaveBalance.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\LeaveBalance_Metadata.cs" />
     <Compile Include="Models\LeaveOnDataModel.Context.cs">
       <AutoGen>True</AutoGen>
@@ -117,19 +75,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LeaveOnDataModel.edmx</DependentUpon>
     </Compile>
-    <Compile Include="Models\LeaveType.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Models\Leave_Metadata.cs" />
-    <Compile Include="Models\sysdiagram.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\UserLeavePolicy.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\UserLeavePolicyDetail.cs">
-      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

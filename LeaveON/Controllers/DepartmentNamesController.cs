@@ -97,7 +97,7 @@ namespace LeaveON.Controllers
 
       // Pass list to ViewBag
       ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", departmentName.HRBPEmail);
-       ViewBag.departmenUserList = new SelectList(departmenUser, "Value", "Text", departmentName.HODID.ToString());
+       //ViewBag.departmenUserList = new SelectList(departmenUser, "Value", "Text", departmentName.HODID.ToString());
 
           return View(departmentName);
         }

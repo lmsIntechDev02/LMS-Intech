@@ -25,7 +25,9 @@ namespace Repository.Models
     public partial class AspNetUser : IAspNetUser_MetadataType
     {
         /* Id property has already existed in the mapped class */
+        public DateTime? DateCreated { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DateTime? DateModified { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
-    
+
 }
