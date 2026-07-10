@@ -64,8 +64,8 @@ namespace LeaveON.UtilityClasses
       {
         Debug.WriteLine(String.Concat("Timer Event Handling MyScheduledRunTime Actions: ", DateTime.Now.ToString()));
         // RUN YOUR PROCESSES HERE
-        ResetLeavePolicyValues();
-        SetOnLeaveEmployeesStatus();
+       // ResetLeavePolicyValues();
+        //SetOnLeaveEmployeesStatus();
       }
     }
     void ResetLeavePolicyValues()

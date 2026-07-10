@@ -163,6 +163,8 @@ namespace LeaveON.Controllers
     {
       if (User.Identity.IsAuthenticated)
       {
+
+        //  ValidateADuser(model);
         if (!string.IsNullOrEmpty(returnUrl) &&
             Url.IsLocalUrl(returnUrl))
         {
@@ -282,11 +284,11 @@ namespace LeaveON.Controllers
       }
 
       // Always Remember Me
-      model.RememberMe = true;
+    //  model.RememberMe = model.RememberMe;
 
       var identity = UserManager.CreateIdentity(
-          user,
-          DefaultAuthenticationTypes.ApplicationCookie);
+       user,
+       DefaultAuthenticationTypes.ApplicationCookie);
 
       AuthenticationManager.SignOut(
           DefaultAuthenticationTypes.ApplicationCookie);
@@ -294,8 +296,10 @@ namespace LeaveON.Controllers
       AuthenticationManager.SignIn(
           new AuthenticationProperties
           {
-            IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30),
+            IsPersistent = model.RememberMe,
+            ExpiresUtc = model.RememberMe
+                  ? DateTimeOffset.UtcNow.AddMinutes(5)
+                  : (DateTimeOffset?)null,
             AllowRefresh = true
           },
           identity);
@@ -329,26 +333,25 @@ namespace LeaveON.Controllers
               aDusername);
 
            isActiveADUser = true;
-          //if (user != null && user.Enabled == true)
-          //{
-          //  DirectoryEntry de =
-          //      user.GetUnderlyingObject() as DirectoryEntry;
+          if (user != null && user.Enabled == true)
+          {
+            DirectoryEntry de =
+                user.GetUnderlyingObject() as DirectoryEntry;
 
-          //  string distinguishedName =
-          //      de.Properties["distinguishedName"].Value?.ToString() ?? "";
+            string distinguishedName =
+                de.Properties["distinguishedName"].Value?.ToString() ?? "";
 
-          //  isActiveADUser =
-          //      distinguishedName.Contains("OU=O365");
+            isActiveADUser = (!distinguishedName.Contains("OU=Disable Objects") && !distinguishedName.Contains("OU=Disabled Objects")) ? true : false;
 
-          //  // Optional: Check facsimileTelephoneNumber
-          //  string employeeNo =
-          //      de.Properties["facsimileTelephoneNumber"].Value?.ToString();
+            // Optional: Check facsimileTelephoneNumber
+            //string employeeNo =
+            //    de.Properties["facsimileTelephoneNumber"].Value?.ToString();
 
-          //  if (string.IsNullOrEmpty(employeeNo))
-          //  {
-          //    isActiveADUser = false;
-          //  }
-          //}
+            //if (string.IsNullOrEmpty(employeeNo))
+            //{
+            //  isActiveADUser = false;
+            //}
+          }
         }
       }
 

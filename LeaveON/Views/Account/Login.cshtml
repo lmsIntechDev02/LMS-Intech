@@ -64,7 +64,7 @@
 
       </div>
 
-      <div class="form-group mb-0">
+      <div class="form-group mb-3">
 
         <div class="input-group">
 
@@ -91,7 +91,13 @@
             new { @class = "text-danger" })
 
       </div>
-      <div class="mb-3"> @Html.ValidationSummary(true, "", new { @class = "text-danger" })</div>
+      <div class="form-check mb-3">
+        @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input" })
+        @Html.LabelFor(m => m.RememberMe, "Remember Me",
+            new { @class = "form-check-label" })
+      </div>
+
+              <div class="mb-3"> @Html.ValidationSummary(true, "", new { @class = "text-danger" })</div>
 
               <button type="submit"
                       class="btn btn-primary w-100 login-btn">
