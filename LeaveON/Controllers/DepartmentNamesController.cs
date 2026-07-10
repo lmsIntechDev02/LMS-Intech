@@ -73,22 +73,31 @@ namespace LeaveON.Controllers
             {
                 return HttpNotFound();
             }
+      var userlist = db.AspNetUsers
+      .Where(u => u.Email != null && u.IsActive == true).AsEnumerable();
 
           // Fetch available HRBP emails from AspNetUsers
-            var hrbpEmails = db.AspNetUsers
-          .Where(u => u.Email != null)
-          .AsEnumerable()
+      var hrbpEmails = userlist
           .Select(u => new SelectListItem
           {
             Value = u.Email,
-            Text = System.Globalization.CultureInfo.CurrentCulture.TextInfo
-                        .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+            Text = u.EmpolyeeName,//System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                        //.ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
           })
           .ToList();
+
+        var departmenUser= userlist.Where(k => k.DepartmentName.Trim().ToLower() == departmentName.Name.Trim().ToLower()).Select(u => new SelectListItem
+        {
+          Value = u.BioStarEmpNum.ToString(),
+          Text = u.EmpolyeeName,//System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                                //.ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+        })
+          .ToList();  
 
 
       // Pass list to ViewBag
       ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", departmentName.HRBPEmail);
+       ViewBag.departmenUserList = new SelectList(departmenUser, "Value", "Text", departmentName.HODID.ToString());
 
           return View(departmentName);
         }
@@ -98,7 +107,7 @@ namespace LeaveON.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail")] DepartmentName departmentName)
+        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail,HODID")] DepartmentName departmentName)
         {
             if (ModelState.IsValid)
             {
@@ -108,10 +117,13 @@ namespace LeaveON.Controllers
                 {
                   // Assuming HRBPBiostarEmpID is a column in DepartmentName table
                   departmentName.HRBPBioStarEmpNum = user.BioStarEmpNum; 
+                  //departmentName.HODID = user.HODID; 
                 }
+        departmentName.Id = 0;
 
+         db.DepartmentNames.Add(departmentName);
 
-                db.Entry(departmentName).State = EntityState.Modified;
+               // db.Entry(departmentName).State = EntityState.Modified;
                         await db.SaveChangesAsync();
                         return RedirectToAction("Index");
                     }

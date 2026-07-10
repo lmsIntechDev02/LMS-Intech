@@ -18,5 +18,6 @@ namespace Repository.Models
         public string Name { get; set; }
         public string HRBPEmail { get; set; }
         public Nullable<int> HRBPBioStarEmpNum { get; set; }
+        public Nullable<int> HODID { get; set; }
     }
 }
