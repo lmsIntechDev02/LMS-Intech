@@ -27,8 +27,7 @@ namespace Repository.Models
     public partial class UserLeavePolicy : IAspNetUserLeavePolicy_Metadata
     {
         /* Id property has already existed in the mapped class */
-        public DateTime? FiscalYearStart { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public DateTime? FiscalYearEnd { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+       
     }
 
 
