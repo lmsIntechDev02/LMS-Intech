@@ -116,12 +116,12 @@ namespace LeaveON.Controllers
                 if (user != null)
                 {
                   // Assuming HRBPBiostarEmpID is a column in DepartmentName table
-                  departmentName.HRBPBioStarEmpNum = user.BioStarEmpNum; 
+                  departmentName.HRBPBiostarEmpNum = user.BioStarEmpNum; 
                   //departmentName.HODID = user.HODID; 
                 }
-        departmentName.Id = 0;
+       // departmentName.Id = 0;
 
-         db.DepartmentNames.Add(departmentName);
+         //db.DepartmentNames.Add(departmentName);
 
                // db.Entry(departmentName).State = EntityState.Modified;
                         await db.SaveChangesAsync();

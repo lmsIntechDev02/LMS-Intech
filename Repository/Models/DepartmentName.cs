@@ -17,7 +17,7 @@ namespace Repository.Models
         public decimal Id { get; set; }
         public string Name { get; set; }
         public string HRBPEmail { get; set; }
-        public Nullable<int> HRBPBioStarEmpNum { get; set; }
+        public Nullable<int> HRBPBiostarEmpNum { get; set; }
         public Nullable<int> HODID { get; set; }
     }
 }

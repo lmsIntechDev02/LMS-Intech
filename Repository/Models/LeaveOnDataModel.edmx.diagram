@@ -4,32 +4,29 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="41b3342e1acf4fda99c28be56ef0d5bf" Name="Diagram1" ZoomLevel="54">
+      <Diagram DiagramId="41b3342e1acf4fda99c28be56ef0d5bf" Name="Diagram1" ZoomLevel="93">
         <EntityTypeShape EntityType="LeaveONModels.AnnualLeaveManager" Width="1.5" PointX="0.75" PointY="3.75" />
         <EntityTypeShape EntityType="LeaveONModels.AnnualOffDay" Width="1.5" PointX="5.25" PointY="22.125" />
         <EntityTypeShape EntityType="LeaveONModels.AspNetUserClaim" Width="1.5" PointX="7.75" PointY="25.25" />
-        <EntityTypeShape EntityType="LeaveONModels.AspNetUserLogin" Width="1.5" PointX="7.5" PointY="22.25" />
+        <EntityTypeShape EntityType="LeaveONModels.AspNetUserLogin" Width="5" PointX="7.5" PointY="22.25" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.CountryName" Width="1.5" PointX="0.75" PointY="11.25" />
-        <EntityTypeShape EntityType="LeaveONModels.DepartmentName" Width="1.5" PointX="2.75" PointY="0.75" />
         <EntityTypeShape EntityType="LeaveONModels.Leave" Width="1.5" PointX="7.5" PointY="11.75" />
         <EntityTypeShape EntityType="LeaveONModels.LeaveBalance" Width="1.5" PointX="10.5" PointY="16.25" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.LeaveType" Width="1.5" PointX="5.25" PointY="9.75" />
-        <EntityTypeShape EntityType="LeaveONModels.UserLeavePolicy" Width="1.5" PointX="3" PointY="17.75" />
         <EntityTypeShape EntityType="LeaveONModels.UserLeavePolicyDetail" Width="1.5" PointX="8.25" PointY="18.875" />
-        <AssociationConnector Association="LeaveONModels.FK_AnnualOffDays_UserLeavePolicy" />
-        <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicy_CountryNames" />
         <AssociationConnector Association="LeaveONModels.FK_Leave_LeaveType" />
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_LeaveType" />
-        <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" />
         <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" />
-        <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" />
         <EntityTypeShape EntityType="LeaveONModels.C__MigrationHistory" Width="1.5" PointX="5.75" PointY="3.75" />
         <EntityTypeShape EntityType="LeaveONModels.sysdiagram" Width="1.5" PointX="5.75" PointY="6.75" />
         <EntityTypeShape EntityType="LeaveONModels.AttendanceData" Width="1.5" PointX="8.375" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.BreakHour" Width="1.5" PointX="7.5" PointY="28.375" IsExpanded="true" />
         <EntityTypeShape EntityType="LeaveONModels.HR_Monthly_Leaves_Report" Width="1.5" PointX="10.875" PointY="0.75" />
         <EntityTypeShape EntityType="LeaveONModels.AspNetRole" Width="1.5" PointX="1.5" PointY="27.5" />
-        <EntityTypeShape EntityType="LeaveONModels.AspNetUser" Width="1.5" PointX="0.75" PointY="16.5" />
+        <AssociationConnector Association="LeaveONModels.FK_CountryNames_CountryNames" />
+        <EntityTypeShape EntityType="LeaveONModels.AspNetUser" Width="1.5" PointX="12.75" PointY="11.375" />
+        <EntityTypeShape EntityType="LeaveONModels.UserLeavePolicy" Width="1.5" PointX="10.5" PointY="9.75" />
+        <AssociationConnector Association="LeaveONModels.FK_AnnualOffDays_UserLeavePolicy" />
         <AssociationConnector Association="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" />
         <AssociationConnector Association="LeaveONModels.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" />
         <AssociationConnector Association="LeaveONModels.FK_AspNetUsers_CountryNames" />
@@ -39,8 +36,12 @@
         <AssociationConnector Association="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_AspNetUsers" />
-        <AssociationConnector Association="LeaveONModels.FK_CountryNames_CountryNames" />
+        <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicy_CountryNames" />
+        <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" />
+        <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy" />
+        <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" />
         <AssociationConnector Association="LeaveONModels.AspNetUserRoles" />
+        <EntityTypeShape EntityType="LeaveONModels.DepartmentName" Width="1.5" PointX="0.75" PointY="0.75" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
