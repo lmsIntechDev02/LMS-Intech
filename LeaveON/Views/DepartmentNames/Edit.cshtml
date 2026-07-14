@@ -36,11 +36,12 @@
     </div>
     <div class="form-group">
       @Html.Label("HOD Name")
+
       @Html.DropDownListFor(model => model.HODID,
           (SelectList)ViewBag.departmenUserList,
           "Please Select HOD Name",
-          new { @class = "form-control" })
-      @Html.ValidationMessageFor(model => model.HODID, "", new { @class = "text-danger" }) 
+          new { @class = "form-control select2" })
+      @Html.ValidationMessageFor(model => model.HODID, "", new { @class = "text-danger " }) 
 
     </div>
   </div>

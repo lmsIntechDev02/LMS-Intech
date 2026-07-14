@@ -215,7 +215,7 @@ namespace LeaveON.Services
               year,
               managerEmail,
               legitimacyCheckForReports,
-              legitimacyCheckers, hRBPEmail);
+              legitimacyCheckers, hRBPEmail, false);
         }
       }
 
@@ -710,7 +710,7 @@ namespace LeaveON.Services
         int year,
         ManagerDto managerDetail,
         bool legitimacyCheckForReports,
-        List<EmailAndIDs> legitimacyCheckers, string hrBpEmail)
+        List<EmailAndIDs> legitimacyCheckers, string hrBpEmail, bool isHOD)
     {
       if (reportData == null || reportData.Count == 0)
       {
@@ -755,8 +755,8 @@ namespace LeaveON.Services
 
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-          // mail.To.Add("laiba.khan@intechww.com");
-          mail.To.Add("esswaqas@hotmail.com");
+           mail.To.Add("laiba.khan@intechww.com");
+          //mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -882,8 +882,21 @@ namespace LeaveON.Services
           table.WidthPercentage = 100;
           table.SpacingBefore = 20f;
 
-          PdfPCell managerCell = new PdfPCell(new Phrase(
-              string.Format("Manager - {0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont))
+          
+          
+
+         
+           
+          PdfPCell managerCell = new PdfPCell(
+            isHOD == true ?
+                   new Phrase(
+
+   string.Format("Head of Department - {0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont)
+                   :
+            new Phrase(
+            
+   string.Format("Manager - {0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont)
+            )
           {
             Colspan = 12,
             HorizontalAlignment = Element.ALIGN_CENTER,
@@ -1412,14 +1425,17 @@ namespace LeaveON.Services
       using (var context = new LeaveONEntities())
       {
         
-        var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };   
-                                                                                               
-        var managersIDs = from d in context.DepartmentNames 
-                          join m in context.AspNetUsers on d.HRBPBiostarEmpNum equals m.BioStarEmpNum
-                           where //allowedDepartments.Contains(m.DepartmentName) &&
-                                 m.IsActive == true
+       // var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };
+        var hODDeparments = context.DepartmentNames.Where(k => k.HODID.HasValue).Select(k => k.HODID).ToList();
+
+
+        var managersIDs = from m in context.AspNetUsers
+                            
+                           where m.BioStarEmpNum > 0 && hODDeparments.Contains(m.BioStarEmpNum) 
+                                && m.IsActive == true
                                 && m.IsDeleted != true
-                          orderby d.Name
+                               
+                          orderby m.DepartmentName
                           select new ManagerDto
                           {
                             Id = m.Id,
@@ -1427,7 +1443,7 @@ namespace LeaveON.Services
                             Email = m.Email,
                             PhoneNumber = m.PhoneNumber,
                             ManagerName = m.ManagerName,
-                            DepartmentName = d.Name
+                            DepartmentName = m.DepartmentName
                           };
 
 
@@ -1437,7 +1453,7 @@ namespace LeaveON.Services
     public Task GetHODDeparmentReport(int month, int year)
     {
       string monthName = GetMonthName(month);
-      List<DepartmentName> departmentList = GetDepartmentList();
+     // List<DepartmentName> departmentList = GetDepartmentList();
        
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
@@ -1464,7 +1480,7 @@ namespace LeaveON.Services
               year,
               managerEmail,
               false,
-              new List<EmailAndIDs>(), hRBPEmail);
+              new List<EmailAndIDs>(), hRBPEmail,true);
         }
       }
         return Task.CompletedTask;
@@ -1481,6 +1497,7 @@ namespace LeaveON.Services
     public string PhoneNumber { get; set; }
     public string ManagerName { get; set; }
     public string DepartmentName { get; set; }
+    public string HoDName { get; set; }
   }
 }
 

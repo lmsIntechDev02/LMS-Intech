@@ -604,7 +604,14 @@ namespace LeaveON.Controllers
         leaveBalance = new LeaveBalance(ref leave);
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
-        leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
+        if (leave.UserLeavePolicyID.HasValue)
+        {
+          leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
+        }
+        else if(leave.AspNetUser != null) { 
+          leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+        }
+
         db.LeaveBalances.Add(leaveBalance);
       }
       else

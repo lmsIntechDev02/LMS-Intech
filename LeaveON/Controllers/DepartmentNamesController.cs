@@ -81,16 +81,16 @@ namespace LeaveON.Controllers
           .Select(u => new SelectListItem
           {
             Value = u.Email,
-            Text = u.EmpolyeeName,//System.Globalization.CultureInfo.CurrentCulture.TextInfo
-                        //.ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+            Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName : System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                                .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
           })
           .ToList();
 
-        var departmenUser= userlist.Where(k => k.DepartmentName.Trim().ToLower() == departmentName.Name.Trim().ToLower()).Select(u => new SelectListItem
+        var departmenUser= userlist.Select(u => new SelectListItem
         {
           Value = u.BioStarEmpNum.ToString(),
-          Text = u.EmpolyeeName,//System.Globalization.CultureInfo.CurrentCulture.TextInfo
-                                //.ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+          Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName :System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                                .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
         })
           .ToList();  
 
@@ -123,7 +123,7 @@ namespace LeaveON.Controllers
 
          //db.DepartmentNames.Add(departmentName);
 
-               // db.Entry(departmentName).State = EntityState.Modified;
+                db.Entry(departmentName).State = EntityState.Modified;
                         await db.SaveChangesAsync();
                         return RedirectToAction("Index");
                     }
