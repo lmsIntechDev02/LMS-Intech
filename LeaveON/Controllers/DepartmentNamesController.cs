@@ -8,6 +8,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using Repository.Models;
+using LeaveON.Models;
 
 namespace LeaveON.Controllers
 {
@@ -19,7 +20,25 @@ namespace LeaveON.Controllers
         // GET: DepartmentNames
         public async Task<ActionResult> Index()
         {
-            return View(await db.DepartmentNames.ToListAsync());
+      List<DepartmentModel> departmentList = (from d in db.DepartmentNames
+                                              join u in db.AspNetUsers
+                                              on d.HODID equals u.BioStarEmpNum into userGroup
+                                              from u in userGroup.DefaultIfEmpty()
+                                              select new DepartmentModel
+                                              {
+                                                Name = d.Name,
+                                                Id = d.Id,
+                                                HRBPName = !string.IsNullOrEmpty(d.HRBPEmail)
+                                                      ? d.HRBPEmail.Split('@')[0].Replace(".", " ")
+                                                      : string.Empty,
+
+                                                HODName = !string.IsNullOrEmpty(u.EmpolyeeName)
+                                                      ? u.EmpolyeeName
+                                                      : (!string.IsNullOrEmpty(u.Email)
+                                                          ? u.Email.Split('@')[0].Replace(".", " ")
+                                                          : string.Empty)
+                                              }).ToList();
+      return View(departmentList);
         }
 
         // GET: DepartmentNames/Details/5

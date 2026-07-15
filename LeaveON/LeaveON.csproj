@@ -322,6 +322,7 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\AnnualLeaveModel.cs" />
+    <Compile Include="Models\DepartmentModel1.cs" />
     <Compile Include="Models\ErrorViewModel.cs" />
     <Compile Include="Models\Procedures\LeaveAbsentModel.cs" />
     <Compile Include="Models\RightsViewModel.cs" />
