@@ -17,7 +17,9 @@ namespace LeaveON.Models
         public int? BioStarEmpNum { get; set; }
         public int?  UserLeavePolicyId { get; set; }
         public bool? IsActive { get; set; }
-        public string DepartmentName { get; set; }
+
+       
+         public string DepartmentName { get; set; }
         public string CntryName { get; set; }
         public string CntryNameTemp { get; set; }
         public bool IsRelocated { get; set; }
