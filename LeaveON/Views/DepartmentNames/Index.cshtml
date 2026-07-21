@@ -1,4 +1,4 @@
-
+@model IEnumerable<LeaveON.Models.DepartmentModel>
 
 @{
   ViewBag.Title = "Index";
@@ -43,40 +43,30 @@
                     <tr role="row">
 
                       <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name : activate to sort column ascending" aria-sort="descending">
-                        Name
+                        @Html.DisplayNameFor(model => model.Name)
                       </th>
                       <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name : activate to sort column ascending" aria-sort="descending">
-
+                        @*@Html.DisplayNameFor(model => model.HRBPEmail)*@
                         HRBP Name
                       </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name : activate to sort column ascending" aria-sort="descending">
-
-                        HOD Name
-                      </th>
+                      <th>HOD Name</th>
                       <th></th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    @if (ViewBag.DeparmentList != null)
+                    @foreach (var item in Model)
                     {
-                      foreach (var item in ViewBag.DeparmentList)
-                      {
+                    <tr>
 
-                        <tr>
-
-                          <td>@item.Name</td>
-                          <td>@item.HRBPName</td>
-                          <td>@item.HODName</td>
-
-
-
-                          <td>
-                            @Html.ActionLink("Update", "Edit", new { id = item.Id })
-                          </td>
-
-                        </tr>
-                      }
+                      <td>@item.Name</td>
+                      <td>@item.HRBPName</td>
+                      <td>@item.HODName</td>
+                       
+                      <td>
+                        @Html.ActionLink("Update", "Edit", new { id = item.Id })
+                      </td>
+                    </tr>
                     }
                   </tbody>
                   <tfoot>

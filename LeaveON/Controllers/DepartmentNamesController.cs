@@ -20,24 +20,30 @@ namespace LeaveON.Controllers
         // GET: DepartmentNames
         public async Task<ActionResult> Index()
         {
-      List<DepartmentModel> departmentList = (from d in db.DepartmentNames
-                                              join u in db.AspNetUsers
-                                              on d.HODID equals u.BioStarEmpNum into userGroup
-                                              from u in userGroup.DefaultIfEmpty()
-                                              select new DepartmentModel
-                                              {
-                                                Name = d.Name,
-                                                Id = d.Id,
-                                                HRBPName = !string.IsNullOrEmpty(d.HRBPEmail)
-                                                      ? d.HRBPEmail.Split('@')[0].Replace(".", " ")
-                                                      : string.Empty,
 
-                                                HODName = !string.IsNullOrEmpty(u.EmpolyeeName)
-                                                      ? u.EmpolyeeName
-                                                      : (!string.IsNullOrEmpty(u.Email)
-                                                          ? u.Email.Split('@')[0].Replace(".", " ")
-                                                          : string.Empty)
-                                              }).ToList();
+      List<DepartmentModel> departmentList = new List<DepartmentModel>();
+            DepartmentModel ditem = new DepartmentModel();
+      foreach (var item in db.DepartmentNames.ToList()) 
+      {
+        ditem =  new DepartmentModel();
+        ditem.Name = item.Name;
+        ditem.HRBPName = !string.IsNullOrEmpty(item.HRBPEmail)
+                                                      ? item.HRBPEmail.Split('@')[0].Replace(".", " ")
+                                                      : string.Empty;
+        ditem.Id = item.Id;
+        if (item.HODID.HasValue)
+        {
+            var user = db.AspNetUsers.FirstOrDefault(k => k.IsActive == true && k.BioStarEmpNum== item.HODID);
+          if (user != null)
+          {
+
+            ditem.HODName = !string.IsNullOrEmpty(user.EmpolyeeName) ? user.EmpolyeeName : user.Email.Split('@')[0].Replace(".", " ");
+          }
+        }
+        departmentList.Add(ditem);
+      }
+
+      
       return View(departmentList);
         }
 
