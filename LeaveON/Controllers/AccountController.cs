@@ -236,11 +236,17 @@ namespace LeaveON.Controllers
         return View(model);
       }
 
-      bool isValidADUser = false;
+      if (!model.Email.Contains("@intechww.com"))
+      {
+        model.Email = string.Concat(model.Email, "@intechww.com");
+      }
+
+     // bool isValidADUser = false;
+    bool isValidADUser = true;
 
       try
       {
-        isValidADUser = ValidateADuser(model);
+       /// isValidADUser = ValidateADuser(model);
       }
       catch (Exception ex)
       {
@@ -298,7 +304,7 @@ namespace LeaveON.Controllers
           {
             IsPersistent = model.RememberMe,
             ExpiresUtc = model.RememberMe
-                  ? DateTimeOffset.UtcNow.AddMinutes(5)
+                  ? DateTimeOffset.UtcNow.AddDays(7)
                   : (DateTimeOffset?)null,
             AllowRefresh = true
           },

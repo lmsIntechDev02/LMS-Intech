@@ -63,29 +63,33 @@
           </ul>
         </div>*@}
 
-    <div class="d-flex align-items-center gap-3 col-5 form-group">
+  <div class="d-flex align-items-center gap-3 col-5 form-group">
 
 
+    <div>
       <div>
-        <div>
-          <label class="font-weight-normal">Start Date</label>
-        </div>
-        @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+        <label class="font-weight-normal">Start Date</label>
       </div>
-
-      @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
-      <div>
-        <div>
-          <label class="font-weight-normal">End Date</label>
-        </div>
-        @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
-      </div>
-      <button id="load" style="position: relative;    top: 9px;">
-        <span class="button-text">Go</span>
-        <span class="loader" style="display: none;">Loading...</span>
-      </button>
-
+      @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
     </div>
+
+    @*@Html.Label("Time", htmlAttributes: new { @class = "control-label col-md-2" })*@
+    <div>
+      <div>
+        <label class="font-weight-normal">End Date</label>
+      </div>
+      @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+    </div>
+    <button id="load" style="position: relative;    top: 9px;">
+      <span class="button-text">Go</span>
+      <span class="loader" style="display: none;">Loading...</span>
+    </button>
+    <button id="ExportToExcel" style="position: relative;    top: 9px;">
+      <span class="button-text">Export to  Excel</span>
+      <span class="loader" style="display: none;">Loading...</span>
+    </button>
+
+  </div>
   </div>
   <div class="row">
     <div id="wait" style="display:none;"><img src='~/Images/Ripple_1s_200px_Transparent.gif' width="38" height="38" /></div>
@@ -310,7 +314,81 @@
 });
 
 
+       $('#ExportToExcel').click(function () {
+      // Show the loader and hide the button text
+   
+   
 
+         //   var reqMonthYear = $('#selectMonth').val();
+            var startDate = $('#datepickerStart').val();
+            var endDate = $('#datepickerEnd').val();
+            var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
+        
+
+
+
+
+            if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
+               
+
+              var selectedEmployees = $('#idEmployees option:selected').map(function () {
+                return $(this).val();
+              }).get();
+
+              // Check if "on" is at index 0 and shift employee IDs
+              //if (selectedEmployees[0] === "on") {
+              //  selectedEmployees.shift();
+              //}
+
+                if (selectedEmployees.length === 0) {
+                  if (userRole === "Admin")
+                  {
+
+                alert('Please select at least one department and one employee.');
+          
+             
+                  return;
+              }
+              else
+                  {
+
+               
+
+                alert('Please select at least one employee.');
+               
+
+                //disableInputs(false);
+                  return;
+                  }
+                }
+              if (!startDate) {
+                alert('Please select start date.');
+              
+                disableInputs(false);
+                return;
+              }
+
+              if (!endDate) {
+                alert('Please select end date.');
+            
+                
+                return;
+              }
+              alert(selectedEmployees)
+
+              //requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
+              //location.href = "/AccessBiostarTA/ExportAttendance?StartDate=" + startDate + "&EndDate=" + endDate + "&UserIds" + selectedEmployees
+              var url = "/AccessBiostarTA/ExportAttendance?StartDate=" + encodeURIComponent(startDate)
+                + "&EndDate=" + encodeURIComponent(endDate);
+
+              $.each(selectedEmployees, function (i, id) {
+                url += "&UserIds=" + encodeURIComponent(id);
+              });
+
+              location.href = url;
+            }
+             
+    })
 
     $('#load').click(function () {
       // Show the loader and hide the button text

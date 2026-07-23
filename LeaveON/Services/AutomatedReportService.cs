@@ -68,20 +68,20 @@ namespace LeaveON.Services
         //  var users = context.AspNetUsers.Where(y => y.CntryName != "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
         // users = users.Where(k => k.UserID == "2840417a-7247-44bf-bf71-0e98ae6bb956").ToList();
         //test
-       // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "dc70c0b4-e445-43b5-8c24-1ab960c3f431"))
-      //live
-       var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value>0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted !=true )
-      .Select(x => new EmailAndIDs
-      {
-        userId = x.BioStarEmpNum.Value,
-        email = x.Email,
-        userLeavePolicyID = x.UserLeavePolicyId,
-        UserID = x.Id,
-        JoiningDate = x.JoiningDate,
-        EmployeeName = x.EmpolyeeName,
-        DepartmentName= x.DepartmentName
-      })
-      .ToList();
+        // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "32044600-a0de-47c8-910e-d859c71ea97b"))
+        //live
+        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && y.IsDeleted != true && !String.IsNullOrEmpty(y.DepartmentName))
+        .Select(x => new EmailAndIDs
+        {
+          userId = x.BioStarEmpNum.Value,
+          email = x.Email,
+          userLeavePolicyID = x.UserLeavePolicyId,
+          UserID = x.Id,
+          JoiningDate = x.JoiningDate,
+          EmployeeName = x.EmpolyeeName,
+          DepartmentName = x.DepartmentName
+        })
+        .ToList();
 
         return users;
       }
@@ -97,7 +97,7 @@ namespace LeaveON.Services
         //test
         // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "32044600-a0de-47c8-910e-d859c71ea97b"))
         //live
-        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && !String.IsNullOrEmpty(y.DepartmentName) && y.DepartmentName.Trim().ToLower() == deparmentName.ToLower() && y.IsActive == true && y.IsDeleted != true )
+        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && !String.IsNullOrEmpty(y.DepartmentName) && y.DepartmentName.Trim().ToLower() == deparmentName.ToLower() && y.IsActive == true && y.IsDeleted != true)
         .Select(x => new EmailAndIDs
         {
           userId = x.BioStarEmpNum.Value,
@@ -184,10 +184,11 @@ namespace LeaveON.Services
       {
         managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
       }
-
       //managerids = new List<string>
-      //      {
-      //"c2529cb2-be2b-4f03-8f31-4ccef6ad7a42"
+      //    {
+      //  "6c75398c-4f4c-4ff5-baed-814c75138588"
+
+      //      };
 
       managerEmails = GetManagersListById(managerids);
 
@@ -207,25 +208,83 @@ namespace LeaveON.Services
             hRBPEmail = "";// departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
           }
 
-          DateTime startOfMonth = new DateTime(year, month, 1);
-          DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+          GeneratePDFManager1(
+              reportList,
+              reportList.Count > 0 ? reportList[0].TotalDays : 0,
+              monthName,
+              year,
+              managerEmail,
+              legitimacyCheckForReports,
+              legitimacyCheckers, hRBPEmail, false);
+        }
+      }
 
-          var userIds = users.Select(u => u.UserID).ToList();
-          var policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
-                               .Select(u => u.userLeavePolicyID.Value)
-                               .Distinct()
-                               .ToList();
+      return Task.CompletedTask;
+    }
 
-          var attendanceMonth = context.AttendanceDatas
-              .Where(a => userIds.Contains(a.UserID)
-                       && a.CreatedDate >= startOfMonth
-                       && a.CreatedDate <= endOfMonth)
-              .ToList();
+    private static List<EmployeeReportData> BindUserMonthReportData(int month, int year, ManagerDto managerEmail, LeaveONEntities context, List<EmailAndIDs> users)
+    {
+      List<int> policyIds = new List<int>();
+      DateTime startOfMonth = new DateTime(year, month, 1);
+      DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+      var userIds = users.Select(u => u.UserID).ToList();
+      //var policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+      //                     .Select(u => u.userLeavePolicyID.Value)
+      //                     .Distinct()
+      //                     .ToList();
+      policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+                           .Select(u => u.userLeavePolicyID.Value)
+                           .Distinct()
+                           .ToList();
+      var attendanceMonth = context.AttendanceDatas
+          .Where(a => userIds.Contains(a.UserID)
+                   && a.CreatedDate >= startOfMonth
+                   && a.CreatedDate <= endOfMonth)
+          .ToList();
 
-          var attendanceYear = context.AttendanceDatas
-              .Where(a => userIds.Contains(a.UserID)
-                       && a.CreatedDate.HasValue)
-              .ToList();
+      //string policyName = String.Empty;
+
+      List<String> policyName = new List<String>();
+      List<UserLeavePolicy> userpolicyList = new List<UserLeavePolicy>();
+
+      if (attendanceMonth != null && attendanceMonth.Count() > 0)
+      {
+        policyName = attendanceMonth.Select(u => u.UserLeavePolicyID).Distinct().ToList();
+      }
+      if (policyName.Where(k => !string.IsNullOrEmpty(k)).Count() > 0)
+      {
+        userpolicyList = context.UserLeavePolicies.Where(p => policyName.Any(l => l.Trim().ToLower() == p.Description.Trim().ToLower())).ToList();
+        if (policyIds.Count() > 0)
+        {
+          policyIds.AddRange(userpolicyList.Select(u => u.Id).Distinct().ToList());
+        }
+        else
+        {
+
+          policyIds = userpolicyList.Select(u => u.Id).Distinct().ToList();
+        }
+      }
+      else
+      {
+        policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+                           .Select(u => u.userLeavePolicyID.Value)
+                          .Distinct()
+                           .ToList();
+      }
+
+
+
+
+
+
+
+      var cDate = DateTime.Today;
+
+      var attendanceYear = context.AttendanceDatas
+          .Where(a => userIds.Contains(a.UserID)
+                   && a.CreatedDate.HasValue
+                   && a.CreatedDate < cDate)
+          .ToList();
 
       var leaves = context.Leaves
           .Where(l => userIds.Contains(l.UserId)
@@ -241,18 +300,14 @@ namespace LeaveON.Services
           .Where(p => policyIds.Contains((int)p.UserLeavePolicyId))
           .ToList();
 
-          var holidays = context.AnnualOffDays
-              .Where(o => policyIds.Contains((int)o.UserLeavePolicyId))
-              .ToList();
-
-          List<EmployeeReportData> reportList = new List<EmployeeReportData>();
-
-
-
-          foreach (var user in users)
-          {
-            if (!user.userLeavePolicyID.HasValue)
-              continue;
+      var holidays = context.AnnualOffDays
+          .Where(o => policyIds.Contains((int)o.UserLeavePolicyId))
+          .ToList();
+      List<EmployeeReportData> reportList = new List<EmployeeReportData>();
+      foreach (var user in users)
+      {
+        if (!user.userLeavePolicyID.HasValue)
+          continue;
 
         int userIdInt = Convert.ToInt32(user.userId);
         var userAttendanceMonth = attendanceMonth
@@ -263,12 +318,30 @@ namespace LeaveON.Services
         String attedancePolicy = userAttendanceMonth.Count() > 0 ? userAttendanceMonth.FirstOrDefault().UserLeavePolicyID : String.Empty;
         UserLeavePolicy policy = new UserLeavePolicy();
 
-            //for missing get date list
-            List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
-            DateTime currentDate = new DateTime();
-            workingMonthDateList=workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
-            List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
-            int totalWorkingDaysCount = userAttendanceMonth.Where(k => k.TotalWorkHours.HasValue && k.TotalWorkHours.Value > 0).Count();
+        if (!String.IsNullOrEmpty(attedancePolicy))
+        {
+          policy = leavePolicies.FirstOrDefault(k => k.Description.ToLower().Trim() == attedancePolicy.ToLower().Trim()); //leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
+          fiscalStart = policy.FiscalYearStart.Value;
+          fiscalEnd = policy.FiscalYearEnd.Value;
+        }
+        else
+        {
+          policy = leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
+          fiscalStart = policy.FiscalYearStart.Value;
+          fiscalEnd = policy.FiscalYearEnd.Value;
+        }
+
+
+
+
+
+
+        //for missing get date list
+        List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
+        DateTime currentDate = (DateTime.Now).AddDays(-1);
+        workingMonthDateList = workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
+        List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
+        int totalWorkingDaysCount = userAttendanceMonth.Where(k => k.TotalWorkHours.HasValue && k.TotalWorkHours.Value > 0).Count();
 
         if (workingMonthDateList.Count > totalWorkingDaysCount)
 
@@ -340,23 +413,23 @@ namespace LeaveON.Services
                        && l.StartDate >= fiscalStart
                        && l.EndDate <= fiscalEnd).ToList();
 
-            int absentYTD = userAttendanceYTD.Count(a =>
-                a.IsAbsent == true
-                && !publicHolidays.Contains(a.CreatedDate.Value.Date)
-                && !absenteesYTD.Any(l => a.CreatedDate >= l.StartDate && a.CreatedDate <= l.EndDate));
+        int absentYTD = userAttendanceYTD.Count(a =>
+            a.IsAbsent == true
+            && !publicHolidays.Contains(a.CreatedDate.Value.Date)
+            && !absenteesYTD.Any(l => a.CreatedDate >= l.StartDate && a.CreatedDate <= l.EndDate));
+        decimal availedLeaveYTD = userLeavesYTD.Sum(l => (decimal)l.TotalDays);
 
-            decimal availedLeaveYTD = userLeavesYTD.Sum(l => (decimal)l.TotalDays);
 
-            int shortHoursYTD = (int)context.Leaves
-                .Where(l => l.UserId == user.UserID
-                         && l.IsShortLeave == true
-                           && l.IsAccepted1 == 1
-                           && l.IsAccepted2 == 1
-                         && l.StartDate >= fiscalStart
-                         && l.EndDate <= fiscalEnd)
-                .AsEnumerable()
-                .Sum(l => (l.EndDate - l.StartDate).TotalHours);
-            int shortDaysToCausalLeave = 0;
+        int shortHoursYTD = (int)context.Leaves
+            .Where(l => l.UserId == user.UserID
+                     && l.IsShortLeave == true
+                       && l.IsAccepted1 == 1
+                       && l.IsAccepted2 == 1
+                     && l.StartDate >= fiscalStart
+                     && l.EndDate <= fiscalEnd)
+            .AsEnumerable()
+            .Sum(l => (l.EndDate - l.StartDate).TotalHours);
+        int shortDaysToCausalLeave = 0;
 
         if (shortHoursYTD >= 8)
         {
@@ -647,8 +720,8 @@ namespace LeaveON.Services
 
       using (var context = new LeaveONEntities())
       {
-       
- if (string.IsNullOrEmpty(managerDetail.Email))
+
+        if (string.IsNullOrEmpty(managerDetail.Email))
           return;
 
         string managerName = managerDetail.Email.Split('@')[0].Replace('.', ' ');
@@ -683,7 +756,7 @@ namespace LeaveON.Services
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
           mail.To.Add("laiba.khan@intechww.com");
-         // mail.To.Add("esswaqas@hotmail.com");
+          //mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -809,11 +882,11 @@ namespace LeaveON.Services
           table.WidthPercentage = 100;
           table.SpacingBefore = 20f;
 
-          
-          
 
-         
-           
+
+
+
+
           PdfPCell managerCell = new PdfPCell(
             isHOD == true ?
                    new Phrase(
@@ -821,7 +894,7 @@ namespace LeaveON.Services
    string.Format("Head of Department - {0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont)
                    :
             new Phrase(
-            
+
    string.Format("Manager - {0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont)
             )
           {
@@ -883,9 +956,8 @@ namespace LeaveON.Services
             table.AddCell(new PdfPCell(new Phrase(d.AverageTimeOut, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
             table.AddCell(new PdfPCell(new Phrase(d.AverageTimeInOffice, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BorderWidthRight = 3f });
           }
-         
+
           document.Add(table);
-          document.Close();
 
           //document.NewPage();
 
@@ -1246,23 +1318,12 @@ namespace LeaveON.Services
       {
         //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
-        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht" };
-        //var allowedDepartments = new[] { "IS&T","FINANCE & ACCOUNTS","Marketing" ,"Project Monitoring & Control" };
-        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
+        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" };
+        // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
+        var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };  //, "Solution Centre" , "Project Monitoring & Control" 
+                                                                                            //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
+                                                                                            //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
-        //string dep = "FINANCE & ACCOUNTS";
-        // Fetch all users who have either ManagerID or Manager2ID
-        //var managersIDs = context.AspNetUsers
-        //              .Where(u => u.IsDeleted != true  && u.IsActive == true  && !string.IsNullOrEmpty(u.ManagerID) && !string.IsNullOrEmpty(u.DepartmentName) &&(allowedDepartments.Any(k=>k.ToLower()==u.DepartmentName.ToLower()))).Distinct().Select(u => new ManagerDto
-        //              {
-        //                Id = u.ManagerID,
-        //                UserName = u.UserName,
-        //                Email = u.Email,
-        //                PhoneNumber = u.PhoneNumber,
-        //                ManagerName = u.ManagerName,
-        //                DepartmentName = u.DepartmentName
-        //              })
-        //.ToList();
         var managersIDs = from u in context.AspNetUsers
                           join m in context.AspNetUsers on u.ManagerID equals m.Id
                           where allowedDepartments.Contains(m.DepartmentName)
@@ -1279,7 +1340,7 @@ namespace LeaveON.Services
                             DepartmentName = u.DepartmentName
                           };
 
-        
+
         return managersIDs.Distinct().ToList();
       }
     }
@@ -1363,17 +1424,17 @@ namespace LeaveON.Services
     {
       using (var context = new LeaveONEntities())
       {
-        
-       // var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };
+
+        // var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };
         var hODDeparments = context.DepartmentNames.Where(k => k.HODID.HasValue).Select(k => k.HODID).ToList();
 
 
         var managersIDs = from m in context.AspNetUsers
-                            
-                           where m.BioStarEmpNum > 0 && hODDeparments.Contains(m.BioStarEmpNum) 
-                                && m.IsActive == true
-                                && m.IsDeleted != true
-                               
+
+                          where m.BioStarEmpNum > 0 && hODDeparments.Contains(m.BioStarEmpNum)
+                               && m.IsActive == true
+                               && m.IsDeleted != true
+
                           orderby m.DepartmentName
                           select new ManagerDto
                           {
@@ -1392,8 +1453,8 @@ namespace LeaveON.Services
     public Task GetHODDeparmentReport(int month, int year)
     {
       string monthName = GetMonthName(month);
-     // List<DepartmentName> departmentList = GetDepartmentList();
-       
+      // List<DepartmentName> departmentList = GetDepartmentList();
+
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
       managerEmails = GetHoDPerson();
@@ -1401,7 +1462,7 @@ namespace LeaveON.Services
       {
         using (var context = new LeaveONEntities())
         {
-          var users = GetUserDepartmentWise(managerEmail.DepartmentName).Where(k=>k.UserID != managerEmail.Id).ToList();
+          var users = GetUserDepartmentWise(managerEmail.DepartmentName).Where(k => k.UserID != managerEmail.Id).ToList();
 
           if (users == null || users.Count == 0)
             continue;
@@ -1419,10 +1480,10 @@ namespace LeaveON.Services
               year,
               managerEmail,
               false,
-              new List<EmailAndIDs>(), hRBPEmail,true);
+              new List<EmailAndIDs>(), hRBPEmail, true);
         }
       }
-        return Task.CompletedTask;
+      return Task.CompletedTask;
     }
 
 

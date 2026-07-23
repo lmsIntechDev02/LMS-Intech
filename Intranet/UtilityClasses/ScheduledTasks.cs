@@ -125,12 +125,8 @@ namespace LeaveON.UtilityClasses
             {
                 List<string> userIds = new List<string>
 {
-  "1128",
-  "1435",
-  "1427",
-  "1209",
-  "1757",
-  "2333"
+  "3035"
+
 
 };
 
@@ -188,12 +184,12 @@ namespace LeaveON.UtilityClasses
 
      //x.Auth.EmployeeId !="" &&
       x.De != null &&
-      IsActive(x.De) &&
+      //IsActive(x.De) &&
       x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
 
-       //x.De.Properties["facsimileTelephoneNumber"]
-       //     .Cast<object>()
-       //      .Any(v => userIds.Contains(v.ToString().Trim())) &&
+       x.De.Properties["facsimileTelephoneNumber"]
+            .Cast<object>()
+             .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
              !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
             .Contains("OU=Disabled Objects")
@@ -227,11 +223,11 @@ namespace LeaveON.UtilityClasses
        
          
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-         //x.De.Properties["facsimileTelephoneNumber"]
-         //    .Cast<object>()
-         //  .Any(v => userIds.Contains(v.ToString().Trim()))
+         x.De.Properties["facsimileTelephoneNumber"]
+             .Cast<object>()
+           .Any(v => userIds.Contains(v.ToString().Trim()))
            
-         //    &&
+             &&
         (
 
             (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
@@ -257,7 +253,7 @@ namespace LeaveON.UtilityClasses
 
 
                         List<AspNetUser> userList = db.AspNetUsers.Where(x => x.IsDeleted != true).ToList<AspNetUser>();
-                        //  return;
+                          return;
                         List<AspNetUser> inActiveUserList = userList.Where(x => x.BioStarEmpNum.HasValue && x.IsDeleted != true && inactiveUserinAd.Any(k => k.FaxNumber == x.BioStarEmpNum.ToString())).ToList<AspNetUser>();
                         UpdateInactiveADuserinLeaveonUser(inActiveUserList);
 

@@ -48,7 +48,7 @@ namespace LeaveON
         AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
         LoginPath = new PathString("/Account/Login"),
 
-        ExpireTimeSpan = TimeSpan.FromMinutes(15),
+        ExpireTimeSpan = TimeSpan.FromMinutes(40),
        // ExpireTimeSpan = TimeSpan.FromDays(30),
         SlidingExpiration = true,
 

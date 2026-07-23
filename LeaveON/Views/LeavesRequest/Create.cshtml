@@ -342,7 +342,10 @@
 
 
       $("#LineManager1Id").change(function () {
-        $('#LineManager2Id').val($('#LineManager1Id').val());
+        //$('#LineManager2Id').val($('#LineManager1Id').val());
+        $("#LineManager2Id")
+          .val($(this).val())
+          .trigger("change.select2");
       });
 
       var message = "@ViewBag.PolicyAlert";

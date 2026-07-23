@@ -524,7 +524,21 @@ namespace LeaveON.Controllers
         }
         else
         {
-          leaveBalance.Balance -= leave.TotalDays;
+          int leavetype = leave.LeaveTypeId;
+            int? assignedLeaveQuota = db.UserLeavePolicyDetails
+              .Where(lb => lb.UserLeavePolicyId == userLeavePolicyId &&
+                             lb.LeaveTypeId == leavetype)
+              .Select(lb => (int?)lb.Allowed)
+              .Sum() ?? 0;
+        if(assignedLeaveQuota > 0)
+          {
+            leaveBalance.Balance = assignedLeaveQuota - leave.TotalDays;
+          }
+          else
+          {
+            leaveBalance.Balance = leave.TotalDays;
+          }
+           
         }
 
         leaveBalance.UserId = leave.UserId;

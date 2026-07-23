@@ -31,7 +31,6 @@ namespace Repository.Models
         public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
         public virtual DbSet<CountryName> CountryNames { get; set; }
         public virtual DbSet<Leave> Leaves { get; set; }
-        public virtual DbSet<LeaveBalance> LeaveBalances { get; set; }
         public virtual DbSet<LeaveType> LeaveTypes { get; set; }
         public virtual DbSet<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
         public virtual DbSet<C__MigrationHistory> C__MigrationHistory { get; set; }
@@ -43,5 +42,6 @@ namespace Repository.Models
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
         public virtual DbSet<UserLeavePolicy> UserLeavePolicies { get; set; }
         public virtual DbSet<DepartmentName> DepartmentNames { get; set; }
+        public virtual DbSet<LeaveBalance> LeaveBalances { get; set; }
     }
 }

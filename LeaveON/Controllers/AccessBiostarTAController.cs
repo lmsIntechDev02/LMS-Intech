@@ -14,7 +14,10 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using TimeManagement.Models;
 using System.Globalization;
+using System.Data.SqlClient;
 using LeaveON.Models;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace LeaveON.Controllers
 {
@@ -3838,6 +3841,149 @@ namespace LeaveON.Controllers
 
       return Task.FromResult(LstTimeData);
     }
+
+
+
+
+
+    public async Task<ActionResult> ExportAttendance(string StartDate, string EndDate, List<string> UserIds)
+    {
+      var employees = dbLeaveOn.AspNetUsers.ToList();
+
+      DateTime startDate, endDate;
+      string userId = User.Identity.GetUserId();
+
+      List<TimeData> LstAttendances = new List<TimeData>();
+
+      // Set default date if ReqMonthYear is empty
+      if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+      {
+
+        startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      }
+      else
+      {
+        // In case of empty parameters or first time
+        startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        endDate = DateTime.Now;
+
+
+      }
+      if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+      {
+        // Format the date range for querying
+        string formattedStartDate = startDate.ToString("dd-MM-yyyy");
+        string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+        var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+        //   LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
+        LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
+
+      }
+      try
+      {
+
+
+
+        using (XLWorkbook workbook = new XLWorkbook())
+        {
+          var ws = workbook.Worksheets.Add("Attendance");
+
+          //==========================
+          // Header
+          //==========================
+          ws.Cell(1, 1).Value = "Employee Name";
+          ws.Cell(1, 2).Value = "Employee Number";
+          ws.Cell(1, 3).Value = "Department";
+          ws.Cell(1, 4).Value = "Time Zone";
+          ws.Cell(1, 5).Value = "Policy";
+          ws.Cell(1, 6).Value = "Date";
+          ws.Cell(1, 7).Value = "Day";
+          ws.Cell(1, 8).Value = "Time In";
+          ws.Cell(1, 9).Value = "Time Out";
+          ws.Cell(1, 10).Value = "Working Hours";
+          ws.Cell(1, 11).Value = "Total Time";
+          ws.Cell(1, 12).Value = "Status";
+
+          // Header Style
+          var header = ws.Range("A1:L1");
+          header.Style.Font.Bold = true;
+          header.Style.Fill.BackgroundColor = XLColor.LightBlue;
+          header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+          header.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+          header.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+          int row = 2;
+
+          TimeSpan offDayTime = TimeSpan.Zero;
+
+          foreach (var item in LstAttendances)
+          {
+            ws.Cell(row, 1).Value = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower());
+            ws.Cell(row, 2).Value = item.EmployeeNumber;
+            ws.Cell(row, 3).Value = item.Department;
+            ws.Cell(row, 4).Value = item.TimeZone;
+            ws.Cell(row, 5).Value = item.Policy;
+            ws.Cell(row, 6).Value = item.Date.ToString("dd-MMM-yyyy");
+            ws.Cell(row, 7).Value = item.Day;
+
+            if (item.WorkingHours != offDayTime && item.Status != "Absent")
+            {
+              ws.Cell(row, 8).Value = item.TimeIn;
+              ws.Cell(row, 9).Value = item.TimeOut;
+              ws.Cell(row, 10).Value = item.WorkingHours.ToString();
+              ws.Cell(row, 11).Value = item.TotalTime.ToString();
+            }
+            else
+            {
+              ws.Cell(row, 8).Value = "-";
+              ws.Cell(row, 9).Value = "-";
+              ws.Cell(row, 10).Value = "-";
+              ws.Cell(row, 11).Value = "-";
+            }
+
+            ws.Cell(row, 12).Value = item.Status;
+
+            row++;
+          }
+
+          //==========================
+          // Footer (Totals)
+          //==========================
+          ws.Cell(row, 10).Value = ViewBag.TotalWorkingHours + " Hours";
+          ws.Cell(row, 11).Value = ViewBag.TotalHours + " Hours";
+
+          ws.Cell(row, 10).Style.Font.Bold = true;
+          ws.Cell(row, 11).Style.Font.Bold = true;
+
+          //==========================
+          // Borders
+          //==========================
+          var dataRange = ws.Range(1, 1, row, 12);
+          dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+          dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+          // Auto Fit
+          ws.Columns().AdjustToContents();
+
+          using (MemoryStream stream = new MemoryStream())
+          {
+            workbook.SaveAs(stream);
+
+            return File(
+                stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "AttendanceReport.xlsx");
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+
+        return View();
+      }
+    }
+
 
 
   }

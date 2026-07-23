@@ -53,28 +53,38 @@
                         </thead>
                         <tbody>
                           @{
-                            if (Model.userLeavePolicyDetail.Count() > 0)
-                            {
-                              Repository.Models.LeaveBalance leaveBalance;
-
-                              string Taken = string.Empty;
-                              string Balance = string.Empty;
-
-                              int sNo = 0;
-                              string LeaveUserId = ViewBag.LeaveUserId;
-                              var leaveTypeIds = new List<string>();
-
-                              foreach (var item in ViewBag.LeaveTypes.Items)
+                              if (Model.userLeavePolicyDetail.Count() > 0)
                               {
-                                leaveTypeIds.Add(item.Id.ToString());
-                              }
-                              foreach (var item in Model.userLeavePolicyDetail)
-                              {
-                                if (leaveTypeIds.Contains(item.LeaveTypeId.ToString()))
+                                Repository.Models.LeaveBalance leaveBalance;
+
+                                string Taken = string.Empty;
+                                string Balance = string.Empty;
+                                string allow = string.Empty;
+
+                                int sNo = 0;
+                                string LeaveUserId = ViewBag.LeaveUserId;
+                                var leaveTypeIds = new List<string>();
+
+                                foreach (var item in ViewBag.LeaveTypes.Items)
                                 {
-                                  leaveBalance = Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == item.LeaveTypeId && x.UserId == LeaveUserId);
-                                  Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
-                                  Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
+                                  leaveTypeIds.Add(item.Id.ToString());
+                                }
+                                foreach (var item in Model.userLeavePolicyDetail)
+                                {
+                                  if (leaveTypeIds.Contains(item.LeaveTypeId.ToString()))
+                                  {
+                                    leaveBalance = Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == item.LeaveTypeId && x.UserId == LeaveUserId);
+                                    Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
+                                    Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
+                                    if (item.LeaveTypeId == 2) //annual leave
+                                    {
+                                      allow = (item.Allowed +  Convert.ToInt32(leaveBalance.AnnualAmountAjustmesnt)).ToString();
+                                    }
+                                    else
+                                    {
+                                      allow = item.Allowed.ToString();
+                                    }
+
                                   <tr>
                                     <td style="display:none;"><input type="hidden" name="UserLeavePolicyDetail.Index" value="@sNo" /></td>
                                     <td>
@@ -82,7 +92,7 @@
                                       {
                                         @class = "form-control"@*, style = "width: 300px;"*@})
                                     </td>
-                                    <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(item.Allowed)" class="form-control" placeholder="Allowed"> </td>
+                                    <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(allow)" class="form-control" placeholder="Allowed"> </td>
                                     <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(leaveBalance != null ? leaveBalance.Taken.ToString() : "")" class="form-control" placeholder="Taken"> </td>
                                     <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(leaveBalance != null ? leaveBalance.Balance.ToString() : (item.Allowed != null ? item.Allowed.ToString() : ""))" class="form-control" placeholder="Balance"></td>
 

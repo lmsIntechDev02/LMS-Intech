@@ -211,6 +211,8 @@
           <Property Name="Description" Type="nvarchar" MaxLength="500" />
           <Property Name="UserLeavePolicyId" Type="int" />
           <Property Name="HoursTaken" Type="int" />
+          <Property Name="AnnualAmountAjustmesnt" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="AnnualAmountAjustmesntModifyDate" Type="datetime" />
         </EntityType>
         <EntityType Name="LeaveType">
           <Key>
@@ -664,16 +666,11 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <EntitySet Name="AspNetUserLogins" EntityType="LeaveONModels.AspNetUserLogin" />
           <EntitySet Name="CountryNames" EntityType="LeaveONModels.CountryName" />
           <EntitySet Name="Leaves" EntityType="LeaveONModels.Leave" />
-          <EntitySet Name="LeaveBalances" EntityType="LeaveONModels.LeaveBalance" />
           <EntitySet Name="LeaveTypes" EntityType="LeaveONModels.LeaveType" />
           <EntitySet Name="UserLeavePolicyDetails" EntityType="LeaveONModels.UserLeavePolicyDetail" />
           <AssociationSet Name="FK_Leave_LeaveType" Association="LeaveONModels.FK_Leave_LeaveType">
             <End Role="LeaveType" EntitySet="LeaveTypes" />
             <End Role="Leave" EntitySet="Leaves" />
-          </AssociationSet>
-          <AssociationSet Name="FK_LeaveBalance_LeaveType" Association="LeaveONModels.FK_LeaveBalance_LeaveType">
-            <End Role="LeaveType" EntitySet="LeaveTypes" />
-            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
           </AssociationSet>
           <AssociationSet Name="FK_UserLeavePolicyDetail_LeaveType" Association="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType">
             <End Role="LeaveType" EntitySet="LeaveTypes" />
@@ -727,17 +724,9 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="Leave" EntitySet="Leaves" />
           </AssociationSet>
-          <AssociationSet Name="FK_LeaveBalance_AspNetUsers" Association="LeaveONModels.FK_LeaveBalance_AspNetUsers">
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
-          </AssociationSet>
           <AssociationSet Name="FK_UserLeavePolicy_CountryNames" Association="LeaveONModels.FK_UserLeavePolicy_CountryNames">
             <End Role="CountryName" EntitySet="CountryNames" />
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
-          </AssociationSet>
-          <AssociationSet Name="FK_LeaveBalance_UserLeavePolicy" Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy">
-            <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
-            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
           </AssociationSet>
           <AssociationSet Name="FK_UserLeavePolicy_UserLeavePolicy" Association="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
@@ -752,6 +741,19 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
           <EntitySet Name="DepartmentNames" EntityType="LeaveONModels.DepartmentName" />
+          <EntitySet Name="LeaveBalances" EntityType="LeaveONModels.LeaveBalance" />
+          <AssociationSet Name="FK_LeaveBalance_AspNetUsers" Association="LeaveONModels.FK_LeaveBalance_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
+          </AssociationSet>
+          <AssociationSet Name="FK_LeaveBalance_LeaveType" Association="LeaveONModels.FK_LeaveBalance_LeaveType">
+            <End Role="LeaveType" EntitySet="LeaveTypes" />
+            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
+          </AssociationSet>
+          <AssociationSet Name="FK_LeaveBalance_UserLeavePolicy" Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy">
+            <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
+            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -842,22 +844,6 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <NavigationProperty Name="AspNetUser1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
           <NavigationProperty Name="AspNetUser2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
           </EntityType>
-        <EntityType Name="LeaveBalance">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Decimal" Nullable="false" Precision="18" Scale="0" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="LeaveTypeId" Type="Int32" />
-          <Property Name="Taken" Type="Decimal" Precision="6" Scale="1" />
-          <Property Name="Balance" Type="Decimal" Precision="6" Scale="1" />
-          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="UserLeavePolicyId" Type="Int32" />
-          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveBalance" ToRole="LeaveType" />
-          <Property Name="HoursTaken" Type="Int32" />
-          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="LeaveBalance" ToRole="AspNetUser" />
-          <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="LeaveBalance" ToRole="UserLeavePolicy" />
-        </EntityType>
         <EntityType Name="LeaveType">
           <Key>
             <PropertyRef Name="Id" />
@@ -865,8 +851,8 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="LeaveType" ToRole="Leave" />
-          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveType" ToRole="LeaveBalance" />
           <NavigationProperty Name="UserLeavePolicyDetails" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" FromRole="LeaveType" ToRole="UserLeavePolicyDetail" />
+          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveType" ToRole="LeaveBalance" />
         </EntityType>
         <EntityType Name="UserLeavePolicyDetail">
           <Key>
@@ -890,20 +876,6 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="Leave">
-              <PropertyRef Name="LeaveTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_LeaveBalance_LeaveType">
-          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="LeaveType">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="LeaveBalance">
               <PropertyRef Name="LeaveTypeId" />
             </Dependent>
           </ReferentialConstraint>
@@ -1078,8 +1050,8 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="Leaves1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
-          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
           <NavigationProperty Name="AspNetRoles" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
+          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
         </EntityType>
         <EntityType Name="UserLeavePolicy">
           <Key>
@@ -1101,10 +1073,10 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <NavigationProperty Name="AnnualOffDays" Relationship="LeaveONModels.FK_AnnualOffDays_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="AnnualOffDay" />
           <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="AspNetUser" />
           <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="UserLeavePolicy" ToRole="CountryName" />
-          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="LeaveBalance" />
           <NavigationProperty Name="UserLeavePolicy1" Relationship="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="UserLeavePolicy1" />
           <NavigationProperty Name="UserLeavePolicy2" Relationship="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy" FromRole="UserLeavePolicy1" ToRole="UserLeavePolicy" />
           <NavigationProperty Name="UserLeavePolicyDetails" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="UserLeavePolicyDetail" />
+          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="LeaveBalance" />
         </EntityType>
         <Association Name="FK_AnnualOffDays_UserLeavePolicy">
           <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="0..1">
@@ -1222,20 +1194,6 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_LeaveBalance_AspNetUsers">
-          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUser">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="LeaveBalance">
-              <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_UserLeavePolicy_CountryNames">
           <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="0..1" />
           <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="*" />
@@ -1245,18 +1203,6 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             </Principal>
             <Dependent Role="UserLeavePolicy">
               <PropertyRef Name="CntryName" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_LeaveBalance_UserLeavePolicy">
-          <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="0..1" />
-          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="UserLeavePolicy">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="LeaveBalance">
-              <PropertyRef Name="UserLeavePolicyId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1300,6 +1246,64 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <Property Name="HRBPBiostarEmpNum" Type="Int32" />
           <Property Name="HODID" Type="Int32" />
         </EntityType>
+        <EntityType Name="LeaveBalance">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Decimal" Nullable="false" Precision="18" Scale="0" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LeaveTypeId" Type="Int32" />
+          <Property Name="Taken" Type="Decimal" Precision="6" Scale="1" />
+          <Property Name="Balance" Type="Decimal" Precision="6" Scale="1" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="UserLeavePolicyId" Type="Int32" />
+          <Property Name="HoursTaken" Type="Int32" />
+          <Property Name="AnnualAmountAjustmesnt" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="AnnualAmountAjustmesntModifyDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="LeaveBalance" ToRole="AspNetUser" />
+          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveBalance" ToRole="LeaveType" />
+          <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="LeaveBalance" ToRole="UserLeavePolicy" />
+        </EntityType>
+        <Association Name="FK_LeaveBalance_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="LeaveBalance">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_LeaveBalance_LeaveType">
+          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LeaveType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="LeaveBalance">
+              <PropertyRef Name="LeaveTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_LeaveBalance_UserLeavePolicy">
+          <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="0..1" />
+          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserLeavePolicy">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="LeaveBalance">
+              <PropertyRef Name="UserLeavePolicyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1382,20 +1386,6 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
                 <ScalarProperty Name="EndDate" ColumnName="EndDate" />
                 <ScalarProperty Name="StartDate" ColumnName="StartDate" />
                 <ScalarProperty Name="Reason" ColumnName="Reason" />
-                <ScalarProperty Name="LeaveTypeId" ColumnName="LeaveTypeId" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="LeaveBalances">
-            <EntityTypeMapping TypeName="LeaveONModels.LeaveBalance">
-              <MappingFragment StoreEntitySet="LeaveBalance">
-                <ScalarProperty Name="HoursTaken" ColumnName="HoursTaken" />
-                <ScalarProperty Name="UserLeavePolicyId" ColumnName="UserLeavePolicyId" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Balance" ColumnName="Balance" />
-                <ScalarProperty Name="Taken" ColumnName="Taken" />
                 <ScalarProperty Name="LeaveTypeId" ColumnName="LeaveTypeId" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
@@ -1591,6 +1581,22 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
                 <ScalarProperty Name="HRBPBiostarEmpNum" ColumnName="HRBPBiostarEmpNum" />
                 <ScalarProperty Name="HRBPEmail" ColumnName="HRBPEmail" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="LeaveBalances">
+            <EntityTypeMapping TypeName="LeaveONModels.LeaveBalance">
+              <MappingFragment StoreEntitySet="LeaveBalance">
+                <ScalarProperty Name="AnnualAmountAjustmesntModifyDate" ColumnName="AnnualAmountAjustmesntModifyDate" />
+                <ScalarProperty Name="AnnualAmountAjustmesnt" ColumnName="AnnualAmountAjustmesnt" />
+                <ScalarProperty Name="HoursTaken" ColumnName="HoursTaken" />
+                <ScalarProperty Name="UserLeavePolicyId" ColumnName="UserLeavePolicyId" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Balance" ColumnName="Balance" />
+                <ScalarProperty Name="Taken" ColumnName="Taken" />
+                <ScalarProperty Name="LeaveTypeId" ColumnName="LeaveTypeId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

@@ -103,8 +103,19 @@ namespace LeaveON.Controllers
         .OrderBy(x => x.UserName), "Id", "UserName", null);
       ViewBag.Departments = new SelectList(db.DepartmentNames.OrderBy(x => x.Name), "Name", "Name");
       ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "Description", aspNetUser.UserLeavePolicyId);
-   //   ViewBag.Role = new SelectList(db.AspNetRoles.ToHashSet(), "Id", "Name", aspNetUser.RoleId);
-       
+      //   ViewBag.Role = new SelectList(db.AspNetRoles.ToHashSet(), "Id", "Name", aspNetUser.RoleId);
+
+
+      Int32 currentPolycyID = aspNetUser.UserLeavePolicyId.HasValue? aspNetUser.UserLeavePolicyId.Value:0;
+
+      if (currentPolycyID>0)
+      {
+        List<LeaveBalance> balance = db.LeaveBalances
+      .Where(k => k.UserId == aspNetUser.Id
+               && k.LeaveTypeId == 2).ToList();
+        ViewBag.UserAnnualLeaveBalance = (balance.Where(k=>k.UserLeavePolicyId != currentPolycyID
+               ).Sum(k => k.Balance) - balance.Sum(k=>k.AnnualAmountAjustmesnt)); 
+      }
       return View(aspNetUser);
     }
 
@@ -247,6 +258,64 @@ namespace LeaveON.Controllers
         db.Dispose();
       }
       base.Dispose(disposing);
+    }
+    [HttpPost]
+    public async Task<JsonResult> SaveCarryAmount(string userId, decimal carryAmount)
+    {
+      AspNetUser aspNetUser = await db.AspNetUsers.FindAsync(userId);
+
+      if (aspNetUser == null)
+      {
+        return Json(new
+        {
+          success = false,
+          message = "User not found."
+        });
+      }
+      Int32 currentPolycyID = aspNetUser.UserLeavePolicyId.HasValue ? aspNetUser.UserLeavePolicyId.Value : 0;
+
+      if (currentPolycyID > 0)
+      {
+        LeaveBalance balance = new LeaveBalance();
+
+        balance = await db.LeaveBalances
+      .FirstOrDefaultAsync(k => k.UserLeavePolicyId == currentPolycyID && k.UserId == aspNetUser.Id
+               && k.LeaveTypeId == 2);
+        if(balance != null)
+        {
+          balance.AnnualAmountAjustmesnt += carryAmount;
+          balance.Balance += carryAmount;
+          balance.AnnualAmountAjustmesntModifyDate = DateTime.Now;
+         
+        }
+        else
+        {
+          var detail = await db.UserLeavePolicyDetails.FirstOrDefaultAsync(k => k.UserLeavePolicyId == currentPolycyID && k.LeaveTypeId == 2);
+          if (detail != null)
+          {
+            balance = new LeaveBalance();
+            balance.Balance = detail.Allowed+ carryAmount;
+            balance.UserLeavePolicyId = currentPolycyID;
+            balance.UserId = aspNetUser.Id;
+            balance.AnnualAmountAjustmesnt = carryAmount;
+            balance.AnnualAmountAjustmesntModifyDate = DateTime.Now;
+            balance.Taken = 0;
+            balance.LeaveTypeId = 2;// annual typedb
+            db.LeaveBalances.Add(balance);
+          }
+      
+        }
+
+      
+      }
+    
+      await db.SaveChangesAsync();
+
+      return Json(new
+      {
+        success = true,
+        message = "Carry amount saved successfully."
+      });
     }
   }
 }
