@@ -1,4 +1,4 @@
- 
+
 @model IEnumerable<LeaveON.Models.Procedures.LeaveAbsentModel>
 
 @{ ViewBag.Title = "Leave/Absent";
@@ -33,7 +33,7 @@
 
 
 
-      
+
       <div class="col-3">
         <div id="ddlEmp">
 
@@ -62,6 +62,10 @@
       <button id="load" style="position: relative;    top: 9px;">
         <span class="button-text">Go</span>
         <span class="loader" style="display: none;">Loading...</span>
+      </button>
+      <button id="btnExportExcel" style="position: relative;    top: 9px;">
+        <span class="button-text">Export To Excel</span>
+
       </button>
 
     </div>
@@ -155,7 +159,7 @@
       $('#datepickerEnd').prop('disabled', false);
     }
 
-    
+
 
 
 
@@ -208,12 +212,7 @@
             var endDate = $('#datepickerEnd').val();
             var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
             var requestData;
-
-
-
-
             if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
-
 
               var selectedEmployees = $('#idEmployees option:selected').map(function () {
                 return $(this).val();
@@ -272,12 +271,7 @@
               var employeeId = $('#selectedEmployees').val();
               requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
             }
-            @*else {
-              var employeeId = $('#listEmployees').val();
-              requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId};
-            }*@
-      
-           // JSON.stringify(selectedEmployees)
+
               $.ajax({
                 url: "@Url.Action("GetLeaveAbsentReport", "LeavesResponse")",
                 data: requestData,
@@ -298,7 +292,68 @@
                 }
               });
           });
+  });
+  $('#btnExportExcel').click(function () {
+
+    var reqMonthYear = $('#selectMonth').val();
+    var startDate = $('#datepickerStart').val();
+    var endDate = $('#datepickerEnd').val();
+
+    var userRole = "@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "User")";
+
+    if (userRole === "Admin" || userRole === "Manager" || userRole === "User") {
+
+      var selectedEmployees = $('#idEmployees option:selected').map(function () {
+        return $(this).val();
+      }).get();
+
+
+
+
+      if (selectedEmployees.length === 0) {
+        if (userRole === "Admin") {
+          alert('Please select at least one department and one employee.');
+          return;
+        }
+        else {
+          alert('Please select at least one employee.');
+          return;
+        }
+      }
+      if (!startDate) {
+        alert('Please select start date.');
+        return;
+      }
+
+      if (!endDate) {
+        alert('Please select end date.');
+        return;
+      }
+
+      //requestData = { 'startDate': startDate, 'endDate': endDate, 'userIds': selectedEmployees };
+
+      var url = "/LeavesResponse/ExportLeaveAbsentReport?startDate=" + encodeURIComponent(startDate)
+        + "&endDate=" + encodeURIComponent(endDate);
+
+      $.each(selectedEmployees, function (i, id) {
+        url += "&userIds=" + encodeURIComponent(id);
       });
+
+      location.href = url;
+    }
+    else if (userRole === "User")
+    {
+      var employeeId = $('#selectedEmployees').val();
+     // requestData = { 'ReqMonthYear': reqMonthYear, 'UserIds': employeeId };
+      var url = "/LeavesResponse/ExportLeaveAbsentReport?";
+
+      $.each(selectedEmployees, function (i, id) {
+        url += "&userIds=" + encodeURIComponent(employeeId);
+      });
+
+      location.href = url
+    }
+  });
 </script>
 
 <style>
@@ -413,6 +468,17 @@
     margin: 10px 5px;
   }
 
+  #btnExportExcel {
+    display: inline-block;
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
   .selectpicker {
     width: 200px;
     height: 40px;
@@ -424,7 +490,7 @@
   }
 
   .datepicker {
-     width: 250px; 
+     width: 250px;
     height: 40px;
     text-align: center;
     white-space: nowrap;
@@ -437,14 +503,14 @@
     background: #f8f9fa;
     position: relative;
     top: 0px;
-  } 
+  }
   .ui-datepicker {
     width: 250px;
   }
     .bootstrap-select.form-control{
       border:1px solid  !important;
       height:auto !important;
-   
+
 
 </style>
 

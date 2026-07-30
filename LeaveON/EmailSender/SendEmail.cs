@@ -16,7 +16,7 @@ namespace LeaveON.EmailSender
   {
 
     //public   string LeavON_Email = "LMS@intechww.com";
-   // public   string LeavON_Password = "Pakistan12345678*";
+    // public   string LeavON_Password = "Pakistan12345678*";
     /// <summary>
     /// Function will send email.
     /// </summary>
@@ -28,13 +28,15 @@ namespace LeaveON.EmailSender
     /// <remarks>Text put here will not display in a Visual Studio summary box.  
     /// It is meant to add in further detail for anyone who might read this  
     /// code in the future </remarks>
-    public static void SendEmailUsingLeavON(Leave userLeave,  AspNetUser sender, AspNetUser receiver, String MessageType)
+    public static void SendEmailUsingLeavON(Leave userLeave, AspNetUser sender, AspNetUser receiver, String MessageType)
     {
       MailMessage mail = new MailMessage();
       SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com");
       // SmtpClient smtpServer = new SmtpClient("smtp.gmail.com");
       // SmtpClient smtpServer = new SmtpClient("smtp.gmail.com");
       // mail.smtp2go.com
+      string baseUrl = ConfigurationManager.AppSettings["SiteBaseUrl"];
+
       string siteName = ConfigurationManager.AppSettings["localEmail"];
 
       string LeavON_Email = ConfigurationManager.AppSettings["LeavON_Email"];
@@ -52,7 +54,7 @@ namespace LeaveON.EmailSender
       {
         receiverEmail = receiver.Email;
       }
- 
+
 
       smtpServer.UseDefaultCredentials = false;
       smtpServer.Credentials = new System.Net.NetworkCredential(LeavON_Email, LeavON_Password);
@@ -91,16 +93,20 @@ namespace LeaveON.EmailSender
             if (userLeave.LeaveTypeId == Consts.CompensatoryLeaveTypeId)
             {
               mail.Subject = sender.UserName + " posted a Leave request";
+              string url = string.Concat(baseUrl, "LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
+
               // emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
-              emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
+              emailTemplate = emailTemplate.Replace("<%Link%>", baseUrl);
               emailTemplate = emailTemplate.Replace("<%LineManager%>", receiver.UserName);
               break;
             }
             else
             {
               mail.Subject = sender.UserName + " posted a Leave request";
+              //"https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/Edit/" + userLeave.Id
+              string url = string.Concat(baseUrl, "LeavesResponse/Edit/" + userLeave.Id);
               // emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/Edit/" + userLeave.Id);
-              emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/Edit/" + userLeave.Id);
+              emailTemplate = emailTemplate.Replace("<%Link%>", url);
               emailTemplate = emailTemplate.Replace("<%LineManager%>", receiver.UserName);
               break;
             }
@@ -129,13 +135,17 @@ namespace LeaveON.EmailSender
                    matchedLeave.IsAccepted2 == 1)
                 {
                   // Redirect to QuotaRequestHistory if both accepted
-                  emailTemplate = emailTemplate.Replace("<%Link%>",
-                      "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/QuotaRequestHistory");
+                  //https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/QuotaRequestHistory;
+
+                  string url = string.Concat(baseUrl, "LeavesRequest/QuotaRequestHistory");
+                  emailTemplate = emailTemplate.Replace("<%Link%>", url);
                 }
                 else
                 {
-                  emailTemplate = emailTemplate.Replace("<%Link%>",
-                    "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
+                  //"https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id
+                  string url = string.Concat(baseUrl, "LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
+                  emailTemplate = emailTemplate.Replace("<%Link%>", url);
+
                 }
                 emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
                 break;
@@ -148,12 +158,17 @@ namespace LeaveON.EmailSender
                       matchedLeave.IsAccepted1 == 1 &&
                       matchedLeave.IsAccepted2 == 1)
                 {
-                  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/Index");
+                  //"https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/Index"
+                  string url = string.Concat(baseUrl, "LeavesRequest/Index");
+
+                  emailTemplate = emailTemplate.Replace("<%Link%>", url);
 
                 }
                 else
                 {
-                  emailTemplate = emailTemplate.Replace("<%Link%>", "https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/Edit/" + userLeave.Id);
+                  //"https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/Edit/" + userLeave.Id
+                  string url = string.Concat(baseUrl, "LeavesResponse/Edit/" + userLeave.Id);
+                  emailTemplate = emailTemplate.Replace("<%Link%>", url);
                 }
                 emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
                 break;
@@ -186,7 +201,7 @@ namespace LeaveON.EmailSender
         }
       }
     }
-    public static void SendLeaveRequestEmail(  AspNetUser receiver)
+    public static void SendLeaveRequestEmail(AspNetUser receiver)
     {
 
       MailMessage mail = new MailMessage();
@@ -227,7 +242,7 @@ namespace LeaveON.EmailSender
     }//SendLeaveRequestEmail
 
 
-    public static void SendsEmail(string receiverEmail,string subject, String body)
+    public static void SendsEmail(string receiverEmail, string subject, String body)
     {
 
       MailMessage mail = new MailMessage();
@@ -243,7 +258,7 @@ namespace LeaveON.EmailSender
           receiverEmail = rs;
         }
       }
-      
+
 
       SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com");
       //smtpServer.UseDefaultCredentials = false;
@@ -281,7 +296,7 @@ namespace LeaveON.EmailSender
   }
 
 
-  }
+}
 
 //HOD 
 //username: kashifzafar.nuces@gmail.com

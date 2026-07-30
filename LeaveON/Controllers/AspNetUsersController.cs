@@ -110,11 +110,26 @@ namespace LeaveON.Controllers
 
       if (currentPolycyID>0)
       {
+
+
         List<LeaveBalance> balance = db.LeaveBalances
       .Where(k => k.UserId == aspNetUser.Id
-               && k.LeaveTypeId == 2).ToList();
-        ViewBag.UserAnnualLeaveBalance = (balance.Where(k=>k.UserLeavePolicyId != currentPolycyID
-               ).Sum(k => k.Balance) - balance.Sum(k=>k.AnnualAmountAjustmesnt)); 
+               && k.LeaveTypeId == 2 && k.UserLeavePolicyId == currentPolycyID).ToList();
+
+        if(balance!= null &&  balance.Count()>0)
+        {
+          ViewBag.UserAnnualLeaveBalance =  balance.Sum(k=>k.Balance); 
+        }
+        else
+        {
+          var policy=db.UserLeavePolicyDetails.FirstOrDefault(l => l.UserLeavePolicyId == currentPolycyID && l.LeaveTypeId == 2);
+          if (policy != null) 
+          {
+            ViewBag.UserAnnualLeaveBalance = policy.Allowed;
+              }
+        }
+
+         
       }
       return View(aspNetUser);
     }
@@ -301,9 +316,20 @@ namespace LeaveON.Controllers
             balance.AnnualAmountAjustmesntModifyDate = DateTime.Now;
             balance.Taken = 0;
             balance.LeaveTypeId = 2;// annual typedb
-            db.LeaveBalances.Add(balance);
+  
           }
-      
+          else
+          {
+            balance = new LeaveBalance();
+            balance.Balance =   carryAmount;
+            balance.UserLeavePolicyId = currentPolycyID;
+            balance.UserId = aspNetUser.Id;
+            balance.AnnualAmountAjustmesnt = carryAmount;
+            balance.AnnualAmountAjustmesntModifyDate = DateTime.Now;
+            balance.Taken = 0;
+            balance.LeaveTypeId = 2;// annual typedb
+          }
+          db.LeaveBalances.Add(balance);
         }
 
       
@@ -314,7 +340,7 @@ namespace LeaveON.Controllers
       return Json(new
       {
         success = true,
-        message = "Carry amount saved successfully."
+        message = "Annual leave balance saved successfully."
       });
     }
   }

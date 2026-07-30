@@ -755,8 +755,8 @@ namespace LeaveON.Services
 
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-          mail.To.Add("laiba.khan@intechww.com");
-          //mail.To.Add("esswaqas@hotmail.com");
+           mail.To.Add("laiba.khan@intechww.com");
+          // mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -787,7 +787,7 @@ namespace LeaveON.Services
           string shortYear = string.Format("'{0:00}", year % 100);
 
           PdfPCell titleCell = new PdfPCell(new Phrase(
-              string.Format("Attendance Report - {0} {1} (Total Days - {2})", monthName, shortYear, monthDays),
+              string.Format("Attendance Report - {0} {1} ", monthName, shortYear),
               titleFont))
           {
             Colspan = 9,
@@ -797,7 +797,9 @@ namespace LeaveON.Services
           };
           territoryTable.AddCell(titleCell);
 
-          Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+         
+           Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+           
           PdfPCell headerCell = new PdfPCell(new Phrase("Country-wise Working Days & Official Holidays", headerFont))
           {
             Colspan = 9,
@@ -902,9 +904,9 @@ namespace LeaveON.Services
             HorizontalAlignment = Element.ALIGN_CENTER,
             BackgroundColor = new BaseColor(0, 51, 102),
             Padding = 9,
-            BorderWidthTop = 3f,
-            BorderWidthLeft = 3f,
-            BorderWidthRight = 3f
+           // /BorderWidthTop = 3f,
+            //BorderWidthLeft = 3f,
+             //BorderWidthRight = 3f
           };
           table.AddCell(managerCell);
 
@@ -938,12 +940,13 @@ namespace LeaveON.Services
                 Colspan = 12,
                 BackgroundColor = new BaseColor(200, 200, 200),
                 Padding = 5,
-                BorderWidthLeft = 3f,
-                BorderWidthRight = 3f
+                //BorderWidthLeft = 0f,
+                //BorderWidthRight = 0f
+                 
               });
             }
 
-            table.AddCell(new PdfPCell(new Phrase(d.EmployeeID.ToString(), dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BorderWidthLeft = 3f });
+            table.AddCell(new PdfPCell(new Phrase(d.EmployeeID.ToString(), dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER,   });
             table.AddCell(new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(d.EmployeeName), dataFont)));
             table.AddCell(new PdfPCell(new Phrase(d.CasualLeaves, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
             table.AddCell(new PdfPCell(new Phrase(d.AnnualLeaves, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
@@ -954,7 +957,7 @@ namespace LeaveON.Services
             table.AddCell(new PdfPCell(new Phrase(d.ShortHoursInMonth, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
             table.AddCell(new PdfPCell(new Phrase(d.AverageTimeIn, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
             table.AddCell(new PdfPCell(new Phrase(d.AverageTimeOut, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
-            table.AddCell(new PdfPCell(new Phrase(d.AverageTimeInOffice, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BorderWidthRight = 3f });
+            table.AddCell(new PdfPCell(new Phrase(d.AverageTimeInOffice, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
           }
 
           document.Add(table);
@@ -970,7 +973,7 @@ namespace LeaveON.Services
           Font notesFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
 
           Paragraph notesTitle = new Paragraph(
-              "Key Notes Included in the Report:",
+              "Definations:",
               notesTitleFont);
 
           notesTitle.Alignment = Element.ALIGN_LEFT;
@@ -980,47 +983,42 @@ namespace LeaveON.Services
           Font boldFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
           Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
 
-          Paragraph p = new Paragraph();
-          p.SetLeading(0, 1.5f);
-          territoryTable.SpacingAfter = 20f;
+          //Paragraph p = new Paragraph();
+
+          //p.SetLeading(0f, 1.8f); // Smaller multiplier
+          //p.SpacingBefore = 0f;
+          //p.SpacingAfter = 0f; ;
+          //territoryTable.SpacingAfter = 20f;
           // Casual Leave* 
-          p.Add(new Chunk("* Casual Leave / Annual Leave: ", boldFont));
-          p.Add(new Chunk("Entitlement is based on the current year leave policy and will be prorated according to the employee’s joining date.\n\n", normalFont));
+          document.Add(CreateNote("* Casual Leave / Annual Leave: ",   
+           "Entitlement is based on the current year leave policy and will be prorated according to the employee’s joining date."));
 
           // Absents
-          p.Add(new Chunk("* Absents (YTD): ", boldFont));
-          p.Add(new Chunk("Total absent days recorded year-to-date, calculated from the joining date up to the current fiscal year period.\n\n", normalFont));
+          document.Add(CreateNote("* Absents (YTD): ", "Total absent days recorded year-to-date, calculated from the joining date up to the current fiscal year period."));
 
           // Short Hours
-          p.Add(new Chunk("* Short Hours (YTD): ", boldFont));
-          p.Add(new Chunk("Total casual short leave occurrences recorded year-to-date, prorated according to the employee’s joining date.\n\n", normalFont));
+          document.Add(CreateNote("* Short Hours (YTD): ","Total casual short leave occurrences recorded year-to-date, prorated according to the employee’s joining date."));
 
           // Avg Entry
-          p.Add(new Chunk("* Avg. Entry Time: ", boldFont));
-          p.Add(new Chunk("Average office arrival time based on monthly attendance logs and the employee’s login territory.\n\n", normalFont));
+          document.Add(CreateNote("* Avg. Entry Time: ", "Average office arrival time based on monthly attendance logs and the employee’s login territory." ));
 
           // Avg Exit
-          p.Add(new Chunk("* Avg. Exit Time: ", boldFont));
-          p.Add(new Chunk("Average office departure time based on monthly attendance logs and the employee’s logout territory.\n\n", normalFont));
+          document.Add(CreateNote("* Avg. Exit Time: ","Average office departure time based on monthly attendance logs and the employee’s logout territory."));
 
           // Avg Office Time
-          p.Add(new Chunk("* Avg. Time in Office: ", boldFont));
-          p.Add(new Chunk("Average productive office duration per working day, calculated between check-in and check-out timings.\n\n", normalFont));
+          document.Add(CreateNote("* Avg. Time in Office: ","Average productive office duration per working day, calculated between check-in and check-out timings."));
 
           // Availed Leave
-          p.Add(new Chunk("* Availed Leave (YTD): ", boldFont));
-          p.Add(new Chunk("Total leaves utilized during the current year as per policy.\n\n", normalFont));
+          document.Add(CreateNote("* Availed Leave (YTD): ","Total leaves utilized during the current year as per policy."));
 
           // Available Leave
-          p.Add(new Chunk("* Available Leave Balance: ", boldFont));
-          p.Add(new Chunk("Remaining leave balance after adjustment of utilized leaves as per policy.\n\n", normalFont));
+          document.Add(CreateNote("* Available Leave Balance: ","Remaining leave balance after adjustment of utilized leaves as per policy.\n\n"));
 
           // Important Note
-          p.Add(new Chunk("Important Note: ", boldFont));
-          p.Add(new Chunk("Higher absenteeism may occur due to pending leave approvals, missing LMS entries, unmarked business trips, or pending attendance regularization requests.For any discrepancy, clarification, or correction, employees may contact their respective HR Business Partner(HRBP).\n\n", normalFont));
+          document.Add(CreateNote("  Note: ", "Higher absenteeism may occur due to pending leave approvals, missing LMS entries, unmarked business trips, or pending attendance regularization requests.For any discrepancy, clarification, or correction, employees may contact their respective HR Business Partner(HRBP)."));
 
 
-          document.Add(p);
+         // document.Add(p);
 
           document.Close();
 
@@ -1039,7 +1037,21 @@ namespace LeaveON.Services
         }
       }
     }
+    public Paragraph CreateNote(string title, string description)
+    {
+      Font boldFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+      Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
+      Paragraph p = new Paragraph();
+      p.SetLeading(0f, 1.5f);      // Reduce line spacing
+      p.SpacingAfter = 3f;         // Small gap between notes
+      p.IndentationLeft = 10;     // Left margin
+      p.FirstLineIndent = -9;    // Hanging indent
 
+      p.Add(new Chunk(title + " ", boldFont));
+      p.Add(new Chunk(description, normalFont));
+
+      return p;
+    }
 
 
     public void GeneratePDFManager(List<EmployeeReportData> reportData, int totalWorkDays, string monthName, bool legitimacyCheckForReports, List<EmailAndIDs> legitimacyCheckers, HashSet<string> sentEmails)

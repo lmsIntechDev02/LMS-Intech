@@ -84,6 +84,7 @@
       <span class="button-text">Go</span>
       <span class="loader" style="display: none;">Loading...</span>
     </button>
+
     <button id="ExportToExcel" style="position: relative;    top: 9px;">
       <span class="button-text">Export to  Excel</span>
       <span class="loader" style="display: none;">Loading...</span>
@@ -374,7 +375,7 @@
                 
                 return;
               }
-              alert(selectedEmployees)
+              //alert(selectedEmployees)
 
               //requestData = { 'StartDate': startDate, 'EndDate': endDate, 'UserIds': selectedEmployees };
               //location.href = "/AccessBiostarTA/ExportAttendance?StartDate=" + startDate + "&EndDate=" + endDate + "&UserIds" + selectedEmployees
@@ -608,6 +609,17 @@
   #load {
     display: inline-block;
     width: 100px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  #ExportToExcel {
+    display: inline-block;
+    width: 200px;
     height: 40px;
     text-align: center;
     white-space: nowrap;

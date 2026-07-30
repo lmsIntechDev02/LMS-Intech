@@ -14,6 +14,10 @@ using LMS.Constants;
 using System.Data.SqlClient;
 using LeaveON.Models.Procedures;
 using System.Text;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Drawing;
+using System.Globalization;
 
 namespace LeaveON.Controllers
 {
@@ -973,9 +977,8 @@ namespace LeaveON.Controllers
     [HttpPost]
     public async Task<ActionResult>  GetLeaveAbsentReport(string startDate, string endDate, List<string> userIds)
     {
-      var sstartDate = new SqlParameter("@StartDate", startDate);
-      var sendDate = new SqlParameter("@EndDate", endDate);
-      var suserIds = new SqlParameter("@UserIds", userIds);
+       
+       
       List<LeaveAbsentModel> list = new List<LeaveAbsentModel>();
       try
       {
@@ -1000,6 +1003,140 @@ namespace LeaveON.Controllers
 
       return PartialView("_LeaveAbsentReport", list);
     }
+
+
+    
+    public async Task<ActionResult> ExportLeaveAbsentReport(string startDate, string endDate, List<string> userIds)
+    {
+       
+      List<LeaveAbsentModel> list = new List<LeaveAbsentModel>();
+      try
+      {
+        string userId = string.Join(",", userIds);
+
+        var result = db.Database.SqlQuery<LeaveAbsentModel>(
+    "EXEC GetAbsentAttendanceReport @StartDate, @EndDate, @UserIds",
+    new SqlParameter("@StartDate", startDate),
+    new SqlParameter("@EndDate", endDate),
+    new SqlParameter("@UserIds", userId)).ToList();
+        list = result.OrderBy(i => i.DateCreated).ToList();
+
+        using (var package = new ExcelPackage())
+        {
+          var ws = package.Workbook.Worksheets.Add("Attendance Report");
+          //  var ws = package.Workbook.Worksheets.Add("Attendance");
+
+          // Header
+          string[] headers =
+       {
+            "Employee Name",
+            "Emp ID",
+            "Department",
+            "Date",
+            "Day",
+            "Leave/Absent",
+            "Leave Start",
+            "Leave End",
+            "Total Days",
+            "Reason",
+            "Line Manager 1",
+            "Line Manager 2",
+            "Status"
+        };
+          for (int i = 0; i < headers.Length; i++)
+          {
+            ws.Cells[1, i + 1].Value = headers[i];
+          }
+
+          // Header Style
+          using (var range = ws.Cells[1, 1, 1, headers.Length])
+          {
+            range.Style.Font.Bold = true;
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+          }
+
+          int row = 2;
+          TimeSpan offDayTime = TimeSpan.Zero;
+
+          foreach (var item in list)
+          {
+            ws.Cells[row, 1].Value = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower());
+            ws.Cells[row, 2].Value = item.BioStarEmpNum;
+            ws.Cells[row, 3].Value = item.DepartmentName;
+            ws.Cells[row, 4].Value = item.DateCreated;
+            ws.Cells[row, 4].Style.Numberformat.Format = "dd-MMM-yyyy";
+            ws.Cells[row, 5].Value = item.DayName;
+            ws.Cells[row, 6].Value = item.LeaveTypeName;
+
+
+            if (item.Status == "Leave")
+            {
+              ws.Cells[row, 7].Value = item.LeaveStartDate;
+              ws.Cells[row, 7].Style.Numberformat.Format = "dd-MMM-yyyy";
+              ws.Cells[row, 8].Value = item.LeaveEndDate;
+              ws.Cells[row, 8].Style.Numberformat.Format = "dd-MMM-yyyy";
+              ws.Cells[row, 9].Value = item.TotalDays;
+              ws.Cells[row, 10].Value = item.Reason;
+
+              ws.Cells[row, 11].Value =
+                  item.IsAccepted1 == null ? "" :
+                  item.IsAccepted1 > 0 ? "Approved" : "Refused";
+
+              ws.Cells[row, 12].Value =
+                  item.IsAccepted2 == null ? "" :
+                  item.IsAccepted2 > 0 ? "Approved" : "Refused";
+            }
+            else
+            {
+              ws.Cells[row, 7].Value = "-";
+              ws.Cells[row, 8].Value = "-";
+              ws.Cells[row, 9].Value = "-";
+              ws.Cells[row, 10].Value = "-";
+              ws.Cells[row, 11].Value = "-";
+              ws.Cells[row, 12].Value = "-";
+            }
+
+            ws.Cells[row, 13].Value = item.Status;
+
+            row++;
+          }
+
+          // Auto fit columns
+          ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+          // Freeze header
+          ws.View.FreezePanes(2, 1);
+
+          // Border
+          using (var range = ws.Cells[1, 1, row - 1, headers.Length])
+          {
+            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          }
+
+          byte[] fileBytes = package.GetAsByteArray();
+
+          return File(
+              fileBytes,
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              $"Leave/Absent_Report_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+
+
+        }
+      }
+      catch (Exception ex)
+      {
+
+        return View();
+      }
+    }
+
+
 
     public ActionResult GetUsersByDepartments(List<string> departmentNames)
     {

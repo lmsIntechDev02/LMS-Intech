@@ -76,7 +76,7 @@
                                     leaveBalance = Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == item.LeaveTypeId && x.UserId == LeaveUserId);
                                     Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
                                     Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
-                                    if (item.LeaveTypeId == 2) //annual leave
+                                    if (item.LeaveTypeId == 2 && leaveBalance != null && leaveBalance.AnnualAmountAjustmesnt.HasValue) //annual leave
                                     {
                                       allow = (item.Allowed +  Convert.ToInt32(leaveBalance.AnnualAmountAjustmesnt)).ToString();
                                     }

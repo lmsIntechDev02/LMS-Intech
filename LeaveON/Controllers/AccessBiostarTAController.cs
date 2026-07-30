@@ -18,6 +18,9 @@ using System.Data.SqlClient;
 using LeaveON.Models;
 using ClosedXML.Excel;
 using System.IO;
+using OfficeOpenXml.Style;
+using System.Drawing;
+using OfficeOpenXml;
 
 namespace LeaveON.Controllers
 {
@@ -3883,100 +3886,100 @@ namespace LeaveON.Controllers
       try
       {
 
-
-
-        using (XLWorkbook workbook = new XLWorkbook())
+        using (var package = new ExcelPackage())
         {
-          var ws = workbook.Worksheets.Add("Attendance");
+          var ws = package.Workbook.Worksheets.Add("Attendance");
 
-          //==========================
           // Header
-          //==========================
-          ws.Cell(1, 1).Value = "Employee Name";
-          ws.Cell(1, 2).Value = "Employee Number";
-          ws.Cell(1, 3).Value = "Department";
-          ws.Cell(1, 4).Value = "Time Zone";
-          ws.Cell(1, 5).Value = "Policy";
-          ws.Cell(1, 6).Value = "Date";
-          ws.Cell(1, 7).Value = "Day";
-          ws.Cell(1, 8).Value = "Time In";
-          ws.Cell(1, 9).Value = "Time Out";
-          ws.Cell(1, 10).Value = "Working Hours";
-          ws.Cell(1, 11).Value = "Total Time";
-          ws.Cell(1, 12).Value = "Status";
+          ws.Cells[1, 1].Value = "Employee Name";
+          ws.Cells[1, 2].Value = "Employee Number";
+          ws.Cells[1, 3].Value = "Department";
+          ws.Cells[1, 4].Value = "Time Zone";
+          ws.Cells[1, 5].Value = "Policy";
+          ws.Cells[1, 6].Value = "Date";
+          ws.Cells[1, 7].Value = "Day";
+          ws.Cells[1, 8].Value = "Time In";
+          ws.Cells[1, 9].Value = "Time Out";
+          ws.Cells[1, 10].Value = "Working Hours";
+          ws.Cells[1, 11].Value = "Total Time";
+          ws.Cells[1, 12].Value = "Status";
 
           // Header Style
-          var header = ws.Range("A1:L1");
-          header.Style.Font.Bold = true;
-          header.Style.Fill.BackgroundColor = XLColor.LightBlue;
-          header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-          header.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-          header.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+          using (var range = ws.Cells[1, 1, 1, 12])
+          {
+            range.Style.Font.Bold = true;
+            range.Style.Font.Color.SetColor(Color.White);
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.SteelBlue);
+            range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          }
 
           int row = 2;
-
           TimeSpan offDayTime = TimeSpan.Zero;
 
           foreach (var item in LstAttendances)
           {
-            ws.Cell(row, 1).Value = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower());
-            ws.Cell(row, 2).Value = item.EmployeeNumber;
-            ws.Cell(row, 3).Value = item.Department;
-            ws.Cell(row, 4).Value = item.TimeZone;
-            ws.Cell(row, 5).Value = item.Policy;
-            ws.Cell(row, 6).Value = item.Date.ToString("dd-MMM-yyyy");
-            ws.Cell(row, 7).Value = item.Day;
+            ws.Cells[row, 1].Value = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower());
+            ws.Cells[row, 2].Value = item.EmployeeNumber;
+            ws.Cells[row, 3].Value = item.Department;
+            ws.Cells[row, 4].Value = item.TimeZone;
+            ws.Cells[row, 5].Value = item.Policy;
+            ws.Cells[row, 6].Value = item.Date.ToString("dd-MMM-yyyy");
+            ws.Cells[row, 7].Value = item.Day;
 
             if (item.WorkingHours != offDayTime && item.Status != "Absent")
             {
-              ws.Cell(row, 8).Value = item.TimeIn;
-              ws.Cell(row, 9).Value = item.TimeOut;
-              ws.Cell(row, 10).Value = item.WorkingHours.ToString();
-              ws.Cell(row, 11).Value = item.TotalTime.ToString();
+              ws.Cells[row, 8].Value = item.TimeIn;
+              ws.Cells[row, 9].Value = item.TimeOut;
+              ws.Cells[row, 10].Value = item.WorkingHours.ToString();
+              ws.Cells[row, 11].Value = item.TotalTime.ToString();
             }
             else
             {
-              ws.Cell(row, 8).Value = "-";
-              ws.Cell(row, 9).Value = "-";
-              ws.Cell(row, 10).Value = "-";
-              ws.Cell(row, 11).Value = "-";
+              ws.Cells[row, 8].Value = "-";
+              ws.Cells[row, 9].Value = "-";
+              ws.Cells[row, 10].Value = "-";
+              ws.Cells[row, 11].Value = "-";
             }
 
-            ws.Cell(row, 12).Value = item.Status;
+            ws.Cells[row, 12].Value = item.Status;
 
             row++;
           }
 
-          //==========================
-          // Footer (Totals)
-          //==========================
-          ws.Cell(row, 10).Value = ViewBag.TotalWorkingHours + " Hours";
-          ws.Cell(row, 11).Value = ViewBag.TotalHours + " Hours";
+          // Footer
+          ws.Cells[row, 10].Value = ViewBag.TotalWorkingHours + " Hours";
+          ws.Cells[row, 11].Value = ViewBag.TotalHours + " Hours";
 
-          ws.Cell(row, 10).Style.Font.Bold = true;
-          ws.Cell(row, 11).Style.Font.Bold = true;
+          ws.Cells[row, 10].Style.Font.Bold = true;
+          ws.Cells[row, 11].Style.Font.Bold = true;
 
-          //==========================
-          // Borders
-          //==========================
-          var dataRange = ws.Range(1, 1, row, 12);
-          dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-          dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
-          // Auto Fit
-          ws.Columns().AdjustToContents();
-
-          using (MemoryStream stream = new MemoryStream())
+          // Apply Borders
+          using (var range = ws.Cells[1, 1, row, 12])
           {
-            workbook.SaveAs(stream);
-
-            return File(
-                stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "AttendanceReport.xlsx");
+            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
           }
+
+          // AutoFit Columns
+          ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+          byte[] bytes = package.GetAsByteArray();
+
+          return File(
+              bytes,
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "AttendanceReport.xlsx");
+
+
         }
-      }
+        }
       catch (Exception ex)
       {
 

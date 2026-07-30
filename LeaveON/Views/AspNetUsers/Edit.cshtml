@@ -363,20 +363,21 @@
         });
         return false;
       }
-      if (isNaN(adjustment) || isNaN(availableBalance)) {
+      if (isNaN(adjustment) )
+      {
         Swal.fire({
           title: "Warning",
-          text: "Please enter a valid amount.",
+          text: "Please enter a valid leave balance..",
           icon: "warning"
         });
 
         return false;
       }
 
-      if (adjustment > availableBalance) {
+      if ( adjustment <=0) {
         Swal.fire({
           title: "Warning",
-          text: "Adjustment amount should not be greater than the available balance.",
+          text: "Leave balance should be greater than > 0.",
           icon: "warning"
         });
 
@@ -396,7 +397,7 @@
             if (response.success) {
               Swal.fire({
 
-                text: "Amount has been saved su",
+                text: response.message,
                 icon: "success",
                 showCancelButton: false,
                 confirmButtonColor: "#3085d6",
