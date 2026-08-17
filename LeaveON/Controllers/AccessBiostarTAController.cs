@@ -14,7 +14,13 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using TimeManagement.Models;
 using System.Globalization;
+using System.Data.SqlClient;
 using LeaveON.Models;
+using ClosedXML.Excel;
+using System.IO;
+using OfficeOpenXml.Style;
+using System.Drawing;
+using OfficeOpenXml;
 
 namespace LeaveON.Controllers
 {
@@ -512,8 +518,9 @@ namespace LeaveON.Controllers
             }
 
             //  Check public holiday (AnnualOffDays table)
+            var userDetail = dbLeaveOn.AspNetUsers.FirstOrDefault(k => k.BioStarEmpNum == record.BioStarEmpNum);
             bool isPublicHoliday = dbLeaveOn.AnnualOffDays.Any(h =>
-                h.UserLeavePolicyId == record.AspNetUser.UserLeavePolicyId &&
+                h.UserLeavePolicyId == userDetail.UserLeavePolicyId &&
                 h.OffDay == record.CreatedDate.Value
             );
 
@@ -1236,6 +1243,8 @@ namespace LeaveON.Controllers
         {
           string shortCountryName = dt.Rows[j]["devnm"].ToString().Substring(0, 3);
 
+
+
           if (dt.Rows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
           {
             timeZone = "W. Central Africa Standard Time";
@@ -1440,13 +1449,13 @@ namespace LeaveON.Controllers
         {
           DateTime currentDay = new DateTime(reqDate.Year, reqDate.Month, day);
           var timeDataForDay = LstTimeData.FirstOrDefault(x => x.Date.Day == day);
+
           var annualOffDay = dbLeaveOn.AnnualOffDays.FirstOrDefault(x => x.OffDay.HasValue && x.OffDay == currentDay && x.UserLeavePolicyId == aspNetUser.UserLeavePolicyId);
           // Check for any leave that spans the current day
           var leave = dbLeaveOn.Leaves.FirstOrDefault(x => x.StartDate <= currentDay && x.EndDate >= currentDay && x.IsAccepted1 != null && x.IsAccepted2 != null && x.UserId == userGuidId);
           if (timeDataForDay == null) // Employee was absent
           {
             string status = "Absent"; // Default to "Absent"
-                                      // Check for holiday and leave
             if (annualOffDay != null)
             {
               status = annualOffDay.Description; // Holiday description
@@ -1501,7 +1510,7 @@ namespace LeaveON.Controllers
 
     private Task<List<TimeData>> ConnectToDBandReturnAttendanceReport(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
-
+      //UserIds[0] = 2493;
       string countryName = string.Empty;
       string previousCountryName = string.Empty;
       string connection = System.Configuration.ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString;
@@ -1669,43 +1678,61 @@ namespace LeaveON.Controllers
 
           for (int j = 0; j < dayRows.Count; j++)
           {
-            string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
+            //string timezone = dayRows[j]["devnm"].ToString();
+            //string alocation = alocationss.Split('-')[1].Split(' ')[0];
+            //string shortCountryName = dayRows[j]["devnm"].ToString().Substring(0, 3);
 
-            /* SAME COUNTRY LOGIC (UNCHANGED) */
-            if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
+            //string deviceCode = dayRows[j]["devnm"].ToString().Substring(0, 4);
+
+            // Get Attendance timezone and Country
+            //GetAttendacneTimeZone
+            //Repository.Common.Common.GetAttendacneTimeZone22();
+            var atttimeZone = Repository.Common.Common.GetAttendacneTimeZone(dayRows[j]["devnm"].ToString());
+          
+
+            timeZone = atttimeZone.TimeZone;
+            countryName = atttimeZone.CountryName;
+            if(String.IsNullOrEmpty(timeZone) || String.IsNullOrEmpty(countryName))
             {
-              timeZone = "W. Central Africa Standard Time";
-              countryName = "Nigeria Lagos";
+              timeZone = aspNetUser.CountryName.TimeZone;
+              countryName = aspNetUser.CountryName.Name;
             }
-            else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
-            {
-              timeZone = "W. Central Africa Standard Time";
-              countryName = "Nigeria Port Harcourt";
-            }
-            else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
-            {
-              timeZone = "Pakistan Standard Time";
-              countryName = "Pakistan";
-            }
-            else
-            {
-              switch (shortCountryName)
-              {
-                case "PK ":
-                case "PAK":
-                  timeZone = "Pakistan Standard Time";
-                  countryName = "Pakistan";
-                  break;
-                case "UAE":
-                  timeZone = "Arab Standard Time";
-                  countryName = "United Arab Emirates";
-                  break;
-                default:
-                  timeZone = aspNetUser.CountryName.TimeZone;
-                  countryName = aspNetUser.CountryName.Name;
-                  break;
-              }
-            }
+
+            ///* SAME COUNTRY LOGIC (UNCHANGED) */
+            //if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-L")
+            //{
+            //  timeZone = "W. Central Africa Standard Time";
+            //  countryName = "Nigeria Lagos";
+            //}
+            //else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "NG-P")
+            //{
+            //  timeZone = "W. Central Africa Standard Time";
+            //  countryName = "Nigeria Port Harcourt";
+            //}
+            //else if (dayRows[j]["devnm"].ToString().Substring(0, 4) == "IN01")
+            //{
+            //  timeZone = "Pakistan Standard Time";
+            //  countryName = "Pakistan";
+            //}
+            //else
+            //{
+            //  switch (shortCountryName)
+            //  {
+            //    case "PK ":
+            //    case "PAK":
+            //      timeZone = "Pakistan Standard Time";
+            //      countryName = "Pakistan";
+            //      break;
+            //    case "UAE":
+            //      timeZone = "Arab Standard Time";
+            //      countryName = "United Arab Emirates";
+            //      break;
+            //    default:
+            //      timeZone = aspNetUser.CountryName.TimeZone;
+            //      countryName = aspNetUser.CountryName.Name;
+            //      break;
+            //  }
+            //}
 
             DateTime currentTime = ConvertToCountryTimeZoneNew((DateTime)dayRows[j]["devdt"], timeZone);
 
@@ -1804,6 +1831,11 @@ namespace LeaveON.Controllers
           {
             TimeData thisWeekEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == weekEndDate.Date);
 
+            TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (weekEndDate.Date.AddDays(-1)).Date);
+            
+            string lastAttendacnelcoation = lastAttendacnelcoationEnd != null?  lastAttendacnelcoationEnd.TimeZone: countryName;
+
+
             if (thisWeekEnd != null)
             {
               thisWeekEnd.Status = "Weekend";
@@ -1814,18 +1846,19 @@ namespace LeaveON.Controllers
               {
                 EmployeeName = UserName,
                 EmployeeNumber = iEmpNum,
-                TimeZone = countryName,
+                TimeZone = countryName != lastAttendacnelcoation ? lastAttendacnelcoation: countryName,
                 Department = depName,
                 Policy = userLeavePolicyDescription,
                 Date = weekEndDate,
                 Day = weekEndDate.ToString("dddd"),
                 Status = "Weekend"
               };
-              offDays.Add(weekEndOffDate);
+              //offDays.Add(weekEndOffDate);
+              LstTimeData.Add(weekEndOffDate);
             }
           }
         }
-        LstTimeData.AddRange(offDays);
+        //LstTimeData.AddRange(offDays);
 
          // Find the latest date for which timing data exists in the database (max date in LstTimeData)
          var lastExistingDate = LstTimeData
@@ -1866,6 +1899,10 @@ namespace LeaveON.Controllers
           {
             string status = "Absent"; // Default to "Absent"
                                       // Check for holiday and leave
+            string timezone = countryName;
+
+            
+
             if (annualOffDay != null)
             {
               status = annualOffDay.Description; // Holiday description
@@ -1879,6 +1916,12 @@ namespace LeaveON.Controllers
                   .FirstOrDefault();
               status = leaveTypeName; // Leave type ID if on leave
             }
+            string lastAttendacnelcoation = countryName;
+            if (status == "Absent")
+            {
+              TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (currentDay.Date.AddDays(-1)).Date);
+                lastAttendacnelcoation = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.TimeZone : countryName;
+            }
             //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
             depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
               // Add attendance data for the day
@@ -1886,7 +1929,7 @@ namespace LeaveON.Controllers
             {
               EmployeeName = UserName,
               EmployeeNumber = UserId,
-              TimeZone = countryName,
+              TimeZone = countryName != lastAttendacnelcoation ? lastAttendacnelcoation : countryName,
               Policy = userLeavePolicyDescription,
               Department = depName,
               Date = annualOffDay?.OffDay ?? currentDay,
@@ -2024,6 +2067,8 @@ namespace LeaveON.Controllers
             if (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday)
             {
               status = "Weekend";
+             
+           
             }
             else
             {
@@ -2036,6 +2081,7 @@ namespace LeaveON.Controllers
               if (!string.IsNullOrEmpty(officialOffDay))
               {
                 status = officialOffDay;
+                totalWorkingHours = TimeSpan.Parse("00.00:00");
               }
 
               else
@@ -2046,7 +2092,7 @@ namespace LeaveON.Controllers
                                       && DbFunctions.TruncateTime(l.StartDate) <= currentDate.Date
                                       && DbFunctions.TruncateTime(l.EndDate) >= currentDate.Date
                                       && l.IsAccepted1 == 1
-                                      && l.IsAccepted2 == 1)   // ✅ Only approved leaves
+                                      && l.IsAccepted2 == 1)    
                                   .Join(dbLeaveOn.LeaveTypes,
                                       l => l.LeaveTypeId,
                                       lt => lt.Id,
@@ -2458,7 +2504,7 @@ namespace LeaveON.Controllers
           string formattedEndDate = endDate.ToString("dd-MM-yyyy");
           var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
           LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
-          // LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
+          //  LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
 
         }
         //return View(await db.UD_TB_AccessTime_Data.ToListAsync());
@@ -2564,13 +2610,10 @@ namespace LeaveON.Controllers
         //ViewBag.MonthSelectList = GetMonthSelectList();
         DateTime startDate, endDate;
         string userId = User.Identity.GetUserId();
-
         List<TimeData> LstAttendances = new List<TimeData>();
-
         // Set default date if ReqMonthYear is empty
         if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
         {
-
           startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
           endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
         }
@@ -2613,10 +2656,31 @@ namespace LeaveON.Controllers
         else if (User.IsInRole("Manager") || User.IsInRole("User"))
         {
 
-          var managerDepartment = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId  ).DepartmentName;
-          ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
+          //var managerDepartment = dbLeaveOn.AspNetUsers.Where(u => u.Id == userId  ).Select(u => u.DepartmentName)
+          //       .Distinct()
+          //       .Select(d => new SelectListItem { Value = d, Text = d })
+          //       .ToList(); 
+          ////ViewBag.Departments = new SelectList(new List<string> { managerDepartment });
+          //ViewBag.Departments = new SelectList(managerDepartment, "Value", "Text");
+          var managerDepartment = dbLeaveOn.AspNetUsers
+    .Where(u => u.Id == userId)
+    .Select(u => u.DepartmentName)
+    .FirstOrDefault();
 
-          var employeesUnderManager = dbLeaveOn.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId) && u.BioStarEmpNum.HasValue && u.IsActive==true).ToList();
+          ViewBag.Departments = new SelectList(
+              new List<SelectListItem>
+              {
+        new SelectListItem
+        {
+            Value = managerDepartment,
+            Text = managerDepartment
+        }
+              },
+              "Value",
+              "Text"
+          );
+
+          var employeesUnderManager = dbLeaveOn.AspNetUsers.Where(u => (u.ManagerID == userId ) && u.BioStarEmpNum.HasValue && u.IsActive==true).ToList();
           ViewBag.Employees = employeesUnderManager;
           // new SelectList(employeesUnderManager, "BioStarEmpNum", "UserName");
 
@@ -2673,41 +2737,85 @@ namespace LeaveON.Controllers
       }
 
     }
-
     [HttpPost]
     public ActionResult GetUsersByDepartments(List<string> departmentNames)
     {
+      string userId = User.Identity.GetUserId();
+
       if (departmentNames == null || !departmentNames.Any())
       {
-        //return Json(new List<SelectListItem>(), JsonRequestBehavior.AllowGet);
-
         ViewBag.Employees = new List<AspNetUser>();
         return PartialView("_EmployeeList");
       }
 
-      //var user = dbLeaveOn.AspNetUsers
-      //    .Where(u => departmentNames.Contains(u.DepartmentName))
-      //    .AsEnumerable()
-      //    .Select(u => new SelectListItem
-      //    {
-      //      Value = u.BioStarEmpNum.ToString(),
-      //      /* Text = u.UserName*/
-      //      Text = u.UserName.Split('@')[0].Replace('.', ' ')
-      //    }).OrderBy(i => i.Text).ToList();
+      var loginUser = dbLeaveOn.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+      var twoYearsAgo = DateTime.Today.AddYears(-2);
 
-      var user = dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue && u.IsActive==true).ToList();
-      var userlist = user.Select(k => new AspNetUser
+      List<AspNetUser> userList;
+
+      if (User.IsInRole("Admin"))
       {
-        UserName = k.UserName.Split('@')[0].Replace('.', ' '),
-        BioStarEmpNum = k.BioStarEmpNum
-      }).ToList();
+        userList = (from u in dbLeaveOn.AspNetUsers
+                    join a in dbLeaveOn.AttendanceDatas
+                        on u.BioStarEmpNum equals a.BioStarEmpNum
+                    where a.CreatedDate >= twoYearsAgo
+                          && departmentNames.Contains(u.DepartmentName)
+                          && u.BioStarEmpNum.HasValue
+                          && u.BioStarEmpNum.Value > 0
+                          && u.IsActive == true
+                          && u.IsDeleted != true
+                    group u by u.BioStarEmpNum into g
+                    select g.FirstOrDefault())
+               .ToList()   // Execute SQL here
+               .Select(u => new AspNetUser
+               {
+                 BioStarEmpNum = u.BioStarEmpNum,
+                
+                 UserName = !string.IsNullOrEmpty(u.EmpolyeeName)
+                       ? u.EmpolyeeName
+                       : u.UserName.Split('@')[0].Replace('.', ' ')
+               })
+               .OrderBy(x => x.UserName)
+               .ToList();
 
-      ViewBag.Employees = userlist;
-      //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => departmentNames.Contains(u.DepartmentName)), "BioStarEmpNum", "UserName");
-      //return Json(users, JsonRequestBehavior.AllowGet);
+      }
+      else if (User.IsInRole("Manager") || User.IsInRole("User"))
+      {
+        userList = (from u in dbLeaveOn.AspNetUsers
+                    join a in dbLeaveOn.AttendanceDatas
+                        on u.BioStarEmpNum equals a.BioStarEmpNum
+                    where a.CreatedDate >= twoYearsAgo
+                          && departmentNames.Contains(u.DepartmentName)
+                          && u.ManagerID == loginUser.Id 
+                          && u.BioStarEmpNum.HasValue
+                          && u.BioStarEmpNum.Value > 0
+                          && u.IsActive == true
+                          && u.IsDeleted != true
+                    group u by u.BioStarEmpNum into g
+                    select g.FirstOrDefault())
+            .ToList()   // Execute SQL here
+            .Select(u => new AspNetUser
+            {
+              BioStarEmpNum = u.BioStarEmpNum,
+
+              UserName = !string.IsNullOrEmpty(u.EmpolyeeName)
+                    ? u.EmpolyeeName
+                    : u.UserName.Split('@')[0].Replace('.', ' ')
+            })
+            .OrderBy(x => x.UserName)
+            .ToList();
+      }
+      else
+      {
+        userList = new List<AspNetUser>();
+      }
+
+      ViewBag.Employees = userList;
 
       return PartialView("_EmployeeList");
     }
+
+ 
     [HttpPost]
     public ActionResult GetUsersByDepartmentss(List<string> departmentNames)
     {
@@ -2720,7 +2828,7 @@ namespace LeaveON.Controllers
       }
 
       var users = dbLeaveOn.AspNetUsers
-          .Where(u => departmentNames.Contains(u.DepartmentName) && u.IsActive == true)
+          .Where(u => departmentNames.Contains(u.DepartmentName) && u.BioStarEmpNum.HasValue && u.IsActive == true)
           .AsEnumerable()
           .Select(u => new SelectListItem
           {
@@ -2846,19 +2954,13 @@ namespace LeaveON.Controllers
             .Select(e => e.DepartmentName)
             .Distinct() // Ensure distinct departments
             .ToList();
-        //// Add the user own department to the list if it's not already included
-        //if (!string.IsNullOrEmpty(userDepartment) && !employeeDepartments.Contains(userDepartment))
-        //{
-        //  employeeDepartments.Add(userDepartment);
-        //}
-
-        // Create the department list for the dropdown
+  
         var departmentClaims = employeeDepartments
             .Select(d => new { Value = d, Text = d })
             .ToList();
 
 
-          // Check if departments are available; if not, add a placeholder
+          
           if (!departmentClaims.Any())
           {
             departmentClaims.Add(new { Value = "", Text = "Department Not Exists" });
@@ -2866,7 +2968,7 @@ namespace LeaveON.Controllers
 
         
 
-        //  // Set the departments in the ViewBag for use in the dropdown
+       
          ViewBag.Departments = new SelectList(departmentClaims, "Value", "Text");
          ViewBag.SelectedDepartments = departmentClaims;
       }
@@ -3584,7 +3686,80 @@ namespace LeaveON.Controllers
 
       return Task.FromResult(LstTimeData);
     }
+    //protected (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
+    //{
+    //  string timezone = attendacnetimezone.Split('-')[1].Split(' ')[0];
 
+    //  string countryCode = timezone;//.Split('-')[1];
+
+    //  switch (countryCode.ToUpper())
+    //  {
+    //      case "UAE":
+    //      countryCode = "AE";
+    //      break;
+
+    //      case "KSA":
+    //      countryCode = "SA";
+    //      break;
+    //  }
+
+
+
+
+    //  RegionInfo region = new RegionInfo(countryCode);
+    //  string countryName = region.EnglishName;
+    //  var timeZone = TimeZoneInfo
+    //     .GetSystemTimeZones()
+    //     .FirstOrDefault(tz =>
+    //         tz.DisplayName.Contains(countryName) ||
+    //         tz.Id.Contains(countryName));
+    //  return (countryName, timeZone.Id.ToString());
+    ////  Dictionary<string, (string Country, string TimeZone)> deviceMap =
+    ////    new Dictionary<string, (string, string)>
+
+    ////{
+    ////    { "IN01", ("Pakistan", "Pakistan Standard Time") },
+    ////    { "NG-L", ("Nigeria Lagos", "W. Central Africa Standard Time") },
+    ////    { "NG-P", ("Nigeria Port Harcourt", "W. Central Africa Standard Time") },
+    ////    { "IN08", ("United Arab Emirates", "Arabian Standard Time") },
+    ////    { "IN09", ("Saudi Arabia", "Arab Standard Time") },
+    ////    { "IN10", ("India", "India Standard Time") },
+
+    ////    // USA
+    ////    { "IN11", ("United States", "Eastern Standard Time") },
+    ////    { "IN12", ("United States", "Central Standard Time") },
+    ////    { "IN13", ("United States", "Mountain Standard Time") },
+    ////    { "IN14", ("United States", "Pacific Standard Time") }
+    ////};
+
+    ////  string countryName = String.Empty;
+    ////  string timeZone = String.Empty;
+    ////  if (deviceMap.ContainsKey(attendacnetimezone))
+    ////  {
+    ////    countryName = deviceMap[attendacnetimezone].Country;
+    ////    timeZone = deviceMap[attendacnetimezone].TimeZone;
+    ////  }
+    ////  else
+    ////  {
+    ////    switch (attendacneshortCountryName)
+    ////    {
+    ////      case "PK ":
+    ////      case "PAK":
+    ////        timeZone = "Pakistan Standard Time";
+    ////        countryName = "Pakistan";
+    ////        break;
+    ////      case "UAE":
+    ////        timeZone = "Arab Standard Time";
+    ////        countryName = "United Arab Emirates";
+    ////        break;
+    ////      default:
+    ////        timeZone = aspNetUser.CountryName.TimeZone;
+    ////        countryName = aspNetUser.CountryName.Name;
+    ////        break;
+    ////    }
+    ////  }
+    ////  return (countryName, timeZone);
+    //}
     private Task<List<TimeData>> GetMonthWiseData(string formattedStartDate, string formattedEndDate, List<int> UserIds)
     {
       DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
@@ -3660,6 +3835,149 @@ namespace LeaveON.Controllers
 
       return Task.FromResult(LstTimeData);
     }
+
+
+
+
+
+    public async Task<ActionResult> ExportAttendance(string StartDate, string EndDate, List<string> UserIds)
+    {
+      var employees = dbLeaveOn.AspNetUsers.ToList();
+
+      DateTime startDate, endDate;
+      string userId = User.Identity.GetUserId();
+
+      List<TimeData> LstAttendances = new List<TimeData>();
+
+      // Set default date if ReqMonthYear is empty
+      if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+      {
+
+        startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+      }
+      else
+      {
+        // In case of empty parameters or first time
+        startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        endDate = DateTime.Now;
+
+
+      }
+      if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
+      {
+        // Format the date range for querying
+        string formattedStartDate = startDate.ToString("dd-MM-yyyy");
+        string formattedEndDate = endDate.ToString("dd-MM-yyyy");
+        var User_Ids = UserIds.Select(id => int.Parse(id)).ToList();
+        //   LstAttendances = await ConnectToDBandReturnAttendanceReport(formattedStartDate, formattedEndDate, User_Ids);
+        LstAttendances = await GetAttendanceSummary(formattedStartDate, formattedEndDate, User_Ids);
+
+      }
+      try
+      {
+
+        using (var package = new ExcelPackage())
+        {
+          var ws = package.Workbook.Worksheets.Add("Attendance");
+
+          // Header
+          ws.Cells[1, 1].Value = "Employee Name";
+          ws.Cells[1, 2].Value = "Employee Number";
+          ws.Cells[1, 3].Value = "Department";
+          ws.Cells[1, 4].Value = "Time Zone";
+          ws.Cells[1, 5].Value = "Policy";
+          ws.Cells[1, 6].Value = "Date";
+          ws.Cells[1, 7].Value = "Day";
+          ws.Cells[1, 8].Value = "Time In";
+          ws.Cells[1, 9].Value = "Time Out";
+          ws.Cells[1, 10].Value = "Working Hours";
+          ws.Cells[1, 11].Value = "Total Time";
+          ws.Cells[1, 12].Value = "Status";
+
+          // Header Style
+          using (var range = ws.Cells[1, 1, 1, 12])
+          {
+            range.Style.Font.Bold = true;
+            range.Style.Font.Color.SetColor(Color.White);
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.SteelBlue);
+            range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          }
+
+          int row = 2;
+          TimeSpan offDayTime = TimeSpan.Zero;
+
+          foreach (var item in LstAttendances)
+          {
+            ws.Cells[row, 1].Value = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower());
+            ws.Cells[row, 2].Value = item.EmployeeNumber;
+            ws.Cells[row, 3].Value = item.Department;
+            ws.Cells[row, 4].Value = item.TimeZone;
+            ws.Cells[row, 5].Value = item.Policy;
+            ws.Cells[row, 6].Value = item.Date.ToString("dd-MMM-yyyy");
+            ws.Cells[row, 7].Value = item.Day;
+
+            if (item.WorkingHours != offDayTime && item.Status != "Absent")
+            {
+              ws.Cells[row, 8].Value = item.TimeIn;
+              ws.Cells[row, 9].Value = item.TimeOut;
+              ws.Cells[row, 10].Value = item.WorkingHours.ToString();
+              ws.Cells[row, 11].Value = item.TotalTime.ToString();
+            }
+            else
+            {
+              ws.Cells[row, 8].Value = "-";
+              ws.Cells[row, 9].Value = "-";
+              ws.Cells[row, 10].Value = "-";
+              ws.Cells[row, 11].Value = "-";
+            }
+
+            ws.Cells[row, 12].Value = item.Status;
+
+            row++;
+          }
+
+          // Footer
+          ws.Cells[row, 10].Value = ViewBag.TotalWorkingHours + " Hours";
+          ws.Cells[row, 11].Value = ViewBag.TotalHours + " Hours";
+
+          ws.Cells[row, 10].Style.Font.Bold = true;
+          ws.Cells[row, 11].Style.Font.Bold = true;
+
+          // Apply Borders
+          using (var range = ws.Cells[1, 1, row, 12])
+          {
+            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          }
+
+          // AutoFit Columns
+          ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+          byte[] bytes = package.GetAsByteArray();
+
+          return File(
+              bytes,
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "AttendanceReport.xlsx");
+
+
+        }
+        }
+      catch (Exception ex)
+      {
+
+        return View();
+      }
+    }
+
 
 
   }

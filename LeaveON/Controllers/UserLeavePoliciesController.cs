@@ -31,8 +31,35 @@ namespace LeaveON.Controllers
       return View(await userLeavePolicies.ToListAsync());
     }
 
-    // GET: UserLeavePolicies/Details/5
     [Authorize(Roles = "Admin")]
+    public void ResetLeavePolicyValues(decimal id)
+    {
+      using (LeaveONEntities dbcontext = new LeaveONEntities())
+      {
+        var policy = db.UserLeavePolicies.FirstOrDefault(k=>k.Id==id);
+        if(policy != null)
+        {
+          var detail = policy.UserLeavePolicyDetails.ToList();
+          foreach (UserLeavePolicyDetail userLeavePolicyDetail in detail)
+          {
+            List<LeaveBalance> leaveBalances = dbcontext.LeaveBalances.Where(x => x.UserLeavePolicyId == userLeavePolicyDetail.UserLeavePolicyId && x.LeaveTypeId == userLeavePolicyDetail.LeaveTypeId).ToList<LeaveBalance>();
+
+            foreach (LeaveBalance leaveBalance in leaveBalances)
+            {
+              if (leaveBalance is null) continue;
+              leaveBalance.Balance = userLeavePolicyDetail.Allowed;
+              leaveBalance.Taken = 0;
+              dbcontext.Entry(leaveBalance).Property(x => x.Balance).IsModified = true;
+              dbcontext.Entry(leaveBalance).Property(x => x.Taken).IsModified = true;
+            }
+          }
+          dbcontext.SaveChanges();
+        }
+      }  
+      
+    }
+      // GET: UserLeavePolicies/Details/5
+      [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Details(decimal id)
     {
       if (id == null)
@@ -170,6 +197,7 @@ namespace LeaveON.Controllers
     {
       try
       {
+
         ViewBag.Employees = new SelectList(db.AspNetUsers.OrderBy(i => i.UserName), "Id", "UserName");
         ViewBag.Departments = new SelectList(db.CountryNames, "Name", "Name");
         //always remember viewbag name should not be as model name. other wise probelm. if same multilist will not show selected values
@@ -205,7 +233,7 @@ namespace LeaveON.Controllers
           db.LeaveBalances.Add(leaveBalance);
         }
 
-        var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+        ///var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId && x.UserLeavePolicyId == userLeavePolicy.Id);
 
         //// Now proceed with your logic for calculating additional days taken
         //int existingTaken = (int)leaveBalance.Taken;
@@ -229,7 +257,9 @@ namespace LeaveON.Controllers
         var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicy.Id);
         var joiningDate = currentUser.JoiningDate;
 
-          if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart)
+        // 
+
+          if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart && Caller != "UserLeavePolicy")
           {
             int joiningYear = joiningDate.Value.Year;
             int joiningMonth = joiningDate.Value.Month;
@@ -411,7 +441,7 @@ namespace LeaveON.Controllers
         {
           //string CurrentLoginUserId = User.Identity.GetUserId();
           ViewBag.LeaveUserId = leaveUserId;
-          ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+          ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId  && x.UserLeavePolicyId==id);
 
           ViewBag.Caller = "Leave";
 

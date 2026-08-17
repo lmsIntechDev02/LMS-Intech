@@ -18,7 +18,7 @@ namespace AutomatedReportTaskRunner
             Console.WriteLine("Currently service is not available.");
             // Wait for 5 seconds (5000 milliseconds)
             Thread.Sleep(5000);
-
+            bool isHODRepot = false;
             Console.WriteLine("Exiting application...");
             // Stop execution immediately (out ho jaay)
             //return;
@@ -31,12 +31,22 @@ namespace AutomatedReportTaskRunner
             // Initialize the service
             AutomatedReportService service = new AutomatedReportService();  // Make sure any dependencies are resolved
             if (DateTime.Today.Day >= 26)
+             {
+                if (!isHODRepot)
                 {
                     service.GetMonthlyReportData(today.Month, today.Year, false);
-                 }
+                }
+                else
+                {
+                    service.GetHODDeparmentReport(today.Month, today.Year);
+                }
+             }
             else
             {
-                service.GetMonthlyReportData(month, year, false);
+                if (!isHODRepot)
+                    service.GetMonthlyReportData(month, year, false);
+                else
+                service.GetHODDeparmentReport(month, year);
                 //service.GetMonthlyReportData(01, 2025, false);
 
                 //   Console.WriteLine("Report will be generated on the last day of the month.");

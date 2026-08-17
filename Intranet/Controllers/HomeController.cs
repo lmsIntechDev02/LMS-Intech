@@ -14,6 +14,32 @@ namespace Intranet.Controllers
     public class HomeController : Controller
     {
         private LeaveONEntities db = new LeaveONEntities();
+        //public ActionResult Index(string ReturnUrl)
+        //{
+        //    GetLog();
+        //    List<string> loginsList = new List<string>();
+        //    PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+        //    UserPrincipal currentUser = UserPrincipal.FindByIdentity(ctx, User.Identity.Name);
+
+        //    loginsList.Add(currentUser.UserPrincipalName);
+
+        //    var path = Server.MapPath(@"~/myLog.txt");
+        //    System.IO.File.AppendAllLines(path, loginsList);
+
+        //    string ReturnUrlValue = "/";
+
+        //    if (string.IsNullOrEmpty(ReturnUrl)) ReturnUrl = "/";
+
+        //    string ADUserValue = currentUser.UserPrincipalName;
+
+
+        //    //currently using
+        //    return Redirect("https://lms.intechww.com:1002/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); //this for production
+
+        //    // return Redirect("http://lms-stage.intechww.com/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue);//this for staging
+        //    //  return Redirect("https://localhost:44380/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); // this is for testing
+
+        //}
         public ActionResult Index(string ReturnUrl)
         {
             GetLog();
@@ -36,11 +62,11 @@ namespace Intranet.Controllers
             //currently using
            return Redirect("https://lms.intechww.com:1002/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); //this for production
 
-           // return Redirect("http://lms-stage.intechww.com/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue);//this for staging
-          //  return Redirect("https://localhost:44380/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); // this is for testing
+            // return Redirect("http://lms-stage.intechww.com/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue);//this for staging
+            //  return Redirect("https://localhost:44380/Account/Login?ReturnUrl=" + ReturnUrl + "&ADUser=" + ADUserValue); // this is for testing
 
         }
-        
+
         public ActionResult Sync()
         {
             ScheduledTasks scheduledTasks = new ScheduledTasks();
@@ -60,9 +86,7 @@ namespace Intranet.Controllers
 
         public ActionResult TestSync()
         {  
-
             ViewBag.Message = "Your application description page.";
-
             return View();
         }
 

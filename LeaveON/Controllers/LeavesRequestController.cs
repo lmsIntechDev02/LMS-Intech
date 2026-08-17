@@ -42,6 +42,7 @@ namespace LeaveON.Controllers
       string LoggedInUserId = User.Identity.GetUserId();
       IQueryable<Leave> leaves = db.Leaves.Where(x => x.UserId == LoggedInUserId && x.IsQuotaRequest == true).AsQueryable<Leave>();
       return View(await leaves.ToListAsync());
+
     }
 
     public async Task<ActionResult> LeaveReport(string StartDate, string EndDate, List<string> UserIds)
@@ -281,9 +282,7 @@ namespace LeaveON.Controllers
       ViewBag.LeaveUserId = userId;
       ViewBag.FiscalYearStart = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearStart;
       ViewBag.FiscalYearEnd = db.UserLeavePolicies.FirstOrDefault(x => x.Id == policyId).FiscalYearEnd;
-     
       ViewBag.ShortLeaveMessage = "test message";
-
       return View();
     }
 
@@ -334,7 +333,7 @@ namespace LeaveON.Controllers
             : "Joining date not available";
 
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
-        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+        .OrderBy(x => x.UserName), "Id", "UserName", "");
 
       ViewBag.LeaveUserId = userId;
       //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");
@@ -438,9 +437,11 @@ namespace LeaveON.Controllers
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
       var shortLeaveMessage = "";
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
+
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
         leave.IsShortLeave = true;
+
         var balanceCheck = db.LeaveBalances
           .Where(leaveBalance =>
             leaveBalance.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId &&
@@ -466,6 +467,7 @@ namespace LeaveON.Controllers
                   leaveBalance.LeaveTypeId == 7) // Casual Short Leave
               .Select(detail => detail.HoursTaken)
               .FirstOrDefault();
+
           if(hoursTakenCheck + (int)(leave.EndDate - leave.StartDate).TotalHours > 8)
           {
             TempData["ErrorMessage"] = "Your leave request exceeds the available balance.";
@@ -649,7 +651,7 @@ namespace LeaveON.Controllers
             ViewBag.BalanceCheck = balanceCheck;
             db.Leaves.Add(leave);
             await db.SaveChangesAsync();
-            SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, receiver: admin1, MessageType: "LeaveRequest");
+            SendEmail.SendEmailUsingLeavON(leave,  leave.AspNetUser, receiver: admin1, MessageType: "LeaveRequest");
           }
           catch (Exception ex)
           {
@@ -685,9 +687,10 @@ namespace LeaveON.Controllers
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == CompensatoryLeaveTypeId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       TimeSpan duration = leave.EndDate - leave.StartDate;
-      leave.TotalDays = duration.Days + 1; //total days including weekends
 
+      leave.TotalDays = duration.Days + 1; //total days including weekends
       leave.IsQuotaRequest = true;
+
       if (ModelState.IsValid)
       {
         db.Leaves.Add(leave);
@@ -712,8 +715,11 @@ namespace LeaveON.Controllers
         ///////////////
 
         await db.SaveChangesAsync();
+
         AspNetUser admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-        SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin1, "LeaveRequest");
+
+        SendEmail.SendEmailUsingLeavON(leave,   leave.AspNetUser, admin1, "LeaveRequest");
+
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
         //SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
         return RedirectToAction("QuotaRequestHistory");

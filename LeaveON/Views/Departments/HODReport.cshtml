@@ -1,0 +1,359 @@
+
+@model IEnumerable<LeaveON.Models.Procedures.LeaveAbsentModel>
+
+@{ ViewBag.Title = "Leave/Absent";
+  Layout = "~/Views/Shared/_Layout.cshtml"; }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+<div>
+
+  <div class="row   ">
+    <div id="NewData" class="w-100">
+      <section class="content">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">HOD Report</h3>
+
+
+          </div>
+          <div class="card-body">
+            <div class="row ">
+              <div id="divDep" class="form-group col-3">
+                <label class="font-weight-normal">Departments</label>
+                @Html.DropDownList("DepartmentList", new MultiSelectList(ViewBag.Departments, "Value", "Text"), htmlAttributes: new { @class = "form-control selectpicker", @id = "listDepartments", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+              </div>
+
+              <div class="form-group col-3">
+                <label class="font-weight-normal">HOD</label>
+                @Html.DropDownList("HOD", new MultiSelectList(ViewBag.hodList, "Value", "Text"), htmlAttributes: new { @class = "form-control selectpicker", @id = "listHOD", @multiple = "multiple", data_live_search = "true", data_actions_box = "true", data_done_button = "true" })
+              </div>
+
+
+
+              <div class="d-flex align-items-center gap-3 col-6 form-group">
+
+
+                <div>
+                  <div>
+                    <label class="font-weight-normal">Start Date</label>
+                  </div>
+                  @Html.Editor("startDate", new { htmlAttributes = new { @class = "datepicker", @id = "datepickerStart", @placeholder = "Start date", @Value = ViewBag.StartDate, autocomplete = "off" } })
+                </div>
+
+
+                @*<div>
+                    <div>
+                      <label class="font-weight-normal">End Date</label>
+                    </div>
+                    @Html.Editor("endDate", new { htmlAttributes = new { @class = "datepicker", @Disabled = "@Disabled", @id = "datepickerEnd", @placeholder = "End date", @Value = ViewBag.EndDate, autocomplete = "off" } })
+                  </div>*@
+                <button id="load" style="position: relative;    top: 9px;">
+                  <span class="button-text">Go</span>
+                  <span class="loader" style="display: none;">Loading...</span>
+                </button>
+
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </div>
+</div>
+
+@*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>*@
+
+
+
+<link rel="stylesheet" href="/resources/demos/style.css">
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+<script type="text/javascript">
+  $(document).ready(function () {
+
+    flatpickr("#datepickerStart", {
+
+      plugins: [
+        new monthSelectPlugin({
+          shorthand: true, //defaults to false
+          dateFormat: "M Y", //defaults to "F Y"
+          altFormat: "F Y", //defaults to "F Y"
+         // theme: "dark" // defaults to "light"
+        })
+      ]
+    });
+    $('#load').click(function () {
+      debugger
+      // Show the loader and hide the button text
+      $('.loader').show();
+      $('.button-text').hide();
+      $("#wait").css("display", "block");
+
+
+
+            var startDate = $('#datepickerStart').val();
+           // var endDate = $('#datepickerEnd').val();
+
+            var requestData;
+
+
+      var selecteddepartments = $('#listDepartments option:selected').map(function () {
+        return $(this).val();
+      }).get();
+
+      var selectedEmployees = $('#listHOD option:selected').map(function () {
+                return $(this).val();
+              }).get();
+
+
+      if (selecteddepartments.length === 0)
+      {
+          alert('Please select at least one department.');
+          $('.loader').hide();
+          $('.button-text').show();
+          $("#wait").css("display", "none");
+          disableInputs(false);
+          return;
+      }
+
+      if (selectedEmployees.length === 0)
+      {
+        alert('Please select at least one HOD.');
+        $('.loader').hide();
+        $('.button-text').show();
+        $("#wait").css("display", "none");
+        disableInputs(false);
+        return;
+      }
+
+
+              if (!startDate)
+              {
+                alert('Please select start date.');
+                $('.loader').hide();
+                $('.button-text').show();
+                $("#wait").css("display", "none");
+                disableInputs(false);
+                return;
+              }
+
+              //if (!endDate)
+              //{
+              //  alert('Please select end date.');
+              //  $('.loader').hide();
+              //  $('.button-text').show();
+              //  $("#wait").css("display", "none");
+              //  disableInputs(false);
+              //  return;
+              //}
+
+
+      requestData = { 'startDate': startDate,   'departments': selecteddepartments,'hodIDs': selectedEmployees };
+
+
+
+              $.ajax({
+                url: "@Url.Action("HODReports", "Departments")",
+                data: requestData,
+                  type: "POST",
+                success: function (data)
+                {
+                  if (data == "Success") {
+                    Swal.fire({
+                      title: "Success",
+                      text: "Reporthas been saved successfully.",
+                      icon: "success"
+                    });
+
+                  }
+                  },
+                  error: function (xhr, ajaxOptions, thrownError) {
+                      alert('Data provided was not valid');
+                },
+                complete: function () {
+                  // Hide the loader when the request is complete (success or error)
+                  $('.loader').hide();
+                  $('.button-text').show();
+                  $("#wait").css("display", "none");
+                  disableInputs(false);
+                }
+              });
+          });
+  });
+
+</script>
+
+<style>
+
+  .dropdown-check-list {
+    display: inline-block;
+    position: relative;
+    background-color: #ffffff;
+    width: 250px;
+    height: 40px;
+    margin: 10px 5px;
+  }
+
+    .dropdown-check-list .anchor {
+      position: relative;
+      cursor: context-menu;
+      display: inline-block;
+      padding: 0 50px 0 10px;
+      border: 1px solid #ccc;
+      font-weight: normal;
+      font-size: 14.8px;
+      color: #000000;
+      border: 1px solid #767676;
+      border-radius: 2px;
+      width: 250px;
+      height: 40px;
+      text-overflow: ellipsis;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+  .employee-dropdown-width .anchor {
+    /*padding: 0 177px 0 10px;*/
+  }
+  .dropdown-check-list .anchor:after {
+    position: absolute;
+    content: "";
+    border-left: 1.5px solid black;
+    border-top: 1.5px solid black;
+    padding: 3px;
+    right: 10px;
+    top: 30%;
+    -moz-transform: rotate(-135deg);
+    -ms-transform: rotate(-135deg);
+    -o-transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+    transform: rotate(-135deg);
+  }
+
+      .dropdown-check-list .anchor:active:after {
+        right: 8px;
+        top: 41%;
+      }
+
+  .dropdown-check-list ul.items {
+    display: flex;
+    align-items: baseline;
+    padding: 2px;
+    display: none;
+    margin: 0;
+    border: 1px solid #ccc;
+    max-height: 570px;
+    width: 250px;
+    overflow-y: auto;
+    border-top: none;
+    background-color: white;
+    position: absolute;
+    @*  width: 100%;*@
+    z-index: 1;
+  }
+
+      .dropdown-check-list ul.items li {
+        list-style: none;
+        padding: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-weight: normal;
+      }
+        .dropdown-check-list ul.items li label {
+          font-weight: normal;
+        }
+        .dropdown-check-list ul.items li:hover {
+          background-color: #0094ff;
+        }
+
+    .dropdown-check-list.visible .anchor {
+
+    }
+
+    .dropdown-check-list.visible .items {
+      display: block;
+    }
+
+    .dropdown-check-list input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+  #load {
+    display: inline-block;
+    width: 100px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  #btnExportExcel {
+    display: inline-block;
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .selectpicker {
+    width: 200px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+  }
+
+  .datepicker {
+     width: 250px;
+    height: 40px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 10px 5px;
+    margin-top: 0px;
+    border-radius: 4px;
+    border: 1px solid #000000;
+    background: #f8f9fa;
+    position: relative;
+    top: 0px;
+  }
+  .ui-datepicker {
+    width: 250px;
+  }
+  .bootstrap-select.form-control {
+    border: 1px solid !important;
+    height: auto !important;
+  }
+
+
+</style>
+
+
+

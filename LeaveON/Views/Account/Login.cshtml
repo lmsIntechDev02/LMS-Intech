@@ -1,116 +1,179 @@
 @using LeaveON.Models
+
 @model LoginViewModel
+
 @{
-  ViewBag.Title = "Sign in";
+
+  ViewBag.Title = "Sign In";
+
   Layout = "~/Views/Shared/_LayoutAnonymous.cshtml";
+
 }
 
-@{ //User.Identity.Name
+<div class="login-wrapper">
 
-  //string UserPrincipalName = System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName;
-  //bool IsUserActive = System.DirectoryServices.AccountManagement.UserPrincipal.Current.Enabled.Value;
+  <div class="login-card">
 
-  //string Name = new System.Security.Principal.WindowsPrincipal(System.Security.Principal.WindowsIdentity.GetCurrent()).Identity.Name;
-  //string Name3 = new System.Security.Principal.WindowsPrincipal(System.Security.Principal.WindowsIdentity.GetCurrent()).Identity.AuthenticationType.ToString();
-  //string UserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-  //huzaifa.ali@intechww.com
-  //string UserName1 = UserName.Substring(UserName.IndexOf("\\")).Replace("\\", "");
+    <!-- Logo -->
+    <div class="text-center mb-4">
 
-  //UserName1 = UserName1 + "@intechww.com";
-  //List<string> loginsList = new List<string>();
+      <img src="~/dist/img/INTECH.png" class="login-logo" alt="Company Logo" />
+      <h5 class="mt-3">Sign In</h5>
 
-  //string id1 = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-  ////string id2 = Page.User.Identity.Name;
-  //string id3 = Html.ViewContext.HttpContext.User.Identity.Name;
-  //string id4 = Request.LogonUserIdentity.Name;
-  //loginsList.Add(id1);
-  ////loginsList.Add(id2);
-  //loginsList.Add(id3);
-  //loginsList.Add(id4);
-  //loginsList.Add("------");
-
-
-
-  //var path = Server.MapPath(@"~/myLog.txt");
-  //System.IO.File.WriteAllLines(path, loginsList);
-
-  //string IsAuthenticated = System.Security.Principal.WindowsIdentity.GetCurrent().IsAuthenticated.ToString();
-
-
-  //Html.Hidden("UserName", UserName);
-  //Html.TextBox("IsAuthenticated", IsAuthenticated, new { @class = "form-control", autocomplete = "off", style = "display: none;" });
-
-
-  <div class="register-box">
-    <div class="register-logo">
-      <h2><b>Sign in</b></h2>
     </div>
 
-    <div class="card">
-      <div class="card-body register-card-body">
-        <p class="login-box-msg">Signing in to start your session... please wait</p>
-        @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", autocomplete = "off", role = "form", name = "accountLogin", id = "accountLogin" }))
-        {
+    @using (Html.BeginForm("Login", "Account",
 
-          @Html.AntiForgeryToken()
+        new { returnUrl = ViewBag.ReturnUrl },
 
-          @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-          <form action="../../index.html" method="post">
-            <div class="input-group mb-3">
-              @*@Html.TextBoxFor(m => m.Email, new { @class = "form-control   ", placeholder = "Email" style = "display: none;", autocomplete = "off"  })*@
-              @*@Html.TextBox("Email", (string)ViewBag.Eamil, new { @class = "form-control", autocomplete = "off", placeholder = "Email", style = "display: none;" })*@
-              @Html.TextBox("Email", (string)ViewBag.ADUser, new { @class = "form-control", autocomplete = "off", placeholder = "Email", style = "display: none;" })
-              @*<div class="input-group-append">
-                      <div class="input-group-text">
-                        <span class="fas fa-user"></span>
-                      </div>
-                    </div>
-                </div>*@
-              @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+        FormMethod.Post,
 
-              <div class="input-group mb-3">
-                @*@Html.PasswordFor(m => m.Password, new { @class = "form-control fas fa-lock", placeholder = "Password", style = "display: none;", autocomplete = "off" })*@
-                @Html.Password("Password", "●●●●●●●●●●", new { @class = "form-control fas fa-lock", autocomplete = "off", placeholder = "Password", style = "display: none;" })
-                @*<div class="input-group-append">
-                    <div class="input-group-text">
-                      <span class="fas fa-lock"></span>
-                    </div>
-                  </div>*@
-              </div>
-              @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+        new { autocomplete = "off", id = "accountLogin" }))
+
+    {
+
+      @Html.AntiForgeryToken()
 
 
-              <div class="col-4">
-                <button type="submit" class="btn btn-primary btn-block" hidden>SignIn</button>
-              </div>
-          </form>
 
+      <div class="form-group mb-3">
 
-          @*<a href="login.cshtml" class="text-center">Create New Account</a>*@
-        }
+        <div class="input-group">
+
+          <span class="input-group-text">
+            <i class="fas fa-envelope"></i>
+          </span>
+
+          @Html.TextBoxFor(m => m.Email,
+
+          new
+
+          {
+
+              @class = "form-control",
+
+              placeholder = "Email Address"
+
+          })
+
+        </div>
+
+        @Html.ValidationMessageFor(m => m.Email, "",
+
+            new { @class = "text-danger" })
+
       </div>
 
-      <!-- /.form-box -->
-    </div><!-- /.card -->
+      <div class="form-group mb-3">
+
+        <div class="input-group">
+
+          <span class="input-group-text">
+            <i class="fas fa-lock"></i>
+          </span>
+
+          @Html.PasswordFor(m => m.Password,
+
+          new
+
+          {
+
+              @class = "form-control",
+
+              placeholder = "Password"
+
+          })
+
+        </div>
+
+        @Html.ValidationMessageFor(m => m.Password, "",
+
+            new { @class = "text-danger" })
+
+      </div>
+      <div class="form-check mb-3">
+        @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input" })
+        @Html.LabelFor(m => m.RememberMe, "Remember Me",
+            new { @class = "form-check-label" })
+      </div>
+
+              <div class="mb-3"> @Html.ValidationSummary(true, "", new { @class = "text-danger" })</div>
+
+              <button type="submit"
+                      class="btn btn-primary w-100 login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+
+                Sign In
+              </button>
+
+            }
+
   </div>
-}
 
-<!-- /.register-box -->
-<!-- jQuery -->
-<script src="../../plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="../../dist/js/adminlte.min.js"></script>
+</div>
+<style>
 
-<script type="text/javascript">
+  body {
+    background: linear-gradient(135deg,#0d6efd,#4e73df);
+    font-family: 'Segoe UI',sans-serif;
+  }
 
-  $(document).ready(function () {
-    //$('#Email').val('admin.intech@intech.com');
-    //$('#Password').val("●●●●●●●●●●");
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
 
-     $('#accountLogin').attr('autocomplete', 'off');
-    document.forms["accountLogin"].submit();
-    //$('#submit_100').trigger('click');
-  });
-</script>
+  .login-card {
+    width: 420px;
+    background: #fff;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0,0,0,.18);
+  }
+  ul {
+    margin-top: 0;
+    padding-left: 1rem !important;
+    margin-bottom: 0rem;
+  }
+  .login-logo {
+    width: 110px;
+    height: auto;
+  }
+    .input-group-text {
+    background: #f5f6fa;
+    border-right: none;
+  }
+
+  .form-control {
+    border-left: none;
+    height: 48px;
+  }
+
+    .form-control:focus {
+      box-shadow: none;
+      border-color: #86b7fe;
+    }
+
+  .login-btn {
+    height: 48px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      transition: .3s;
+    }
+
+  .text-danger {
+    font-size: 13px;
+  }
+
+  h2 {
+    font-weight: 700;
+  }
+</style>

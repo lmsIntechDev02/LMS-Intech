@@ -8,6 +8,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using Repository.Models;
+using LeaveON.Models;
 
 namespace LeaveON.Controllers
 {
@@ -19,7 +20,31 @@ namespace LeaveON.Controllers
         // GET: DepartmentNames
         public async Task<ActionResult> Index()
         {
-            return View(await db.DepartmentNames.ToListAsync());
+
+      List<DepartmentModel> departmentList = new List<DepartmentModel>();
+            DepartmentModel ditem = new DepartmentModel();
+      foreach (var item in db.DepartmentNames.ToList()) 
+      {
+        ditem =  new DepartmentModel();
+        ditem.Name = item.Name;
+        ditem.HRBPName = !string.IsNullOrEmpty(item.HRBPEmail)
+                                                      ? item.HRBPEmail.Split('@')[0].Replace(".", " ")
+                                                      : string.Empty;
+        ditem.Id = item.Id;
+        if (item.HODID.HasValue)
+        {
+            var user = db.AspNetUsers.FirstOrDefault(k => k.IsActive == true && k.BioStarEmpNum== item.HODID);
+          if (user != null)
+          {
+
+            ditem.HODName = !string.IsNullOrEmpty(user.EmpolyeeName) ? user.EmpolyeeName : user.Email.Split('@')[0].Replace(".", " ");
+          }
+        }
+        departmentList.Add(ditem);
+      }
+
+      
+      return View(departmentList);
         }
 
         // GET: DepartmentNames/Details/5
@@ -73,22 +98,31 @@ namespace LeaveON.Controllers
             {
                 return HttpNotFound();
             }
+      var userlist = db.AspNetUsers
+      .Where(u => u.Email != null && u.IsActive == true).AsEnumerable();
 
           // Fetch available HRBP emails from AspNetUsers
-            var hrbpEmails = db.AspNetUsers
-          .Where(u => u.Email != null)
-          .AsEnumerable()
+      var hrbpEmails = userlist
           .Select(u => new SelectListItem
           {
             Value = u.Email,
-            Text = System.Globalization.CultureInfo.CurrentCulture.TextInfo
-                        .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+            Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName : System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                                .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
           })
           .ToList();
+
+        var departmenUser= userlist.Select(u => new SelectListItem
+        {
+          Value = u.BioStarEmpNum.ToString(),
+          Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName :System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                                .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+        })
+          .ToList();  
 
 
       // Pass list to ViewBag
       ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", departmentName.HRBPEmail);
+       ViewBag.departmenUserList = new SelectList(departmenUser, "Value", "Text", departmentName.HODID.ToString());
 
           return View(departmentName);
         }
@@ -98,7 +132,7 @@ namespace LeaveON.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail")] DepartmentName departmentName)
+        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail,HODID")] DepartmentName departmentName)
         {
             if (ModelState.IsValid)
             {
@@ -107,9 +141,12 @@ namespace LeaveON.Controllers
                 if (user != null)
                 {
                   // Assuming HRBPBiostarEmpID is a column in DepartmentName table
-                  departmentName.HRBPBioStarEmpNum = user.BioStarEmpNum; 
+                  departmentName.HRBPBiostarEmpNum = user.BioStarEmpNum; 
+                  //departmentName.HODID = user.HODID; 
                 }
+       // departmentName.Id = 0;
 
+         //db.DepartmentNames.Add(departmentName);
 
                 db.Entry(departmentName).State = EntityState.Modified;
                         await db.SaveChangesAsync();

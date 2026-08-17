@@ -15,26 +15,36 @@
     {
       @Html.AntiForgeryToken()
 
-      <div class="card-body">
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(model => model.Id)
+  <div class="card-body">
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Id)
 
-        <div class="form-group">
-          @Html.LabelFor(model => model.Name, "Department Name", htmlAttributes: new { @class = "control-label" })
-          @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
-          @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
-        </div>
+    <div class="form-group">
+      @Html.LabelFor(model => model.Name, "Department Name", htmlAttributes: new { @class = "control-label" })
+      @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+      @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+    </div>
 
-        <div class="form-group">
-          @Html.Label("HRBP Email")
-          @Html.DropDownListFor(model => model.HRBPEmail,
-              (SelectList)ViewBag.HRBPEmailList,
-              "Please Select HRBP Manger",
-              new { @class = "form-control" })
-          @Html.ValidationMessageFor(model => model.HRBPEmail, "", new { @class = "text-danger" })
+    <div class="form-group">
+      @Html.Label("HRBP Email")
+      @Html.DropDownListFor(model => model.HRBPEmail,
+          (SelectList)ViewBag.HRBPEmailList,
+          "Please Select HRBP Manger",
+          new { @class = "form-control" })
+      @Html.ValidationMessageFor(model => model.HRBPEmail, "", new { @class = "text-danger" })
 
-        </div>
-      </div>
+    </div>
+    <div class="form-group">
+      @Html.Label("HOD Name")
+
+      @Html.DropDownListFor(model => model.HODID,
+          (SelectList)ViewBag.departmenUserList,
+          "Please Select HOD Name",
+          new { @class = "form-control select2" })
+      @Html.ValidationMessageFor(model => model.HODID, "", new { @class = "text-danger " }) 
+
+    </div>
+  </div>
       <div class="form-group">
         <div>
           <input type="submit" value="Save" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />

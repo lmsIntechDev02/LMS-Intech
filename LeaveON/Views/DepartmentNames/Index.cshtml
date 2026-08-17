@@ -1,4 +1,4 @@
-@model IEnumerable<Repository.Models.DepartmentName>
+@model IEnumerable<LeaveON.Models.DepartmentModel>
 
 @{
   ViewBag.Title = "Index";
@@ -49,6 +49,7 @@
                         @*@Html.DisplayNameFor(model => model.HRBPEmail)*@
                         HRBP Name
                       </th>
+                      <th>HOD Name</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -58,20 +59,10 @@
                     {
                     <tr>
 
-                      <td>
-                        @Html.DisplayFor(modelItem => item.Name)
-                      </td>
-                      @*<td>
-                          @Html.DisplayFor(modelItem => item.HRBPEmail)
-                        </td>*@
-                      <td>
-                        @{
-                          var email = item.HRBPEmail ?? "";
-                          var namePart = email.Split('@')[0].Replace(".", " ");
-                          var readableName = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(namePart);
-                        }
-                        @readableName
-                      </td>
+                      <td>@item.Name</td>
+                      <td>@item.HRBPName</td>
+                      <td>@item.HODName</td>
+                       
                       <td>
                         @Html.ActionLink("Update", "Edit", new { id = item.Id })
                       </td>

@@ -27,6 +27,7 @@
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     @Html.HiddenFor(model => model.Id)
 
+
     @*<div class="form-group">
       @Html.LabelFor(model => model.Hometown, "Home Town", htmlAttributes: new { @class = " " })
 
@@ -36,12 +37,29 @@
     </div>*@
 
     <div class="form-group">
-      @Html.LabelFor(model => model.Email, "Email", htmlAttributes: new { @class = " " })
+      <div class="row">
+        <div class="col-md-8">
+          <div class="form-group">
+            @Html.LabelFor(model => model.Email, "Email", htmlAttributes: new { @class = " " })
 
-      @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
-      @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+            @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+          </div>
+        </div>
+        <div class="col-md-8">
 
-    </div>
+          @if (ViewBag.UserAnnualLeaveBalance != null && ViewBag.UserAnnualLeaveBalance > 0)
+          {
+        @*<button type="button" class="btn btn-primary">Cary Anual Leave</button>*@
+          <button type="button" class="btn btn-primary"  id="btlAnulaBalance">
+            View Annual Leave Balance
+          </button>
+                  }
+        </div>
+        </div>
+
+
+      </div>
 
     @*<div class="form-group">
       @Html.LabelFor(model => model.EmailConfirmed, "Email Confirmed", htmlAttributes: new { @class = " " })
@@ -254,9 +272,58 @@
 
   </div>
 </div>
-<script>
-  $(document).ready(function () {
+<div class="modal fade" id="annualLeaveModal" tabindex="-1" aria-labelledby="annualLeaveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="annualLeaveModalLabel">
+          Annual Leave Balance
+        </h5>
+         
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-group ">
+
+          <label> Available  Annual leave</label>
+
+          <input type="text" disabled="disabled" class="form-control" value="@ViewBag.UserAnnualLeaveBalance" />
+          <input type="hidden" id="anualLeaveBalance"  value="@ViewBag.UserAnnualLeaveBalance" />
+
+
+        </div>
+        <div class="form-group">
+
+          <label>Adjust Annual Leave</label>
+       
+          <input type="text" id="txtCaryAmount" class="form-control" value="@ViewBag.UserAnnualLeaveBalance" />
+
     
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary btnSaveCarryAmount"  >
+          Save 
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  $(document).ready(function ()
+  {
+     
+
+
     if ($("#IsRelocated").prop('checked')) {
       $('#CntryNameTemp').removeAttr('disabled');
     }
@@ -272,7 +339,100 @@
         $('#CntryNameTemp').attr('disabled', 'disabled');
       }
     });
+
+
+    $("#btlAnulaBalance").click(function () {
+      $('#annualLeaveModal').modal('show');
+    });
+
+
+    $(document).on("click", ".btnSaveCarryAmount", function () {
+      debugger
+      var userId = $("#Id").val();
+      var carryAmount = $("#txtCaryAmount").val();
+      var balance = $("#anualLeaveBalance").val();
+      const adjustment = parseFloat(carryAmount);
+      const availableBalance = parseFloat(balance);
+
+      if (carryAmount == '' || carryAmount == undefined)
+      {
+        Swal.fire({
+          title: "warning",
+          text: "Please enter leave balance.",
+          icon: "warning"
+        });
+        return false;
+      }
+      if (isNaN(adjustment) )
+      {
+        Swal.fire({
+          title: "Warning",
+          text: "Please enter a valid leave balance..",
+          icon: "warning"
+        });
+
+        return false;
+      }
+
+      if ( adjustment <=0) {
+        Swal.fire({
+          title: "Warning",
+          text: "Leave balance should be greater than > 0.",
+          icon: "warning"
+        });
+
+        return false;
+      }
+    
+      
+
+    $.ajax({
+        url: '@Url.Action("SaveCarryAmount", "AspNetUsers")',
+        type: 'POST',
+        data: {
+            userId: userId,
+            carryAmount: carryAmount
+        },
+        success: function (response) {
+            if (response.success) {
+              Swal.fire({
+
+                text: response.message,
+                icon: "success",
+                showCancelButton: false,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "ok"
+              }).then((result) => {
+                if (result.isConfirmed)
+                {
+                  location.reload();
+                }
+              });
+
+            } else {
+             // alert(response.message);
+              Swal.fire({
+                title: "Error",
+                text: response.message,
+                icon: "error"
+              });
+            }
+        },
+        error: function () {
+ 
+          Swal.fire({
+            title: "Error",
+            text: "An error occurred.",
+            icon: "error"
+          });
+        }
+    });
+
+});
   });
+
+
 </script>
 
 

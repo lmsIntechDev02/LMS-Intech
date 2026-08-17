@@ -14,7 +14,7 @@ namespace LeaveON
     public void Configuration(IAppBuilder app)
     {
       ConfigureAuth(app);
-      new ScheduledTasks().InitTimerForScheduleTasks();
+      ///new ScheduledTasks().InitTimerForScheduleTasks();
       //reset.LeavePolicyValues();
     }
 

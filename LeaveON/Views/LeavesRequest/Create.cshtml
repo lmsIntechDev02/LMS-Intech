@@ -140,7 +140,7 @@
 
             @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
             @*@Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", required = "required " })*@
-            @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control", required = "required" })
+            @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control select2", required = "required" })
 
             @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
 
@@ -153,7 +153,9 @@
 
 
             @*@Html.DropDownList("LineManagers", null, htmlAttributes: new { @class = "form-control" })*@
-            @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control" })
+            @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select manager", new { @class = "form-control select2" })
+
+
             @*@Html.EditorFor(model => model.LineManager2Id, new { htmlAttributes = new { @class = "form-control" } })*@
 
             @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
@@ -221,6 +223,28 @@
 
     $(document).ready(function () {
 
+   $('#mySelect').on('select2:select', function (e) {
+        let selectedValue = e.params.data.id;
+
+        // If "Select All" clicked
+        if (selectedValue === "ALL") {
+
+            let allValues = [];
+
+            $('#mySelect option').each(function () {
+                if ($(this).val() !== "ALL") {
+                    allValues.push($(this).val());
+                }
+            });
+
+            // Select everything except ALL
+            $('#mySelect').val(allValues).trigger('change');
+
+            // Remove "ALL" selection itself
+            let current = $('#mySelect').val().filter(v => v !== "ALL");
+            $('#mySelect').val(current).trigger('change');
+        }
+    });
 
       $('#LeaveTypeId').on('change', function () {
         if (this.value == '7')//7 causal short leave
@@ -318,7 +342,10 @@
 
 
       $("#LineManager1Id").change(function () {
-        $('#LineManager2Id').val($('#LineManager1Id').val());
+        //$('#LineManager2Id').val($('#LineManager1Id').val());
+        $("#LineManager2Id")
+          .val($(this).val())
+          .trigger("change.select2");
       });
 
       var message = "@ViewBag.PolicyAlert";

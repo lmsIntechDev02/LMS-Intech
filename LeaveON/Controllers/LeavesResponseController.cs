@@ -13,6 +13,11 @@ using LeaveON.EmailSender;
 using LMS.Constants;
 using System.Data.SqlClient;
 using LeaveON.Models.Procedures;
+using System.Text;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Drawing;
+using System.Globalization;
 
 namespace LeaveON.Controllers
 {
@@ -25,8 +30,7 @@ namespace LeaveON.Controllers
     // GET: Leaves
     public async Task<ActionResult> Index()
     {
-      //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
-      //var leaves = db.Leaves.Include(l => l.LeaveType);
+    
       string LoggedInUserId = User.Identity.GetUserId();
       var leaves = db.Leaves.Where(x => x.IsQuotaRequest == false && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
       return View(await leaves.ToListAsync());
@@ -36,6 +40,7 @@ namespace LeaveON.Controllers
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
       //var leaves = db.Leaves.Include(l => l.LeaveType);
       string LoggedInUserId = User.Identity.GetUserId();
+      
       var leaves = db.Leaves.Where(x => x.IsQuotaRequest == true && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
       return View(await leaves.ToListAsync());
     }
@@ -84,6 +89,7 @@ namespace LeaveON.Controllers
       //ViewBag.LineManager1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id).UserName;
       //ViewBag.LineManager2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id).UserName;
       List<AspNetUser> Seniors = GetSeniorStaff();
+     var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       bool IsLineManager1 = false;
       if (User.Identity.GetUserId() == leave.LineManager1Id)
       {
@@ -97,7 +103,9 @@ namespace LeaveON.Controllers
 
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
-      ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
+      ViewBag.JoiningDate = user != null ? (user.JoiningDate.HasValue ? String.Format(LeaveON.UtilityClasses.Constants.DateFormatDayMonthYear, user.JoiningDate.Value) : String.Empty) : String.Empty;
+
+      ViewBag.ApplicantName = user.UserName;
       ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
       ViewBag.totalDays = Convert.ToInt32(leave.TotalDays);
@@ -131,7 +139,88 @@ namespace LeaveON.Controllers
       }
       //--------------------------------------------------
       Leave leaveOld = db.Leaves.FirstOrDefault(x => x.Id == leave.Id);
+
+
+      if (leaveOld.LeaveTypeId == 1 || leaveOld.LeaveTypeId == 2 || leaveOld.LeaveTypeId == 10) // Casual Short Day
+      {
+
+      //  var polyce = db.UserLeavePolicies.FirstOrDefault(k => k.Id == leaveOld.UserLeavePolicyID);
+      //  var allowleave = polyce.UserLeavePolicyDetails.FirstOrDefault(k => k.LeaveTypeId == leaveOld.LeaveTypeId).Allowed;
+
+      //  var balanceobject = db.LeaveBalances
+      //.Where(x =>
+      //    x.UserLeavePolicyId == leaveOld.UserLeavePolicyID &&
+      //    x.UserId == leaveOld.UserId &&
+      //    x.LeaveTypeId == leaveOld.LeaveTypeId).ToList();
+
+      //  decimal leaveBalance = 0;
+      //  if (balanceobject.Count > 0)
+      //  {
+      //    leaveBalance = balanceobject.Sum(x => (decimal?)x.Balance) ?? 0;
+      //  }
+      //  else
+      //  {
+      //      leaveBalance = Convert.ToDecimal(allowleave);
+      //  }
+
+      //  var balance = db.LeaveBalances
+      //.Where(x =>
+      //    x.UserLeavePolicyId == leaveOld.UserLeavePolicyID &&
+      //    x.UserId == leaveOld.UserId &&
+      //    x.LeaveTypeId == leaveOld.LeaveTypeId)
+      //.Sum(x => (decimal?)x.Balance) ?? 0;
+
+
+      //  var approvedDays = db.Leaves
+      //      .Where(x =>
+      //          x.UserId == leaveOld.UserId &&
+      //          x.Id != leave.Id &&
+      //          x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
+      //          x.IsAccepted1 == 1 &&
+      //          x.IsAccepted2 == 1 &&
+      //          x.LeaveTypeId == leaveOld.LeaveTypeId)
+      //      .Sum(x => (decimal?)x.TotalDays) ?? 0;
+
+
+      //  //  ONLY selected leaves (bulk)
+      //  var requestedDays =  db.Leaves
+      //      .Where(x =>
+      //          x.Id == leave.Id
+      //          && x.UserId == leaveOld.UserId
+      //          && (x.IsAccepted1 != 1 || x.IsAccepted2 != 1)
+      //          && x.UserLeavePolicyID == leaveOld.UserLeavePolicyID &&
+      //          x.LeaveTypeId == leaveOld.LeaveTypeId)
+      //      .Sum(x => (decimal?)x.TotalDays) ?? 0;
+
+
+        //  Final check///
+       // if ((approvedDays + requestedDays) > leaveBalance)
+          //if ((requestedDays) > leaveBalance)
+          //{
+          //  TempData["ErrorMessage"] = "The selected customer's leave request exceeds the available balance.";
+          //  AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leaveOld.LineManager1Id);
+
+
+          //  string name = leaveOld.AspNetUser.EmpolyeeName;
+          //  StringBuilder sb = new StringBuilder();
+          //  sb.AppendLine("Dear" + name + ",");
+          //  sb.AppendLine("Your leave request cannot be processed as it exceeds your available leave balance.");
+          //  sb.AppendLine("Please contact your manager for further assistance.");
+          //  string body = sb.ToString();
+
+
+          //  SendEmail.SendsEmail(leaveOld.AspNetUser.Email, "Leave Request Balance Exceeds", body);
+
+          //  //SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
+          //  return RedirectToAction("Index");
+          //}
+      }
+       
       leave = leaveOld;
+
+
+
+
 
       if (IsLineManager1 == "True")
       {
@@ -152,19 +241,12 @@ namespace LeaveON.Controllers
           leave.ResponseDate2 = DateTime.Now;
           if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
         }
-
-
       }
       else
       {
         leave.IsAccepted2 = IsAccepted2;
         leave.Remarks2 = Remarks2;
         leave.ResponseDate2 = DateTime.Now;
-        //if (IsAccepted2 == Consts.ApprovedWithComments)
-        //{
-        //  leave.Remarks2 = string.Empty;
-        //  leave.TotalDays = decimal.Parse(Remarks2);
-        //}
         if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
       }
       //---------------------save and send emails------------------------------------------------
@@ -180,12 +262,12 @@ namespace LeaveON.Controllers
           {
             //sending email to 2nd admin for request of second acceptance
             AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-            SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
+            SendEmail.SendEmailUsingLeavON(leave,  leave.AspNetUser, admin2, "LeaveRequest");
           }
 
           //sending eamil to employee from first admin //approved or disapproved
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave,  admin, leave.AspNetUser, "LeaveResponse");
 
           //if (leave.LineManager1Id == leave.LineManager2Id)
           //{
@@ -197,7 +279,7 @@ namespace LeaveON.Controllers
         else
         {
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave,   admin, leave.AspNetUser, "LeaveResponse");
         }
 
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
@@ -245,7 +327,11 @@ namespace LeaveON.Controllers
 
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
-      ViewBag.ApplicantName = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId).UserName;
+      var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
+
+      ViewBag.JoiningDate = user != null ? (user.JoiningDate.HasValue ? String.Format( LeaveON.UtilityClasses.Constants.DateFormatDayMonthYear, user.JoiningDate.Value)  : String.Empty ): String.Empty;
+
+      ViewBag.ApplicantName = user.UserName;
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);
       ViewBag.UserLeavePolicyId = leave.UserLeavePolicyID;
       ViewBag.LeaveUserId = leave.AspNetUser.Id;
@@ -342,11 +428,11 @@ namespace LeaveON.Controllers
           {
             //sending email to 2nd admin for request of second acceptance
             AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-            SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
+            SendEmail.SendEmailUsingLeavON(leave,  leave.AspNetUser, admin2, "LeaveRequest");
           }
           //sending eamil to employee from first admin //approved or disapproved
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse");
           //if (leave.LineManager1Id == leave.LineManager2Id)
           //{
           //  admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
@@ -356,7 +442,7 @@ namespace LeaveON.Controllers
         else
         {
           AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
-          SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, admin, leave.AspNetUser, "LeaveResponse");
+          SendEmail.SendEmailUsingLeavON(leave,  admin, leave.AspNetUser, "LeaveResponse");
         }
 
         //AspNetUser admin2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
@@ -443,7 +529,21 @@ namespace LeaveON.Controllers
         }
         else
         {
-          leaveBalance.Balance -= leave.TotalDays;
+          int leavetype = leave.LeaveTypeId;
+            int? assignedLeaveQuota = db.UserLeavePolicyDetails
+              .Where(lb => lb.UserLeavePolicyId == userLeavePolicyId &&
+                             lb.LeaveTypeId == leavetype)
+              .Select(lb => (int?)lb.Allowed)
+              .Sum() ?? 0;
+        if(assignedLeaveQuota > 0)
+          {
+            leaveBalance.Balance = assignedLeaveQuota - leave.TotalDays;
+          }
+          else
+          {
+            leaveBalance.Balance = leave.TotalDays;
+          }
+           
         }
 
         leaveBalance.UserId = leave.UserId;
@@ -522,7 +622,14 @@ namespace LeaveON.Controllers
         leaveBalance = new LeaveBalance(ref leave);
         leaveBalance.UserId = leave.UserId;
         leaveBalance.LeaveTypeId = leave.LeaveTypeId;
-        leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
+        if (leave.UserLeavePolicyID.HasValue)
+        {
+          leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
+        }
+        else if(leave.AspNetUser != null) { 
+          leaveBalance.UserLeavePolicyId = leave.AspNetUser.UserLeavePolicyId;
+        }
+
         db.LeaveBalances.Add(leaveBalance);
       }
       else
@@ -645,7 +752,7 @@ namespace LeaveON.Controllers
             StartDate = record.StartDate,
             EndDate = record.EndDate,
             UserId = username,
-            LeaveTypeName = record.LeaveTypeId != 0 ? db.LeaveTypes.Find(record.LeaveTypeId)?.Name : "N/A",
+            //LeaveTypeName = record.LeaveTypeId != 0 ? db.LeaveTypes.Find(record.LeaveTypeId)?.Name : "N/A",
             TotalDays = record.TotalDays ?? 0,
             Reason = record.Reason ?? null,
             IsAccepted1 = record.IsAccepted1,
@@ -781,12 +888,12 @@ namespace LeaveON.Controllers
         if (User.IsInRole("Admin"))
         {
           var departments = db.AspNetUsers
-                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive==true && u.BioStarEmpNum.HasValue)
+                 .Where(u => !string.IsNullOrEmpty(u.DepartmentName) && u.IsActive==true && u.BioStarEmpNum.HasValue && u.BioStarEmpNum.Value>0 && u.IsDeleted != true)
                  .Select(u => u.DepartmentName)
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
                  .ToList();
-          ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
+          ViewBag.Departments = new SelectList(departments, "Value", "Text");   // departments;
 
           var user = new List<AspNetUser>(); //db.AspNetUsers.Where(k=>k.IsActive == true && k.BioStarEmpNum.HasValue).ToList();
           var userlist = user.Select(k => new AspNetUser
@@ -821,8 +928,16 @@ namespace LeaveON.Controllers
           );
 
           ViewBag.SelectedDepartments = managerDepartment;
-          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId || u.Manager2ID == userId)).ToList();
-          ViewBag.Employees = employeesUnderManager;
+          var employeesUnderManager = db.AspNetUsers.Where(u => (u.ManagerID == userId  &&   u.IsDeleted != null) && u.BioStarEmpNum.HasValue && u.BioStarEmpNum.Value>0 ).ToList();
+
+          //db.AspNetUsers.Where(k=>k.IsActive == true && k.BioStarEmpNum.HasValue).ToList();
+          var userlist = employeesUnderManager.Select(k => new AspNetUser
+          {
+            UserName = k.UserName.Split('@')[0].Replace('.', ' '),
+            BioStarEmpNum = k.BioStarEmpNum
+          }).ToList();
+
+          ViewBag.Employees = userlist;
 
           //;new SelectList(employeesUnderManager, "Id", "UserName");
           //ViewBag.Employees = new SelectList(dbLeaveOn.AspNetUsers.Where(u => u.DepartmentName == managerDepartment), "BioStarEmpNum", "UserName");
@@ -863,9 +978,8 @@ namespace LeaveON.Controllers
     [HttpPost]
     public async Task<ActionResult>  GetLeaveAbsentReport(string startDate, string endDate, List<string> userIds)
     {
-      var sstartDate = new SqlParameter("@StartDate", startDate);
-      var sendDate = new SqlParameter("@EndDate", endDate);
-      var suserIds = new SqlParameter("@UserIds", userIds);
+       
+       
       List<LeaveAbsentModel> list = new List<LeaveAbsentModel>();
       try
       {
@@ -890,6 +1004,140 @@ namespace LeaveON.Controllers
 
       return PartialView("_LeaveAbsentReport", list);
     }
+
+
+    
+    public async Task<ActionResult> ExportLeaveAbsentReport(string startDate, string endDate, List<string> userIds)
+    {
+       
+      List<LeaveAbsentModel> list = new List<LeaveAbsentModel>();
+      try
+      {
+        string userId = string.Join(",", userIds);
+
+        var result = db.Database.SqlQuery<LeaveAbsentModel>(
+    "EXEC GetAbsentAttendanceReport @StartDate, @EndDate, @UserIds",
+    new SqlParameter("@StartDate", startDate),
+    new SqlParameter("@EndDate", endDate),
+    new SqlParameter("@UserIds", userId)).ToList();
+        list = result.OrderBy(i => i.DateCreated).ToList();
+
+        using (var package = new ExcelPackage())
+        {
+          var ws = package.Workbook.Worksheets.Add("Attendance Report");
+          //  var ws = package.Workbook.Worksheets.Add("Attendance");
+
+          // Header
+          string[] headers =
+       {
+            "Employee Name",
+            "Emp ID",
+            "Department",
+            "Date",
+            "Day",
+            "Leave/Absent",
+            "Leave Start",
+            "Leave End",
+            "Total Days",
+            "Reason",
+            "Line Manager 1",
+            "Line Manager 2",
+            "Status"
+        };
+          for (int i = 0; i < headers.Length; i++)
+          {
+            ws.Cells[1, i + 1].Value = headers[i];
+          }
+
+          // Header Style
+          using (var range = ws.Cells[1, 1, 1, headers.Length])
+          {
+            range.Style.Font.Bold = true;
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            range.Style.Border.BorderAround(ExcelBorderStyle.Thin);
+          }
+
+          int row = 2;
+          TimeSpan offDayTime = TimeSpan.Zero;
+
+          foreach (var item in list)
+          {
+            ws.Cells[row, 1].Value = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.EmployeeName.ToLower());
+            ws.Cells[row, 2].Value = item.BioStarEmpNum;
+            ws.Cells[row, 3].Value = item.DepartmentName;
+            ws.Cells[row, 4].Value = item.DateCreated;
+            ws.Cells[row, 4].Style.Numberformat.Format = "dd-MMM-yyyy";
+            ws.Cells[row, 5].Value = item.DayName;
+            ws.Cells[row, 6].Value = item.LeaveTypeName;
+
+
+            if (item.Status == "Leave")
+            {
+              ws.Cells[row, 7].Value = item.LeaveStartDate;
+              ws.Cells[row, 7].Style.Numberformat.Format = "dd-MMM-yyyy";
+              ws.Cells[row, 8].Value = item.LeaveEndDate;
+              ws.Cells[row, 8].Style.Numberformat.Format = "dd-MMM-yyyy";
+              ws.Cells[row, 9].Value = item.TotalDays;
+              ws.Cells[row, 10].Value = item.Reason;
+
+              ws.Cells[row, 11].Value =
+                  item.IsAccepted1 == null ? "" :
+                  item.IsAccepted1 > 0 ? "Approved" : "Refused";
+
+              ws.Cells[row, 12].Value =
+                  item.IsAccepted2 == null ? "" :
+                  item.IsAccepted2 > 0 ? "Approved" : "Refused";
+            }
+            else
+            {
+              ws.Cells[row, 7].Value = "-";
+              ws.Cells[row, 8].Value = "-";
+              ws.Cells[row, 9].Value = "-";
+              ws.Cells[row, 10].Value = "-";
+              ws.Cells[row, 11].Value = "-";
+              ws.Cells[row, 12].Value = "-";
+            }
+
+            ws.Cells[row, 13].Value = item.Status;
+
+            row++;
+          }
+
+          // Auto fit columns
+          ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+          // Freeze header
+          ws.View.FreezePanes(2, 1);
+
+          // Border
+          using (var range = ws.Cells[1, 1, row - 1, headers.Length])
+          {
+            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+          }
+
+          byte[] fileBytes = package.GetAsByteArray();
+
+          return File(
+              fileBytes,
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              $"Leave/Absent_Report_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+
+
+        }
+      }
+      catch (Exception ex)
+      {
+
+        return View();
+      }
+    }
+
+
 
     public ActionResult GetUsersByDepartments(List<string> departmentNames)
     {

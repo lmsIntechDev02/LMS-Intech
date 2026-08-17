@@ -32,6 +32,8 @@ namespace LeaveON.UtilityClasses
     private LeaveONEntities db = new LeaveONEntities();
     public void InitTimerForScheduleTasks()
     {
+
+      //ResetLeavePolicyValues();
       // This will raise the Elapsed event every 'x' millisceonds (whatever you set in the
       // Web.Config file for the added TimerIntervalInMilliseconds AppSetting
       Timer timer = new Timer(TimerIntervalInMilliseconds);
@@ -64,27 +66,31 @@ namespace LeaveON.UtilityClasses
       {
         Debug.WriteLine(String.Concat("Timer Event Handling MyScheduledRunTime Actions: ", DateTime.Now.ToString()));
         // RUN YOUR PROCESSES HERE
-        ResetLeavePolicyValues();
-        SetOnLeaveEmployeesStatus();
+        //ResetLeavePolicyValues();
+        //SetOnLeaveEmployeesStatus();
       }
     }
     void ResetLeavePolicyValues()
     {
       DateTime CurrentSystemTime = DateTime.Now;
-      foreach (UserLeavePolicy userLeavePolicy in db.UserLeavePolicies.ToList<UserLeavePolicy>())
+      var lst = db.UserLeavePolicies.ToList<UserLeavePolicy>();
+      foreach (UserLeavePolicy userLeavePolicy in lst)
       {
         if (CurrentSystemTime.CompareTo(userLeavePolicy.FiscalYearEnd) >= 0)
         {
 
           userLeavePolicy.FiscalYearStart=userLeavePolicy.FiscalYearStart.Value.AddYears(1);
           userLeavePolicy.FiscalYearEnd=userLeavePolicy.FiscalYearEnd.Value.AddYears(1);
+
           db.UserLeavePolicies.Attach(userLeavePolicy);
+
           db.Entry(userLeavePolicy).Property(x => x.FiscalYearStart).IsModified = true;
           db.Entry(userLeavePolicy).Property(x => x.FiscalYearEnd).IsModified = true;
           foreach (UserLeavePolicyDetail userLeavePolicyDetail in userLeavePolicy.UserLeavePolicyDetails.ToList<UserLeavePolicyDetail>())
           {
             //userLeavePolicyDetail.Allowed
             List<LeaveBalance> leaveBalances = db.LeaveBalances.Where(x => x.UserLeavePolicyId == userLeavePolicyDetail.UserLeavePolicyId && x.LeaveTypeId == userLeavePolicyDetail.LeaveTypeId).ToList<LeaveBalance>();
+            
             foreach (LeaveBalance leaveBalance in leaveBalances)
             {
               if (leaveBalance is null) continue;
