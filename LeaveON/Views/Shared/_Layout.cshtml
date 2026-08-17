@@ -357,12 +357,7 @@
                         <p>Compensatory Approval Req.</p>
                       </a>
                     </li>
-                    @*<li class="nav-item">
-                        <a href="/LeavesResponse/Create" class="nav-link">
-                          <i class="far fa-circle nav-icon"></i>
-                          <p>Leave Response</p>
-                        </a>
-                      </li>*@
+                    
                   </ul>
                 </li>
               }
@@ -432,18 +427,7 @@
                     </p>
                   </a>
                   <ul class="nav nav-treeview">
-                    @*<li class="nav-item">
-      <a href="/AccessTimeData/PersonalData" class="nav-link">
-        &nbsp; &nbsp;  <i class="far fas far fa-id-badge"></i>
-        <p>Personal Data</p>
-      </a>
-    </li>*@
-                    @*<li class="nav-item">
-      <a href="/AccessTimeData/UserData" class="nav-link">
-        &nbsp; &nbsp;  <i class="far fa fa-history"></i>
-        <p>User Data</p>
-      </a>
-    </li>*@
+
 
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/UserData" class="nav-link">
@@ -451,18 +435,7 @@
                         <p style="margin-left: 5px;">Manager Report</p>
                       </a>
                     </li>
-                    @*<li class="nav-item">
-                      <a href="/AccessBiostarTA/Absenteesdata" class="nav-link">
-                        &nbsp;  <i class="far fa fa-user-slash" style="margin-left: 2px"></i>
-                        <p style="margin-left: 5px;">Absentees Data</p>
-                      </a>
-                    </li>
-                    <li class="nav-item">
-                      <a href="/LeavesResponse/LeaveReport" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-calendar-check"></i>
-                        <p style="margin-left: 5px;">Leaves Report</p>
-                      </a>
-                    </li>*@
+
                     <li class="nav-item">
                       <a href="/LeavesResponse/LeaveAbsentReport" class="nav-link">
                         &nbsp; &nbsp; <i class="far fa fa-calendar-check"></i>
@@ -479,25 +452,31 @@
 
                     @if (User.IsInRole("Admin"))
                     {
-                      <li class="nav-item">
-                        <a href="/AccessBiostarTA/Countriesdata" class="nav-link">
-                          &nbsp; &nbsp;  <i class="far fa fa-globe"></i>
-                          <p style="margin-left: 5px;">Countries Data</p>
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a href="/AccessBiostarTA/MonthsWiseData" class="nav-link">
-                          &nbsp; &nbsp;  <i class="far fa fa-calendar-alt"></i>
-                          <p style="margin-left: 5px;">Months Wise Data</p>
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a href="/AccessBiostarTA/WhoIsIn" class="nav-link">
-                          &nbsp; &nbsp;  <i class="far fa fa-user-check"></i>
-                          <p style="margin-left: 5px;">Who Is In</p>
-                        </a>
-                      </li>
-                    }
+                  <li class="nav-item">
+                    <a href="/Departments/HODReport" class="nav-link">
+                      &nbsp; &nbsp; <i class="far fa fa-file-alt"></i>
+                      <p style="margin-left: 5px;">HOD Report</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="/AccessBiostarTA/Countriesdata" class="nav-link">
+                      &nbsp; &nbsp;  <i class="far fa fa-globe"></i>
+                      <p style="margin-left: 5px;">Countries Data</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="/AccessBiostarTA/MonthsWiseData" class="nav-link">
+                      &nbsp; &nbsp;  <i class="far fa fa-calendar-alt"></i>
+                      <p style="margin-left: 5px;">Months Wise Data</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="/AccessBiostarTA/WhoIsIn" class="nav-link">
+                      &nbsp; &nbsp;  <i class="far fa fa-user-check"></i>
+                      <p style="margin-left: 5px;">Who Is In</p>
+                    </a>
+                  </li>
+                }
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/DepartmentData" class="nav-link">
                         &nbsp; &nbsp;  <i class="far fa fa-building"></i>

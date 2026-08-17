@@ -96,7 +96,7 @@ namespace LeaveON.EmailSender
               string url = string.Concat(baseUrl, "LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
 
               // emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/EditCompensatoryQuotaResponse/" + userLeave.Id);
-              emailTemplate = emailTemplate.Replace("<%Link%>", baseUrl);
+              emailTemplate = emailTemplate.Replace("<%Link%>", url);
               emailTemplate = emailTemplate.Replace("<%LineManager%>", receiver.UserName);
               break;
             }

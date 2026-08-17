@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using iTextSharp.text.pdf.draw;
 using System.Globalization;
 using System.Data.SqlClient;
+using LMS.Constants;
 
 namespace LeaveON.Services
 {
@@ -175,20 +176,17 @@ namespace LeaveON.Services
       string monthName = GetMonthName(month);
       List<DepartmentName> departmentList = GetDepartmentList();
       var legitimacyCheckers = GetLegitemacyChckers();
-      List<ManagerDto> managerEmails = new List<ManagerDto>();
+        List<ManagerDto> managerEmails = new List<ManagerDto>();
+         managerEmails = GetManagersIDs();
+        List<string> managerids = new List<string>();
 
-      managerEmails = GetManagersIDs();
-
-      List<string> managerids = new List<string>();
-      if (managerEmails.Any())
+      //managerids.Add("d7217d94-50fe-4c70-9f7e-6ef2b98cff3d");
+      
+        if (managerEmails.Any())
       {
         managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
       }
-      //managerids = new List<string>
-      //    {
-      //  "6c75398c-4f4c-4ff5-baed-814c75138588"
 
-      //      };
 
       managerEmails = GetManagersListById(managerids);
 
@@ -201,7 +199,7 @@ namespace LeaveON.Services
           ///users = users.Where(k => k.userId == 1080).ToList();
           if (users == null || users.Count == 0)
             continue;
-          List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users);
+          List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users, false);
           string hRBPEmail = String.Empty;
           if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
           {
@@ -222,16 +220,13 @@ namespace LeaveON.Services
       return Task.CompletedTask;
     }
 
-    private static List<EmployeeReportData> BindUserMonthReportData(int month, int year, ManagerDto managerEmail, LeaveONEntities context, List<EmailAndIDs> users)
+    private static List<EmployeeReportData> BindUserMonthReportData(int month, int year, ManagerDto managerEmail, LeaveONEntities context, List<EmailAndIDs> users, bool isleaveOnRequest)
     {
       List<int> policyIds = new List<int>();
       DateTime startOfMonth = new DateTime(year, month, 1);
       DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
       var userIds = users.Select(u => u.UserID).ToList();
-      //var policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
-      //                     .Select(u => u.userLeavePolicyID.Value)
-      //                     .Distinct()
-      //                     .ToList();
+
       policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
                            .Select(u => u.userLeavePolicyID.Value)
                            .Distinct()
@@ -478,10 +473,19 @@ namespace LeaveON.Services
             .ToList();
         int casual = 0;
         int annual = 0;
-        if (policyDetail.Where(p => p.LeaveTypeId == 1).Count() > 0)
+        if (policyDetail.Where(p => p.LeaveTypeId == Consts.SickCasualLeaveId).Count() > 0)
           casual = (int)policyDetail.Where(p => p.LeaveTypeId == 1)?.Select(p => p.Allowed)?.FirstOrDefault();
-        if (policyDetail.Where(p => p.LeaveTypeId == 2).Count() > 0)
+
+        if (policyDetail.Where(p => p.LeaveTypeId == Consts.AnnualLeaveId).Count() > 0)
+        {
+          List<LeaveBalance> LstLeaveBalance = context.LeaveBalances.Where(x => x.UserLeavePolicyId == policy.Id && x.UserId == user.UserID).ToList();
+          
+          int adjustLeaveBalance = Convert.ToInt32(LstLeaveBalance.Where(k => k.LeaveTypeId == Consts.AnnualLeaveId).Sum(k => k.AnnualAmountAjustmesnt.HasValue ? k.AnnualAmountAjustmesnt : 0));
+         
           annual = (int)policyDetail.Where(p => p.LeaveTypeId == 2)?.Select(p => p.Allowed)?.FirstOrDefault();
+          annual += adjustLeaveBalance;
+        }
+
 
         if (workedMonths < 12)
         {
@@ -755,8 +759,17 @@ namespace LeaveON.Services
 
         if (!String.IsNullOrEmpty(managerDetail.Email))
         {
-           mail.To.Add("laiba.khan@intechww.com");
-          // mail.To.Add("esswaqas@hotmail.com");
+          if (isHOD)
+          {
+            mail.To.Add(managerDetail.Email);
+          }
+          else
+          {
+           // mail.To.Add("laiba.khan@intechww.com");
+            mail.To.Add("esswaqas@hotmail.com");
+          }
+          
+         //  mail.To.Add("esswaqas@hotmail.com");
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
@@ -797,9 +810,9 @@ namespace LeaveON.Services
           };
           territoryTable.AddCell(titleCell);
 
-         
-           Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
-           
+
+          Font headerFont = new Font(Font.FontFamily.HELVETICA, 15, Font.BOLD, BaseColor.WHITE);
+
           PdfPCell headerCell = new PdfPCell(new Phrase("Country-wise Working Days & Official Holidays", headerFont))
           {
             Colspan = 9,
@@ -884,16 +897,11 @@ namespace LeaveON.Services
           table.WidthPercentage = 100;
           table.SpacingBefore = 20f;
 
-
-
-
-
-
           PdfPCell managerCell = new PdfPCell(
             isHOD == true ?
                    new Phrase(
 
-   string.Format("Head of Department - {0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont)
+   string.Format("{0}", CultureInfo.CurrentCulture.TextInfo.ToTitleCase(managerName)), headerFont)
                    :
             new Phrase(
 
@@ -904,9 +912,7 @@ namespace LeaveON.Services
             HorizontalAlignment = Element.ALIGN_CENTER,
             BackgroundColor = new BaseColor(0, 51, 102),
             Padding = 9,
-           // /BorderWidthTop = 3f,
-            //BorderWidthLeft = 3f,
-             //BorderWidthRight = 3f
+           
           };
           table.AddCell(managerCell);
 
@@ -942,11 +948,11 @@ namespace LeaveON.Services
                 Padding = 5,
                 //BorderWidthLeft = 0f,
                 //BorderWidthRight = 0f
-                 
+
               });
             }
 
-            table.AddCell(new PdfPCell(new Phrase(d.EmployeeID.ToString(), dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER,   });
+            table.AddCell(new PdfPCell(new Phrase(d.EmployeeID.ToString(), dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER, });
             table.AddCell(new PdfPCell(new Phrase(CultureInfo.CurrentCulture.TextInfo.ToTitleCase(d.EmployeeName), dataFont)));
             table.AddCell(new PdfPCell(new Phrase(d.CasualLeaves, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
             table.AddCell(new PdfPCell(new Phrase(d.AnnualLeaves, dataFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
@@ -969,7 +975,7 @@ namespace LeaveON.Services
           space.SpacingBefore = 30f;
           document.Add(space);
 
-          Font notesTitleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
+          Font notesTitleFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
           Font notesFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
 
           Paragraph notesTitle = new Paragraph(
@@ -990,35 +996,35 @@ namespace LeaveON.Services
           //p.SpacingAfter = 0f; ;
           //territoryTable.SpacingAfter = 20f;
           // Casual Leave* 
-          document.Add(CreateNote("* Casual Leave / Annual Leave: ",   
+          document.Add(CreateNote("* Casual Leave / Annual Leave: ",
            "Entitlement is based on the current year leave policy and will be prorated according to the employee’s joining date."));
 
           // Absents
           document.Add(CreateNote("* Absents (YTD): ", "Total absent days recorded year-to-date, calculated from the joining date up to the current fiscal year period."));
 
           // Short Hours
-          document.Add(CreateNote("* Short Hours (YTD): ","Total casual short leave occurrences recorded year-to-date, prorated according to the employee’s joining date."));
+          document.Add(CreateNote("* Short Hours (YTD): ", "Total casual short leave occurrences recorded year-to-date, prorated according to the employee’s joining date."));
 
           // Avg Entry
-          document.Add(CreateNote("* Avg. Entry Time: ", "Average office arrival time based on monthly attendance logs and the employee’s login territory." ));
+          document.Add(CreateNote("* Avg. Entry Time: ", "Average office arrival time based on monthly attendance logs and the employee’s login territory."));
 
           // Avg Exit
-          document.Add(CreateNote("* Avg. Exit Time: ","Average office departure time based on monthly attendance logs and the employee’s logout territory."));
+          document.Add(CreateNote("* Avg. Exit Time: ", "Average office departure time based on monthly attendance logs and the employee’s logout territory."));
 
           // Avg Office Time
-          document.Add(CreateNote("* Avg. Time in Office: ","Average productive office duration per working day, calculated between check-in and check-out timings."));
+          document.Add(CreateNote("* Avg. Time in Office: ", "Average productive office duration per working day, calculated between check-in and check-out timings."));
 
           // Availed Leave
-          document.Add(CreateNote("* Availed Leave (YTD): ","Total leaves utilized during the current year as per policy."));
+          document.Add(CreateNote("* Availed Leave (YTD): ", "Total leaves utilized during the current year as per policy."));
 
           // Available Leave
-          document.Add(CreateNote("* Available Leave Balance: ","Remaining leave balance after adjustment of utilized leaves as per policy.\n\n"));
+          document.Add(CreateNote("* Available Leave Balance: ", "Remaining leave balance after adjustment of utilized leaves as per policy.\n\n"));
 
           // Important Note
           document.Add(CreateNote("  Note: ", "Higher absenteeism may occur due to pending leave approvals, missing LMS entries, unmarked business trips, or pending attendance regularization requests.For any discrepancy, clarification, or correction, employees may contact their respective HR Business Partner(HRBP)."));
 
 
-         // document.Add(p);
+          // document.Add(p);
 
           document.Close();
 
@@ -1330,9 +1336,9 @@ namespace LeaveON.Services
       {
         //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
-        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" };
+        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Digital Solutions",   "WELLHEAD & SKIDS", "ELECTRICAL SOLUTIONS" ,"IIS", "SUPPLY CHAIN", "Project Monitoring & Control" };  //, "Solution Centre" , "Project Monitoring & Control" 
                                                                                             //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
                                                                                             //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
@@ -1470,6 +1476,7 @@ namespace LeaveON.Services
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
       managerEmails = GetHoDPerson();
+
       foreach (var managerEmail in managerEmails)
       {
         using (var context = new LeaveONEntities())
@@ -1478,7 +1485,7 @@ namespace LeaveON.Services
 
           if (users == null || users.Count == 0)
             continue;
-          List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users);
+          List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users,false);
           string hRBPEmail = String.Empty;
           if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
           {
@@ -1499,6 +1506,413 @@ namespace LeaveON.Services
     }
 
 
+
+    public Task GetHODDeparmentReportByDateRange(int month, int year, List<string> hodIDs, List<string> departments)
+    {
+      List<ManagerDto> managerEmails = new List<ManagerDto>();
+      managerEmails = GetHODName(hodIDs);
+      
+      string monthName = GetMonthName(month);
+      foreach (var managerEmail in managerEmails)
+      {
+        using (var context = new LeaveONEntities())
+        {
+           var users = GetUserBySelectedDepartment(departments);
+
+         // var users = GetUserDepartmentWise(managerEmail.DepartmentName).Where(k => k.UserID != managerEmail.Id).ToList();
+
+          if (users == null || users.Count == 0)
+            continue;
+
+          List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users, true);
+          //List<EmployeeReportData> reportList = BindUserReportDataByDateRange( Convert.ToDateTime(startDate), Convert.ToDateTime(endDate), managerEmail, context, users);
+          string hRBPEmail = String.Empty;
+
+          if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
+          {
+            hRBPEmail = "";// departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+          }
+
+          GeneratePDFManager1(
+              reportList,
+              reportList.Count > 0 ? reportList[0].TotalDays : 0,
+              monthName,
+              year,
+              managerEmail,
+              false, 
+              new List<EmailAndIDs>(), hRBPEmail, true);
+        }
+      }
+      return Task.CompletedTask;
+    }
+    private List<ManagerDto> GetHODName(List<string> hodIDs)
+    {
+      using (var context = new LeaveONEntities())
+      {
+
+
+        var managersIDs = context.AspNetUsers.Where(k => k.IsActive == true &&
+       k.IsDeleted != true &&
+       k.BioStarEmpNum.HasValue &&
+       hodIDs.Contains(k.BioStarEmpNum.Value.ToString())).Select(k => new ManagerDto
+       {
+         Id = k.Id,
+         UserName = k.UserName,
+         Email = k.Email,
+         PhoneNumber = k.PhoneNumber,
+         ManagerName = k.ManagerName,
+         DepartmentName = k.DepartmentName
+       })
+   .ToList();
+
+
+
+        return managersIDs.Distinct().ToList();
+
+
+      }
+    }
+    public List<EmailAndIDs> GetUserBySelectedDepartment(List<string> departmentList)
+    {
+      using (var context = new LeaveONEntities())
+      {
+        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 &&
+        !String.IsNullOrEmpty(y.DepartmentName) && departmentList.Any(m => m.Trim().ToLower().ToString() == y.DepartmentName.Trim().ToLower()) && y.IsActive == true && y.IsDeleted != true)
+        .Select(x => new EmailAndIDs
+        {
+          userId = x.BioStarEmpNum.Value,
+          email = x.Email,
+          userLeavePolicyID = x.UserLeavePolicyId,
+          UserID = x.Id,
+          JoiningDate = x.JoiningDate,
+          EmployeeName = x.EmpolyeeName,
+          DepartmentName = x.DepartmentName
+        })
+        .ToList();
+        return users;
+      }
+    }
+
+   // private static List<EmployeeReportData> BindUserReportDataByDateRange(DateTime startOfMonth,  DateTime endOfMonth, ManagerDto managerEmail, LeaveONEntities context, List<EmailAndIDs> users)
+   // {
+   //   List<int> policyIds = new List<int>();
+   //  // DateTime startOfMonth = new DateTime(year, month, 1);
+   ////  DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+   //   var userIds = users.Select(u => u.UserID).ToList();
+
+   //   policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+   //                        .Select(u => u.userLeavePolicyID.Value)
+   //                        .Distinct()
+   //                        .ToList();
+   //   var attendanceMonth = context.AttendanceDatas
+   //       .Where(a => userIds.Contains(a.UserID)
+   //                && a.CreatedDate >= startOfMonth
+   //                && a.CreatedDate <= endOfMonth)
+   //       .ToList();
+
+   //   //string policyName = String.Empty;
+
+   //   List<String> policyName = new List<String>();
+   //   List<UserLeavePolicy> userpolicyList = new List<UserLeavePolicy>();
+
+   //   if (attendanceMonth != null && attendanceMonth.Count() > 0)
+   //   {
+   //     policyName = attendanceMonth.Select(u => u.UserLeavePolicyID).Distinct().ToList();
+   //   }
+   //   if (policyName.Where(k => !string.IsNullOrEmpty(k)).Count() > 0)
+   //   {
+   //     userpolicyList = context.UserLeavePolicies.Where(p => policyName.Any(l => l.Trim().ToLower() == p.Description.Trim().ToLower())).ToList();
+   //     if (policyIds.Count() > 0)
+   //     {
+   //       policyIds.AddRange(userpolicyList.Select(u => u.Id).Distinct().ToList());
+   //     }
+   //     else
+   //     {
+
+   //       policyIds = userpolicyList.Select(u => u.Id).Distinct().ToList();
+   //     }
+   //   }
+   //   else
+   //   {
+   //     policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+   //                        .Select(u => u.userLeavePolicyID.Value)
+   //                       .Distinct()
+   //                        .ToList();
+   //   }
+
+
+
+
+
+
+
+   //   var cDate = DateTime.Today;
+
+   //   var attendanceYear = context.AttendanceDatas
+   //       .Where(a => userIds.Contains(a.UserID)
+   //                && a.CreatedDate.HasValue
+   //                && a.CreatedDate < cDate)
+   //       .ToList();
+
+   //   var leaves = context.Leaves
+   //       .Where(l => userIds.Contains(l.UserId)
+   //                && l.IsAccepted1 == 1
+   //                && l.IsAccepted2 == 1)
+   //       .ToList();
+
+   //   var leavePolicies = context.UserLeavePolicies
+   //       .Where(p => policyIds.Contains(p.Id))
+   //       .ToList();
+
+   //   var leavePolicyDetails = context.UserLeavePolicyDetails
+   //       .Where(p => policyIds.Contains((int)p.UserLeavePolicyId))
+   //       .ToList();
+
+   //   var holidays = context.AnnualOffDays
+   //       .Where(o => policyIds.Contains((int)o.UserLeavePolicyId))
+   //       .ToList();
+   //   List<EmployeeReportData> reportList = new List<EmployeeReportData>();
+   //   foreach (var user in users)
+   //   {
+   //     if (!user.userLeavePolicyID.HasValue)
+   //       continue;
+
+   //     int userIdInt = Convert.ToInt32(user.userId);
+   //     var userAttendanceMonth = attendanceMonth
+   //        .Where(a => a.BioStarEmpNum == userIdInt && a.CreatedDate >= user.JoiningDate)
+   //        .ToList();
+   //     DateTime fiscalStart = new DateTime();
+   //     DateTime fiscalEnd = new DateTime();
+   //     String attedancePolicy = userAttendanceMonth.Count() > 0 ? userAttendanceMonth.FirstOrDefault().UserLeavePolicyID : String.Empty;
+   //     UserLeavePolicy policy = new UserLeavePolicy();
+
+   //     if (!String.IsNullOrEmpty(attedancePolicy))
+   //     {
+   //       policy = leavePolicies.FirstOrDefault(k => k.Description.ToLower().Trim() == attedancePolicy.ToLower().Trim()); //leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
+   //       fiscalStart = policy.FiscalYearStart.Value;
+   //       fiscalEnd = policy.FiscalYearEnd.Value;
+   //     }
+   //     else
+   //     {
+   //       policy = leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
+   //       fiscalStart = policy.FiscalYearStart.Value;
+   //       fiscalEnd = policy.FiscalYearEnd.Value;
+   //     }
+
+
+
+
+
+
+   //     //for missing get date list
+   //     List<DateTime> workingMonthDateList = GetWorkingDayByMonth(startOfMonth.Year, startOfMonth.Month, user.userLeavePolicyID);
+   //     DateTime currentDate = (DateTime.Now).AddDays(-1);
+   //     workingMonthDateList = workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
+   //     List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
+   //     int totalWorkingDaysCount = userAttendanceMonth.Where(k => k.TotalWorkHours.HasValue && k.TotalWorkHours.Value > 0).Count();
+
+   //     if (workingMonthDateList.Count > totalWorkingDaysCount)
+
+   //     {
+
+   //       var list = workingMonthDateList.Where(date => date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+
+
+   //       var monthyLeaves = leaves
+   //           .Where(l => l.UserId == user.UserID
+   //                    && (l.LeaveTypeId == 1 || l.LeaveTypeId == 2)
+   //                    && l.IsAccepted1 == 1
+   //                    && l.IsAccepted2 == 1
+   //                    && l.StartDate >= startOfMonth
+   //                    && l.EndDate <= endOfMonth)
+   //           .ToList();
+
+   //       list = list.Where(k => !monthyLeaves.Any(g => g.DateCreated.Value.Date == k.Date.Date)).ToList();
+   //       missedMonthAttendanceDateList.AddRange(list);
+   //     }
+
+   //     var userAttendanceYTD = attendanceYear
+   //         .Where(a => a.BioStarEmpNum == userIdInt
+
+   //                  && a.CreatedDate >= fiscalStart
+   //                  && a.CreatedDate <= fiscalEnd && a.CreatedDate >= user.JoiningDate)
+   //         .ToList();
+
+
+   //     DateTime invalidDate = new DateTime(1, 1, 1);
+
+   //     var validPunchIns = userAttendanceMonth
+   //         .Where(a => a.FirstPunchIn.HasValue && a.FirstPunchIn.Value != invalidDate)
+   //         .Select(a => a.FirstPunchIn.Value.TimeOfDay.TotalSeconds);
+
+   //     var validPunchOuts = userAttendanceMonth
+   //         .Where(a => a.LastPunchOut.HasValue && a.LastPunchOut.Value != invalidDate)
+   //         .Select(a => a.LastPunchOut.Value.TimeOfDay.TotalSeconds);
+
+   //     TimeSpan avgTimeIn = validPunchIns.Any()
+   //         ? TimeSpan.FromSeconds(validPunchIns.Average())
+
+   //         : TimeSpan.Zero;
+
+   //     TimeSpan avgTimeOut = validPunchOuts.Any()
+   //         ? TimeSpan.FromSeconds(validPunchOuts.Average())
+   //         : TimeSpan.Zero;
+
+   //     var publicHolidays = holidays
+   //         .Where(h => h.UserLeavePolicyId == policy.Id
+   //                  && h.OffDay >= fiscalStart
+   //                  && h.OffDay <= fiscalEnd)
+   //         .Select(h => h.OffDay.Value)
+   //         .ToHashSet();
+
+   //     var userLeavesYTD = leaves
+   //           .Where(l => l.UserId == user.UserID
+   //                    && (l.LeaveTypeId == 1 || l.LeaveTypeId == 2)
+   //                    && l.IsAccepted1 == 1
+   //                    && l.IsAccepted2 == 1
+   //                    && l.StartDate >= fiscalStart
+   //                    && l.EndDate <= fiscalEnd)
+   //           .ToList();
+
+   //     var absenteesYTD = leaves
+   //           .Where(l => l.UserId == user.UserID
+   //                    && l.IsAccepted1 == 1
+   //                    && l.IsAccepted2 == 1
+   //                    && l.StartDate >= fiscalStart
+   //                    && l.EndDate <= fiscalEnd).ToList();
+
+   //     int absentYTD = userAttendanceYTD.Count(a =>
+   //         a.IsAbsent == true
+   //         && !publicHolidays.Contains(a.CreatedDate.Value.Date)
+   //         && !absenteesYTD.Any(l => a.CreatedDate >= l.StartDate && a.CreatedDate <= l.EndDate));
+   //     decimal availedLeaveYTD = userLeavesYTD.Sum(l => (decimal)l.TotalDays);
+
+
+   //     int shortHoursYTD = (int)context.Leaves
+   //         .Where(l => l.UserId == user.UserID
+   //                  && l.IsShortLeave == true
+   //                    && l.IsAccepted1 == 1
+   //                    && l.IsAccepted2 == 1
+   //                  && l.StartDate >= fiscalStart
+   //                  && l.EndDate <= fiscalEnd)
+   //         .AsEnumerable()
+   //         .Sum(l => (l.EndDate - l.StartDate).TotalHours);
+   //     int shortDaysToCausalLeave = 0;
+
+   //     if (shortHoursYTD >= 8)
+   //     {
+   //       shortDaysToCausalLeave = (int)shortHoursYTD / 8;
+   //       shortHoursYTD = shortHoursYTD % 8;
+   //       availedLeaveYTD = availedLeaveYTD + shortDaysToCausalLeave;
+   //     }
+
+
+
+
+   //     int totalWorkDays = GetWorkingDays(startOfMonth.Year, startOfMonth.Month, user.userLeavePolicyID);
+
+   //     //  this if user not mark attensance on  userAttendanceMonth then it will as absent
+   //     if (missedMonthAttendanceDateList.Count() > 0)
+   //     {
+   //       absentYTD += missedMonthAttendanceDateList.Count();// (totalWorkDays - userAttendanceMonth.Count());
+   //     }
+
+   //     double totalWorkSeconds = userAttendanceMonth
+   //         .Where(a => a.TotalWorkHours.HasValue && a.TotalWorkHours.Value > 0)
+   //         .Select(a => a.TotalWorkHours.Value)
+   //         .Distinct()
+   //         .Sum();
+   //     int workingDays = userAttendanceMonth
+   //         .Where(a => a.TotalWorkHours.HasValue && a.TotalWorkHours.Value > 0)
+   //         .Select(a => a.CreatedDate.Value.Date)
+   //         .Distinct()
+   //         .Count();
+
+   //     TimeSpan avgTimeInOffice = workingDays > 0
+   //         ? TimeSpan.FromSeconds(totalWorkSeconds / workingDays)
+   //         : TimeSpan.Zero;
+
+   //     DateTime joiningDate = user.JoiningDate ?? fiscalStart;
+   //     DateTime effectiveStart = joiningDate > fiscalStart ? joiningDate : fiscalStart;
+
+   //     int workedMonths = joiningDate > fiscalEnd ? 0 :
+   //         ((fiscalEnd.Year - effectiveStart.Year) * 12)
+   //         + fiscalEnd.Month - effectiveStart.Month + 1;
+
+   //     if (workedMonths > 12 || effectiveStart == fiscalStart) workedMonths = 12;
+
+   //     var policyDetail = leavePolicyDetails
+   //         .Where(p => p.UserLeavePolicyId == policy.Id)
+   //         .ToList();
+   //     int casual = 0;
+   //     int annual = 0;
+   //     if (policyDetail.Where(p => p.LeaveTypeId == 1).Count() > 0)
+   //       casual = (int)policyDetail.Where(p => p.LeaveTypeId == 1)?.Select(p => p.Allowed)?.FirstOrDefault();
+
+   //     if (policyDetail.Where(p => p.LeaveTypeId == Consts.AnnualLeaveId).Count() > 0)
+   //     {
+   //       List<LeaveBalance> LstLeaveBalance = context.LeaveBalances.Where(x => x.UserLeavePolicyId == policy.Id && x.UserId == user.UserID).ToList();
+
+   //       int adjustLeaveBalance = Convert.ToInt32(LstLeaveBalance.Where(k => k.LeaveTypeId == Consts.AnnualLeaveId).Sum(k => k.AnnualAmountAjustmesnt.HasValue ? k.AnnualAmountAjustmesnt : 0));
+
+   //       annual = (int)policyDetail.Where(p => p.LeaveTypeId == 2)?.Select(p => p.Allowed)?.FirstOrDefault();
+   //       annual += adjustLeaveBalance;
+   //     }
+
+   //     if (workedMonths < 12)
+   //     {
+   //       casual = (int)Math.Ceiling((casual / 12.0) * workedMonths);
+   //       annual = (int)Math.Ceiling((annual / 12.0) * workedMonths);
+   //     }
+
+   //     int assignedLeaveQuota = casual + annual;
+   //     int availableLeave = assignedLeaveQuota - (int)availedLeaveYTD;
+
+
+
+   //     string empname = string.Empty;
+
+   //     if (!String.IsNullOrEmpty(user.EmployeeName))
+   //     {
+   //       empname = user.EmployeeName;
+   //     }
+   //     else
+   //     {
+   //       empname = !String.IsNullOrEmpty(user.EmployeeName) ? user.email.Split('@')[0].Replace('.', ' ') : string.Empty;
+   //     }
+   //     reportList.Add(new EmployeeReportData
+   //     {
+   //       EmployeeID = user.userId,
+   //       EmployeeName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().UserName : empname,
+   //       Department = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().DepartmentName : user.DepartmentName,
+   //       CountryName = userAttendanceMonth.Count > 0 ? userAttendanceMonth.First().CountryName : String.Empty,
+   //       ManagerEmail = managerEmail.Email,
+
+   //       TotalDays = totalWorkDays,
+   //       AbsentDays = absentYTD, // Absents (YTD)
+   //       AvailedLeave = (int)availedLeaveYTD, // Availed Leave (YTD)
+
+   //       TotalWorkHours = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Sum(a => a.TotalWorkHours) : 0,
+   //       TotalBreakHours = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Sum(a => a.BreakHours) : 0,
+
+   //       LateArrivals = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Count(a => a.IsLateArrival == true) : 0,
+   //       EarlyDepartures = userAttendanceMonth.Count > 0 ? userAttendanceMonth.Count(a => a.IsEarlyDeparture == true) : 0,
+
+   //       AverageTimeIn = avgTimeIn.ToString(@"hh\:mm"),
+   //       AverageTimeOut = avgTimeOut.ToString(@"hh\:mm"),
+   //       AverageTimeInOffice = avgTimeInOffice.ToString(@"hh\:mm"),
+
+   //       ShortHoursInMonth = shortHoursYTD > 0 ? shortHoursYTD.ToString() : "0", // Short Hours (YTD)
+
+   //       AssignedLeaveQuota = assignedLeaveQuota.ToString(),
+   //       AvailableLeave = availableLeave > 0 ? availableLeave.ToString() : "0",
+   //       CasualLeaves = casual.ToString(),
+   //       AnnualLeaves = annual.ToString()
+   //     });
+   //   }
+
+   //   return reportList;
+   // }
 
   }
   public class ManagerDto

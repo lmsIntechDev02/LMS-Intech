@@ -2610,13 +2610,10 @@ namespace LeaveON.Controllers
         //ViewBag.MonthSelectList = GetMonthSelectList();
         DateTime startDate, endDate;
         string userId = User.Identity.GetUserId();
-
         List<TimeData> LstAttendances = new List<TimeData>();
-
         // Set default date if ReqMonthYear is empty
         if (!string.IsNullOrEmpty(StartDate) && !string.IsNullOrEmpty(EndDate))
         {
-
           startDate = DateTime.ParseExact(StartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
           endDate = DateTime.ParseExact(EndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
         }
@@ -2957,19 +2954,13 @@ namespace LeaveON.Controllers
             .Select(e => e.DepartmentName)
             .Distinct() // Ensure distinct departments
             .ToList();
-        //// Add the user own department to the list if it's not already included
-        //if (!string.IsNullOrEmpty(userDepartment) && !employeeDepartments.Contains(userDepartment))
-        //{
-        //  employeeDepartments.Add(userDepartment);
-        //}
-
-        // Create the department list for the dropdown
+  
         var departmentClaims = employeeDepartments
             .Select(d => new { Value = d, Text = d })
             .ToList();
 
 
-          // Check if departments are available; if not, add a placeholder
+          
           if (!departmentClaims.Any())
           {
             departmentClaims.Add(new { Value = "", Text = "Department Not Exists" });
@@ -2977,7 +2968,7 @@ namespace LeaveON.Controllers
 
         
 
-        //  // Set the departments in the ViewBag for use in the dropdown
+       
          ViewBag.Departments = new SelectList(departmentClaims, "Value", "Text");
          ViewBag.SelectedDepartments = departmentClaims;
       }

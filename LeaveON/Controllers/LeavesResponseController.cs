@@ -40,6 +40,7 @@ namespace LeaveON.Controllers
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
       //var leaves = db.Leaves.Include(l => l.LeaveType);
       string LoggedInUserId = User.Identity.GetUserId();
+      
       var leaves = db.Leaves.Where(x => x.IsQuotaRequest == true && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
       return View(await leaves.ToListAsync());
     }
@@ -892,7 +893,7 @@ namespace LeaveON.Controllers
                  .Distinct()
                  .Select(d => new SelectListItem { Value = d, Text = d })
                  .ToList();
-          ViewBag.Departments = new SelectList(departments, "Value", "Text");// departments;
+          ViewBag.Departments = new SelectList(departments, "Value", "Text");   // departments;
 
           var user = new List<AspNetUser>(); //db.AspNetUsers.Where(k=>k.IsActive == true && k.BioStarEmpNum.HasValue).ToList();
           var userlist = user.Select(k => new AspNetUser

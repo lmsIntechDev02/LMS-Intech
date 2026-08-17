@@ -2483,6 +2483,7 @@
     <Content Include="Views\AccessBiostarTA\_EmployeeList.cshtml" />
     <Content Include="Views\LeavesResponse\LeaveAbsentReport.cshtml" />
     <Content Include="Views\LeavesResponse\_LeaveAbsentReport.cshtml" />
+    <Content Include="Views\Departments\HODReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

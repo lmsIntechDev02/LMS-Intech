@@ -18,7 +18,7 @@ namespace AutomatedReportTaskRunner
             Console.WriteLine("Currently service is not available.");
             // Wait for 5 seconds (5000 milliseconds)
             Thread.Sleep(5000);
-            bool isHODRepot = true;
+            bool isHODRepot = false;
             Console.WriteLine("Exiting application...");
             // Stop execution immediately (out ho jaay)
             //return;

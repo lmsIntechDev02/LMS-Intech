@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeaveOnTaskRunner", "LeaveO
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutomatedReportTaskRunner", "AutomatedReportTaskRunner\AutomatedReportTaskRunner.csproj", "{C8ACE705-D531-43A4-A6D9-47D71309D437}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LMSDatabaseBackup", "LMSDatabaseBackup\LMSDatabaseBackup.csproj", "{ED4D70B7-B749-4045-8DD0-25CC375E76F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{C8ACE705-D531-43A4-A6D9-47D71309D437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8ACE705-D531-43A4-A6D9-47D71309D437}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8ACE705-D531-43A4-A6D9-47D71309D437}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED4D70B7-B749-4045-8DD0-25CC375E76F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED4D70B7-B749-4045-8DD0-25CC375E76F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED4D70B7-B749-4045-8DD0-25CC375E76F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED4D70B7-B749-4045-8DD0-25CC375E76F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

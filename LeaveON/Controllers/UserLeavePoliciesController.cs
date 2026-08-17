@@ -233,7 +233,7 @@ namespace LeaveON.Controllers
           db.LeaveBalances.Add(leaveBalance);
         }
 
-        var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+        ///var compensatoryBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId && x.UserLeavePolicyId == userLeavePolicy.Id);
 
         //// Now proceed with your logic for calculating additional days taken
         //int existingTaken = (int)leaveBalance.Taken;
@@ -441,7 +441,7 @@ namespace LeaveON.Controllers
         {
           //string CurrentLoginUserId = User.Identity.GetUserId();
           ViewBag.LeaveUserId = leaveUserId;
-          ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId);
+          ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId  && x.UserLeavePolicyId==id);
 
           ViewBag.Caller = "Leave";
 

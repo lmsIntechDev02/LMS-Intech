@@ -333,7 +333,7 @@ namespace LeaveON.Controllers
             : "Joining date not available";
 
       ViewBag.LineManagers = new SelectList(Utility.AspNetUserNames.Where(y => y.UserName != ViewBag.UserName)
-        .OrderBy(x => x.UserName), "Id", "UserName", "7baffeb6-7cad-46ad-9418-493d86e1da75");
+        .OrderBy(x => x.UserName), "Id", "UserName", "");
 
       ViewBag.LeaveUserId = userId;
       //UserLeavePoliciesController UserLeavePolicies = new UserLeavePoliciesController();//.FileUploadMsgView("some string");

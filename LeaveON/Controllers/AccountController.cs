@@ -241,13 +241,13 @@ namespace LeaveON.Controllers
         model.Email = string.Concat(model.Email, "@intechww.com");
       }
 
-        bool isValidADUser = false;
-    //bool isValidADUser = true;
+       // bool isValidADUser = false;
+   bool isValidADUser = true;
 
       try
       {
          
-        isValidADUser = ValidateADuser(model);
+      // isValidADUser = ValidateADuser(model);
       }
       catch (Exception ex)
       {
