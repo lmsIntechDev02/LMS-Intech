@@ -231,6 +231,16 @@
           <Property Name="version" Type="int" />
           <Property Name="definition" Type="varbinary(max)" />
         </EntityType>
+        <EntityType Name="tblHRBP">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserID" Type="nvarchar" MaxLength="128" />
+          <Property Name="HRBPEmail" Type="nvarchar" MaxLength="255" />
+          <Property Name="HRBPName" Type="nvarchar" MaxLength="200" />
+          <Property Name="HRBPID" Type="nvarchar" MaxLength="100" />
+        </EntityType>
         <EntityType Name="UserLeavePolicy">
           <Key>
             <PropertyRef Name="Id" />
@@ -486,6 +496,18 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_tblHRBP_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <End Role="tblHRBP" Type="Self.tblHRBP" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="tblHRBP">
+              <PropertyRef Name="UserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_UserLeavePolicy_CountryNames">
           <End Role="CountryNames" Type="Self.CountryNames" Multiplicity="0..1" />
           <End Role="UserLeavePolicy" Type="Self.UserLeavePolicy" Multiplicity="*" />
@@ -555,6 +577,7 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <EntitySet Name="LeaveBalance" EntityType="Self.LeaveBalance" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="LeaveType" EntityType="Self.LeaveType" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tblHRBP" EntityType="Self.tblHRBP" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicy" EntityType="Self.UserLeavePolicy" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicyDetail" EntityType="Self.UserLeavePolicyDetail" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_Monthly_Leaves_Report" EntityType="Self.HR_Monthly_Leaves_Report" store:Type="Views" store:Schema="dbo">
@@ -637,6 +660,10 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <AssociationSet Name="FK_LeaveBalance_UserLeavePolicy" Association="Self.FK_LeaveBalance_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
             <End Role="LeaveBalance" EntitySet="LeaveBalance" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tblHRBP_AspNetUsers" Association="Self.FK_tblHRBP_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="tblHRBP" EntitySet="tblHRBP" />
           </AssociationSet>
           <AssociationSet Name="FK_UserLeavePolicy_CountryNames" Association="Self.FK_UserLeavePolicy_CountryNames">
             <End Role="CountryNames" EntitySet="CountryNames" />
@@ -753,6 +780,11 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <AssociationSet Name="FK_LeaveBalance_UserLeavePolicy" Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
             <End Role="LeaveBalance" EntitySet="LeaveBalances" />
+          </AssociationSet>
+          <EntitySet Name="tblHRBPs" EntityType="LeaveONModels.tblHRBP" />
+          <AssociationSet Name="FK_tblHRBP_AspNetUsers" Association="LeaveONModels.FK_tblHRBP_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="tblHRBP" EntitySet="tblHRBPs" />
           </AssociationSet>
           </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
@@ -1052,6 +1084,7 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="AspNetRoles" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
+          <NavigationProperty Name="tblHRBPs" Relationship="LeaveONModels.FK_tblHRBP_AspNetUsers" FromRole="AspNetUser" ToRole="tblHRBP" />
         </EntityType>
         <EntityType Name="UserLeavePolicy">
           <Key>
@@ -1301,6 +1334,29 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             </Principal>
             <Dependent Role="LeaveBalance">
               <PropertyRef Name="UserLeavePolicyId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="tblHRBP">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserID" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="HRBPEmail" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="HRBPName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="HRBPID" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_tblHRBP_AspNetUsers" FromRole="tblHRBP" ToRole="AspNetUser" />
+        </EntityType>
+        <Association Name="FK_tblHRBP_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.tblHRBP" Role="tblHRBP" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="tblHRBP">
+              <PropertyRef Name="UserID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1598,6 +1654,17 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
                 <ScalarProperty Name="LeaveTypeId" ColumnName="LeaveTypeId" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tblHRBPs">
+            <EntityTypeMapping TypeName="LeaveONModels.tblHRBP">
+              <MappingFragment StoreEntitySet="tblHRBP">
+                <ScalarProperty Name="HRBPID" ColumnName="HRBPID" />
+                <ScalarProperty Name="HRBPName" ColumnName="HRBPName" />
+                <ScalarProperty Name="HRBPEmail" ColumnName="HRBPEmail" />
+                <ScalarProperty Name="UserID" ColumnName="UserID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

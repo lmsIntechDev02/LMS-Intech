@@ -42,6 +42,8 @@
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_LeaveType" />
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" />
+        <EntityTypeShape EntityType="LeaveONModels.tblHRBP" Width="1.5" PointX="15" PointY="18.125" />
+        <AssociationConnector Association="LeaveONModels.FK_tblHRBP_AspNetUsers" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

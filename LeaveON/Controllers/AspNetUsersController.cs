@@ -74,6 +74,29 @@ namespace LeaveON.Controllers
         return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
       }
       AspNetUser aspNetUser = await db.AspNetUsers.FindAsync(id);
+      tblHRBP hrbp =   db.tblHRBPs.Where(j => j.UserID == id).FirstOrDefault();
+      var userlist = db.AspNetUsers
+     .Where(u => u.Email != null && u.IsActive == true).AsEnumerable();
+      var hrbpEmails = userlist
+          .Select(u => new SelectListItem
+          {
+            Value = u.Id,
+            Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName : System.Globalization.CultureInfo.CurrentCulture.TextInfo
+                                .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+          })
+          .ToList();
+      if(hrbp != null)
+      {
+        
+           ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", hrbp.HRBPEmail);
+        
+      }
+      else
+      {
+        ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text",null);
+      }
+        
+   
       if (aspNetUser == null)
       {
         return HttpNotFound();
