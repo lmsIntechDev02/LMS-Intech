@@ -1,225 +1,812 @@
 @model LeaveON.UtilityClasses.Dashboard
+
 @{
   ViewBag.Title = "Dashboard";
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@*<div class="row mb-2">*@
-<div class="col-12">
-  <div class="col-sm-6">
-    <br />
-    <h3 class="m-0 text-dark">Dashboard</h3>
-    <br />
+<style>
+  /* =========================
+       Dashboard
+       ========================= */
 
-  </div>
-</div>
+  .dashboard-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #343a40;
+    margin: 5px 0 20px;
+  }
+
+  .dash-row {
+    margin-bottom: 16px;
+  }
+
+  /* =========================
+       Leave Cards
+       ========================= */
+  .leave-card {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eef0f4;
+    border-left: 4px solid var(--accent);
+    height: 154px;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+  }
+
+    .leave-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+      text-decoration: none !important;
+    }
+
+  .leave-card-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 18px 20px;
+    min-height: 116px;
+  }
+
+  /* =========================
+       Icons
+       ========================= */
+
+  .leave-icon {
+    width: 75px;
+    height: 75px;
+    min-width: 58px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 18px;
+  }
+
+    .leave-icon i {
+      font-size: 40px;
+    }
+
+  /* =========================
+       Card Content
+       ========================= */
+
+  .leave-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .leave-value {
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 600;
+    margin-bottom: 7px;
+    white-space: nowrap;
+  }
+
+  .leave-label {
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 500;
+    color: #172033;
+    white-space: normal;
+  }
+
+  /* =========================
+       Footer
+       ========================= */
+  .leave-footer {
+    height: 34px;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    background: #fff;
+    border-top: 1px solid var(--footer-top);
+  }
+
+    .leave-footer i {
+      font-size: 14px;
+      transition: transform .2s ease;
+    }
+
+  .leave-card:hover .leave-footer i {
+    transform: translateX(3px);
+  }
+
+  .leave-footer i {
+    font-size: 14px;
+    transition: transform .2s ease;
+  }
+
+  .leave-card:hover .leave-footer i {
+    transform: translateX(3px);
+  }
+
+  /* =========================
+       Accent Colors
+       ========================= */
+
+  .accent-info {
+    --accent: #1259c3;
+    --accent-bg: #eaf2ff;
+    --footer-bg: #edf4ff;
+    /*--footer-top: #b1c8ed;*/
+  }
+
+  .accent-warning {
+    --accent: #f39a00;
+    --accent-bg: #fff4df;
+    --footer-bg: #fff4e1;
+  }
+
+  .accent-success {
+    --accent: #008c3a;
+    --accent-bg: #e8f8ef;
+    --footer-bg: #e9f8ef;
+  }
+
+  .accent-danger {
+    --accent: #d71920;
+    --accent-bg: #ffebed;
+    --footer-bg: #ffebed;
+  }
+
+  .accent-fuchsia {
+    --accent: #5f12d5;
+    --accent-bg: #f2eaff;
+    --footer-bg: #f5edff;
+  }
+
+  .accent-teal {
+    --accent: #128fa1;
+    --accent-bg: #e8f8fa;
+    --footer-bg: #eaf8fa;
+  }
+
+  .accent-blue {
+    --accent: #1261c9;
+    --accent-bg: #eaf2ff;
+    --footer-bg: #edf4ff;
+  }
+
+  .accent-indigo {
+    --accent: #6418d3;
+    --accent-bg: #f1eaff;
+    --footer-bg: #f5eeff;
+  }
+
+  .accent-slate {
+    --accent: #5a6472;
+    --accent-bg: #eceef1;
+    --footer-bg: #f0f1f3;
+  }
+
+  .leave-card .leave-icon {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .leave-card .leave-value,
+  .leave-card .leave-footer {
+    color: var(--accent);
+  }
+
+  .leave-card .leave-footer {
+    background: var(--footer-bg);
+  }
+
+  /* =========================
+       Employee Information
+       ========================= */
+
+  .employee-info-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eef0f4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .employee-info-row {
+    display: flex;
+    width: 100%;
+  }
+
+  .employee-info-row {
+    border-bottom: 1px solid #e9edf3;
+  }
+  .employee-info-item {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 20px 22px;
    
-<div class="row">
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-info">
-      <div class="inner">
-        <h3>@Model.MyAllowedLeaves</h3>
+  }
 
-        <p>My Allowed Leaves</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-bag"></i>
-      </div>
-      <a href="/LeavesRequest/Create" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <!-- ./col -->
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
+    .employee-info-item:last-child {
+      border-right: none;
+    }
+
+  .employee-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 18px;
+  }
+
+    .employee-icon i {
+      font-size: 30px;
+    }
+
+  .employee-info-content {
+    min-width: 0;
+  }
+
+  .employee-label {
+    display: block;
+    font-size: 16px;
+    color: #6f7785;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .employee-value {
+    display: block;
+    font-size: 18px;
+    color: #202638;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+    .employee-value.large {
+      font-size: 14px;
+    }
+
+  /* =========================
+       Responsive
+       ========================= */
+
+  @@media (max-width: 991.98px) {
+    .leave-card {
+      height: 150px;
+    }
+
+    .employee-info-row {
+      flex-wrap: wrap;
+    }
+
+    .employee-info-item {
+      flex: 0 0 50%;
+      border-bottom: 1px solid #e9edf3;
+    }
+
+      .employee-info-item:nth-child(2n) {
+        border-right: none;
+      }
+  }
+
+  @@media (max-width: 575.98px) {
+    .dashboard-title {
+      font-size: 21px;
+    }
+
+    .leave-card {
+      height: 145px;
+    }
+
+    .leave-card-content {
+      padding: 15px;
+    }
+
+    .leave-icon {
+      width: 50px;
+      height: 50px;
+      min-width: 50px;
+      margin-right: 12px;
+    }
+
+      .leave-icon i {
+        font-size: 24px;
+      }
+
+    .leave-value {
+      font-size: 30px;
+    }
+
+    .leave-label {
+      font-size: 12px;
+    }
+
+    .employee-info-item {
+      flex: 0 0 100%;
+      border-right: none !important;
+    }
+  }
+</style>
 
 
-    <div class="small-box bg-warning">
-      <div class="inner">
-        <h3>@Model.MyTakenLeaves</h3>
-
-        <p>My Taken Leaves</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-stats-bars"></i>
-      </div>
-      <a href="/LeavesRequest/Create" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <!-- ./col -->
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-success">
-      <div class="inner">
-        <h3>@Model.MyBalanceLeaves</h3>
-
-        <p>My Balance Leaves</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-person-add"></i>
-      </div>
-      <a href="/LeavesRequest/Create" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <!-- ./col -->
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-danger">
-      <div class="inner">
-        <h3>@Model.MyLeavesRefused</h3>
-
-        <p>My Leaves Refused</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-pie-graph"></i>
-      </div>
-      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-gradient-fuchsia">
-      <div class="inner">
-        <h3>@Model.MyLeavesPending</h3>
-
-        <p>My Leaves Pending for Approval</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-pie-graph"></i>
-      </div>
-      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-teal">
-      <div class="inner">
-        <h3>@Model.MyLeavesApproved</h3>
-
-        <p>My Leaves Approved</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-pie-graph"></i>
-      </div>
-      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-blue">
-      <div class="inner">
-        <h3>@Model.TotalAnnualLeaves</h3>
-
-        <p>Annual Leaves</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-pie-graph"></i>
-      </div>
-      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  <div class="col-lg-3 col-6">
-    <!-- small box -->
-    <div class="small-box bg-indigo">
-      <div class="inner">
-        <h3>@Model.BalanceAnnualLeaves</h3>
-
-        <p>Balance Annual Leaves</p>
-      </div>
-      <div class="icon">
-        <i class="ion ion-pie-graph"></i>
-      </div>
-      <a href="/LeavesRequest/Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-    </div>
-  </div>
-  @*</div>*@
+<div class="col-12">
+  <h3 class="dashboard-title">Dashboard</h3>
 </div>
-  @* ------------------------------------- *@
+<!-- =========================================================
+     EMPLOYEE INFORMATION
+     ========================================================= -->
 
-  <div class="row">
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="info-box">
-        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-id-card"></i></span>
+<div class="row dash-row">
 
-        <div class="info-box-content">
-          <span class="info-box-text">Employee #</span>
-          <span class="info-box-number">
-            @Model.EmployeeNumber
+  <div class="col-12">
 
-          </span>
+    <div class="employee-info-card">
+
+      <!-- First Row -->
+      <div class="employee-info-row">
+
+        <!-- Employee # -->
+        <div class="employee-info-item">
+
+          <div class="employee-icon accent-info"
+               style="background:#eaf2ff;color:#1259c3;">
+
+            <i class="fas fa-id-card"></i>
+
+          </div>
+
+          <div class="employee-info-content">
+
+            <span class="employee-label">
+              Employee #
+            </span>
+
+            <span class="employee-value">
+              @Model.EmployeeNumber
+            </span>
+
+          </div>
+
         </div>
-        <!-- /.info-box-content -->
+
+
+        <!-- Name -->
+        <div class="employee-info-item">
+
+          <div class="employee-icon"
+               style="background:#f2eaff;color:#6418d3;">
+
+            <i class="fas fa-user"></i>
+
+          </div>
+
+          <div class="employee-info-content">
+
+            <span class="employee-label">
+              Name
+            </span>
+
+            <span class="employee-value">
+              @Model.EmployeeName
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Policy -->
+        <div class="employee-info-item">
+
+          <div class="employee-icon"
+               style="background:#e8f8ef;color:#008c3a;">
+
+            <i class="fas fa-shield-alt"></i>
+
+          </div>
+
+          <div class="employee-info-content">
+
+            <span class="employee-label">
+              Policy
+            </span>
+
+            <span class="employee-value">
+              @Model.Policy
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Territory -->
+        <div class="employee-info-item">
+
+          <div class="employee-icon"
+               style="background:#eaf2ff;color:#1261c9;">
+
+            <i class="fas fa-map-marker-alt"></i>
+
+          </div>
+
+          <div class="employee-info-content">
+
+            <span class="employee-label">
+              Territory
+            </span>
+
+            <span class="employee-value">
+              @Model.Country
+            </span>
+
+          </div>
+
+        </div>
+
       </div>
-      <!-- /.info-box -->
+
+
+      <!-- Second Row -->
+      <div class="employee-info-row">
+
+        <!-- Date Today -->
+        <div class="employee-info-item">
+
+          <div class="employee-icon"
+               style="background:#ffebed;color:#e91e63;">
+
+            <i class="fas fa-calendar-alt"></i>
+
+          </div>
+
+          <div class="employee-info-content">
+
+            <span class="employee-label">
+              Date Today
+            </span>
+
+            <span class="employee-value">
+              @DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss")
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Day Today -->
+        <div class="employee-info-item">
+
+          <div class="employee-icon"
+               style="background:#fff4df;color:#f39a00;">
+
+            <i class="fas fa-calendar-day"></i>
+
+          </div>
+
+          <div class="employee-info-content">
+
+            <span class="employee-label">
+              Day Today
+            </span>
+
+            <span class="employee-value">
+              @DateTime.Now.DayOfWeek
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Empty spaces to preserve layout -->
+        <div class="employee-info-item"></div>
+
+        <div class="employee-info-item"></div>
+
+      </div>
+
     </div>
 
-    <!-- /.col -->
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="info-box">
-        <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-user"></i></span>
-
-        <div class="info-box-content">
-          <span class="info-box-text">Name</span>
-          <span class="info-box-number">@Model.EmployeeName</span>
-        </div>
-        <!-- /.info-box-content -->
-      </div>
-      <!-- /.info-box -->
-    </div>
-    <!-- /.col -->
-    <!-- fix for small devices only -->
-    <div class="clearfix hidden-md-up"></div>
-
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="info-box">
-        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-cog"></i></span>
-
-        <div class="info-box-content">
-          <span class="info-box-text">Policy</span>
-          <span class="info-box-number">@Model.Policy</span>
-        </div>
-        <!-- /.info-box-content -->
-      </div>
-      <!-- /.info-box -->
-    </div>
-    
-  <!-- /.col -->
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="info-box">
-        <span class="info-box-icon bg-blue elevation-1"><i class="fas fa-map-marker-alt"></i></span>
-
-        <div class="info-box-content">
-          <span class="info-box-text">Territory</span>
-          <span class="info-box-number">@Model.Country</span>
-        </div>
-        <!-- /.info-box-content -->
-      </div>
-      <!-- /.info-box -->
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="info-box">
-        <span class="info-box-icon bg-gradient-fuchsia elevation-1"><i class="fas fa-calendar-alt"></i></span>
-
-        <div class="info-box-content">
-          <span class="info-box-text">Date Today</span>
-          <span class="info-box-number">@DateTime.Now</span>
-        </div>
-        <!-- /.info-box-content -->
-      </div>
-      <!-- /.info-box -->
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="info-box">
-        <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-calendar-day"></i></span>
-
-        <div class="info-box-content">
-          <span class="info-box-text">Day Today </span>
-          <span class="info-box-number">@DateTime.Now.DayOfWeek</span>
-        </div>
-        <!-- /.info-box-content -->
-      </div>
-      <!-- /.info-box -->
-    </div>
   </div>
-  <!-- /.col -->
-  <!-- /.row -->
+
+</div>
+
+
+<!-- =========================================================
+     LEAVE STATISTICS
+     ========================================================= -->
+
+<div class="row dash-row">
+
+  <!-- My Allowed Leaves -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Create"
+       class="leave-card accent-info">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-bag"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.MyAllowedLeaves
+          </span>
+
+          <span class="leave-label">
+            My Allowed Leaves
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- My Taken Leaves -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Create"
+       class="leave-card accent-warning">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-stats-bars"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.MyTakenLeaves
+          </span>
+
+          <span class="leave-label">
+            My Taken Leaves
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- My Balance Leaves -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Create"
+       class="leave-card accent-success">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-person-add"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.MyBalanceLeaves
+          </span>
+
+          <span class="leave-label">
+            My Balance Leaves
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- My Leaves Refused -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Index"
+       class="leave-card accent-danger">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-pie-graph"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.MyLeavesRefused
+          </span>
+
+          <span class="leave-label">
+            My Leaves Refused
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- My Leaves Pending -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Index"
+       class="leave-card accent-fuchsia">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-clock"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.MyLeavesPending
+          </span>
+
+          <span class="leave-label">
+            My Leaves Pending<br />
+            for Approval
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- My Leaves Approved -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Index"
+       class="leave-card accent-teal">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-checkmark-circled"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.MyLeavesApproved
+          </span>
+
+          <span class="leave-label">
+            My Leaves Approved
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- Annual Leaves -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Index"
+       class="leave-card accent-blue">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-calendar"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.TotalAnnualLeaves
+          </span>
+
+          <span class="leave-label">
+            Annual Leaves
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+
+  <!-- Balance Annual Leaves -->
+  <div class="col-lg-3 col-md-6 col-6 mb-3">
+    <a href="/LeavesRequest/Index"
+       class="leave-card accent-indigo">
+
+      <div class="leave-card-content">
+
+        <div class="leave-icon">
+          <i class="ion ion-pie-graph"></i>
+        </div>
+
+        <div class="leave-content">
+
+          <span class="leave-value">
+            @Model.BalanceAnnualLeaves
+          </span>
+
+          <span class="leave-label">
+            Balance Annual Leaves
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="leave-footer">
+        <span>More info</span>
+        <i class="fas fa-arrow-right"></i>
+      </div>
+
+    </a>
+  </div>
+
+</div>
+
+
+

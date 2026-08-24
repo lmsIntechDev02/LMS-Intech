@@ -105,13 +105,179 @@
       $(".select2").select2();
     });
   </script>
-  @*<style>
-      .required:after {
-        content: "*";
-        color: red;
+  <style>
+    :root {
+      --sb-bg: #141b24;
+      --sb-text: #c3ccd6;
+      --sb-text-muted: #6b7a8d;
+      --sb-accent: #3b82f6;
+      --sb-hover: rgba(255,255,255,0.05);
+      --sb-active-bg: rgba(59,130,246,0.15);
+      --sb-border: rgba(255,255,255,0.08);
+    }
 
+    .main-sidebar {
+      background: var(--sb-bg) !important;
+      display: flex;
+      flex-direction: column;
+    }
+
+      .main-sidebar .sidebar {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 3.5rem);
+        padding: 0;
       }
-    </style>*@
+
+    .brand-link {
+      border-bottom: 1px solid var(--sb-border) !important;
+      padding: 16px !important;
+    }
+
+    /* search box */
+    .sidebar-search-wrap {
+      padding: 10px 12px;
+    }
+
+      .sidebar-search-wrap .input-group {
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .sidebar-search-wrap input {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 12px;
+        box-shadow: none !important;
+      }
+
+        .sidebar-search-wrap input::placeholder {
+          color: var(--sb-text-muted);
+        }
+
+      .sidebar-search-wrap .input-group-text {
+        background: transparent;
+        border: none;
+        color: var(--sb-text-muted);
+      }
+    .nav-sidebar .menu-open > .nav-link i.right {
+      transform: rotate(90deg) !important;
+    }
+    /* nav scroll area */
+    .sidebar-nav-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2px 8px 8px;
+    }
+
+    .main-sidebar .nav-header {
+      padding: 14px 10px 4px !important;
+      font-size: 10px;
+      color: #4d5a6b;
+      letter-spacing: 0.6px;
+      font-weight: 500;
+      background: transparent !important;
+      text-transform: uppercase;
+    }
+
+    .main-sidebar .nav-sidebar > .nav-item > .nav-link,
+    .main-sidebar .nav-treeview > .nav-item > .nav-link {
+      color: var(--sb-text) !important;
+      border-radius: 7px !important;
+      padding: 8px 10px !important;
+      margin: 1px 4px;
+    }
+
+    .main-sidebar .nav-link:hover {
+      background: var(--sb-hover) !important;
+    }
+
+    .main-sidebar .nav-link.active,
+    .main-sidebar .nav-item.menu-open > .nav-link {
+      background: var(--sb-active-bg) !important;
+      border-left: 2px solid var(--sb-accent);
+      color: #fff !important;
+      font-weight: 500;
+    }
+
+    .main-sidebar .nav-icon {
+      color: var(--sb-text-muted);
+      font-size: 15px;
+      margin-right: 8px;
+    }
+
+    .main-sidebar .nav-link.active .nav-icon,
+    .main-sidebar .nav-link:hover .nav-icon {
+      color: var(--sb-accent);
+    }
+
+    .main-sidebar .nav-treeview {
+      background: transparent !important;
+    }
+
+      .main-sidebar .nav-treeview .nav-link {
+        font-size: 14px !important;
+        padding: 7px 10px 7px 34px !important;
+        color: var(--sb-text-muted) !important;
+      }
+
+        .main-sidebar .nav-treeview .nav-link:hover {
+          color: #fff !important;
+        }
+
+    .main-sidebar .badge-count {
+      background: var(--sb-accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      border-radius: 20px;
+      padding: 1px 6px;
+      margin-left: auto;
+    }
+
+    /* footer user panel */
+    .sidebar-footer-panel {
+      border-top: 1px solid var(--sb-border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+      .sidebar-footer-panel .avatar-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--sb-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 500;
+        color: #fff;
+        flex-shrink: 0;
+      }
+
+      .sidebar-footer-panel .footer-name {
+        font-size: 12px;
+        color: #fff;
+        font-weight: 500;
+        margin: 0;
+      }
+
+      .sidebar-footer-panel .footer-sub {
+        font-size: 11px;
+        color: var(--sb-text-muted);
+        margin: 0;
+      }
+    .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active, .sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active
+    {
+      color: #fff !important;
+    }
+  </style>
 
 
 </head>
@@ -252,824 +418,188 @@
     <!-- /.navbar -->
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-      <!-- Brand Logo -->
       <a href="https://www.intechww.com/" class="brand-link">
-        <img src="~/dist/img/INTECH.png"
-             alt="Intech"
-             class="brand-image-xl img-fluid elevation-0"
-             style="opacity: .8; display: block; margin-left: auto; margin-right: auto; ">
+        <img src="~/dist/img/INTECH.png" alt="Intech" class="brand-image-xl img-fluid elevation-0"
+             style="opacity:.85; display:block; margin-left:auto; margin-right:auto;">
         <span class="brand-text font-weight-light"></span>
       </a>
 
-      <!-- Sidebar -->
       <div class="sidebar">
-        <!-- Sidebar user (optional) -->
-        @*<div class="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div class="image">
-              <img src="~/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
-            </div>
-            <div class="info">
-              <a href="\LeavesRequest\Create" class="d-block">Apply Leave</a>
-            </div>
-          </div>*@
 
-        <!-- Sidebar Menu -->
-        <nav class="mt-2">
-          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-            <!-- Add icons to the links using the .nav-icon class
-            with font-awesome or any other icon font library -->
+        <div class="sidebar-search-wrap">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+            </div>
+            <input type="text" class="form-control" id="sidebarSearch" placeholder="Search menu">
+          </div>
+        </div>
+
+        <nav class="mt-1 sidebar-nav-scroll">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false" id="sidebarNavList">
+
             @if (User.Identity.IsAuthenticated)
             {
-
               if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("User"))
               {
                 <li class="nav-item">
-                  <a href="/Dashboard/Index" class="nav-link">
+                  <a href="/Dashboard/Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Dashboard" ? "active" : "")">
                     <i class="nav-icon fa fa-tachometer-alt"></i>
                     <p>Dashboard</p>
                   </a>
                 </li>
+
+                <li class="nav-header">Leave</li>
+
                 <li class="nav-item">
                   <a href="/LeavesRequest/Create" class="nav-link">
                     <i class="nav-icon fa fa-address-card"></i>
                     <p>New Leave Request</p>
                   </a>
                 </li>
+
                 <li class="nav-item has-treeview">
                   <a href="#" class="nav-link">
                     <i class="nav-icon fa fa-user fa-fw"></i>
-                    <p>
-                      My Leaves
-                      <i class="right fas fa-angle-left"></i>
-                    </p>
+                    <p>My Leaves <i class="right fas fa-angle-right"></i></p>
                   </a>
-                  <ul class="nav nav-treeview">
+                  <ul class="nav nav-treeview pl-2 py-1">
                     <li class="nav-item">
-                      <a href="/LeavesRequest/Create" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-address-card"></i>
-                        <p>New Leave Request</p>
-                      </a>
+                      <a href="/LeavesRequest/CreateCompensatoryquotaRequest" class="nav-link"><p>New Compensatory Request</p></a>
                     </li>
                     <li class="nav-item">
-                      <a href="/LeavesRequest/CreateCompensatoryquotaRequest" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-address-card"></i>
-                        <p>New Compensatory Request</p>
-                      </a>
+                      <a href="/LeavesRequest/Index" class="nav-link"><p>Leave Requests History</p></a>
                     </li>
                     <li class="nav-item">
-                      <a href="/LeavesRequest/Index" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-history"></i>
-                        <p>Leave Requests History</p>
-                      </a>
+                      <a href="/LeavesRequest/QuotaRequestHistory" class="nav-link"><p>Compensatory Req. History</p></a>
                     </li>
-
-                    <li class="nav-item">
-                      <a href="/LeavesRequest/QuotaRequestHistory" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-history"></i>
-                        <p>Compensatory Req. History</p>
-                      </a>
-                    </li>
-
                   </ul>
                 </li>
 
-              }
-              if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("User"))
-              {
-                <li class="nav-item has-treeview">
+                <li class="nav-item has-treeview pl-2 py-1">
                   <a href="#" class="nav-link">
                     <i class="nav-icon fa fa-address-book"></i>
-                    <p>
-                      Leave Approvals
-                      <i class="right fas fa-angle-left"></i>
-                    </p>
+                    <p>Leave Approvals <i class="right fas fa-angle-right"></i></p>
                   </a>
                   <ul class="nav nav-treeview">
                     <li class="nav-item">
-                      <a href="/LeavesResponse/Index" class="nav-link">
-                        &nbsp; &nbsp;<i class="far far fa fa-history"></i>
-                        <p>Leave Approval Requests</p>
-                      </a>
+                      <a href="/LeavesResponse/Index" class="nav-link"><p>Leave Approval Requests</p></a>
                     </li>
                     <li class="nav-item">
-                      <a href="/LeavesResponse/QuotaResponseHistory" class="nav-link">
-                        &nbsp; &nbsp;<i class="far far fa fa-history"></i>
-                        <p>Compensatory Approval Req.</p>
-                      </a>
+                      <a href="/LeavesResponse/QuotaResponseHistory" class="nav-link"><p>Compensatory Approval Req.</p></a>
                     </li>
-                    
                   </ul>
                 </li>
               }
 
-
               if (User.IsInRole("Admin"))
               {
-                <li class="nav-item has-treeview">
+                <li class="nav-item has-treeview pl-2 py-1">
                   <a href="#" class="nav-link">
                     <i class="nav-icon fa fa-folder"></i>
-                    <p>
-                      Leave Types
-                      <i class="right fas fa-angle-left"></i>
-                    </p>
+                    <p>Leave Types <i class="right fas fa-angle-right"></i></p>
                   </a>
                   <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                      <a href="/LeaveTypes/Index" class="nav-link">
-                        &nbsp; &nbsp;  <i class="far fa fa-list"></i>
-                        <p>Leave Types List</p>
-                      </a>
-                    </li>
-                    <li class="nav-item">
-                      <a href="/LeaveTypes/Create" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-edit"></i>
-                        <p>Add Leave Type</p>
-                      </a>
-                    </li>
+                    <li class="nav-item"><a href="/LeaveTypes/Index" class="nav-link"><p>Leave Types List</p></a></li>
+                    <li class="nav-item"><a href="/LeaveTypes/Create" class="nav-link"><p>Add Leave Type</p></a></li>
                   </ul>
                 </li>
-              }
-              if (User.IsInRole("Admin"))
-              {
-                <li class="nav-item has-treeview">
-                  <a href="/UserLeavePolicies/Create" class="nav-link">
+
+                <li class="nav-item has-treeview pl-2 py-1">
+                  <a href="#" class="nav-link">
                     <i class="nav-icon fa fa-id-badge"></i>
-                    <p>
-                      User Leave Policies
-                      <i class="right fas fa-angle-left"></i>
-                    </p>
+                    <p>User Leave Policies <i class="right fas fa-angle-right"></i></p>
                   </a>
                   <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                      <a href="/UserLeavePolicies/Index" class="nav-link">
-                        &nbsp; &nbsp;  <i class="far fa fa-list"></i>
-                        <p>User Leave Polices List</p>
-                      </a>
-                    </li>
-                    <li class="nav-item">
-                      <a href="/UserLeavePolicies/Create" class="nav-link">
-                        &nbsp; &nbsp;  <i class="far fa fa-edit"></i>
-                        <p>Add User Leave Policy</p>
-                      </a>
-                    </li>
+                    <li class="nav-item"><a href="/UserLeavePolicies/Index" class="nav-link"><p>User Leave Polices List</p></a></li>
+                    <li class="nav-item"><a href="/UserLeavePolicies/Create" class="nav-link"><p>Add User Leave Policy</p></a></li>
                   </ul>
                 </li>
               }
+
               if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("User"))
               {
+                <li class="nav-header">Time &amp; Reports</li>
 
                 <li class="nav-item has-treeview">
                   <a href="#" class="nav-link">
                     <i class="nav-icon fa fa-clock fa-fw"></i>
-                    <p>
-                      Time Management
-                      <i class="right fas fa-angle-left"></i>
-                    </p>
+                    <p>Time Management <i class="right fas fa-angle-right"></i></p>
                   </a>
-                  <ul class="nav nav-treeview">
-
-
-                    <li class="nav-item">
-                      <a href="/AccessBiostarTA/UserData" class="nav-link">
-                        &nbsp; &nbsp;  <i class="far fa fa-user-tie"></i>
-                        <p style="margin-left: 5px;">Manager Report</p>
-                      </a>
-                    </li>
-
-                    <li class="nav-item">
-                      <a href="/LeavesResponse/LeaveAbsentReport" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-calendar-check"></i>
-                        <p style="margin-left: 5px;">Leaves/Absent Report</p>
-                      </a>
-                    </li>
-                    <li class="nav-item">
-                      <a href="/AccessBiostarTA/UserReportData" class="nav-link">
-                        &nbsp; &nbsp; <i class="far fa fa-file-alt"></i>
-                        <p style="margin-left: 5px;">My Report</p>
-                      </a>
-                    </li>
-
-
+                  <ul class="nav nav-treeview pl-2 py-1">
+                    <li class="nav-item"><a href="/AccessBiostarTA/UserData" class="nav-link"><p>Manager Report</p></a></li>
+                    <li class="nav-item"><a href="/LeavesResponse/LeaveAbsentReport" class="nav-link"><p>Leaves/Absent Report</p></a></li>
+                    <li class="nav-item"><a href="/AccessBiostarTA/UserReportData" class="nav-link"><p>My Report</p></a></li>
                     @if (User.IsInRole("Admin"))
                     {
-                  <li class="nav-item">
-                    <a href="/Departments/HODReport" class="nav-link">
-                      &nbsp; &nbsp; <i class="far fa fa-file-alt"></i>
-                      <p style="margin-left: 5px;">HOD Report</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="/AccessBiostarTA/Countriesdata" class="nav-link">
-                      &nbsp; &nbsp;  <i class="far fa fa-globe"></i>
-                      <p style="margin-left: 5px;">Countries Data</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="/AccessBiostarTA/MonthsWiseData" class="nav-link">
-                      &nbsp; &nbsp;  <i class="far fa fa-calendar-alt"></i>
-                      <p style="margin-left: 5px;">Months Wise Data</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="/AccessBiostarTA/WhoIsIn" class="nav-link">
-                      &nbsp; &nbsp;  <i class="far fa fa-user-check"></i>
-                      <p style="margin-left: 5px;">Who Is In</p>
-                    </a>
-                  </li>
-                }
-                    <li class="nav-item">
-                      <a href="/AccessBiostarTA/DepartmentData" class="nav-link">
-                        &nbsp; &nbsp;  <i class="far fa fa-building"></i>
-                        <p style="margin-left: 5px;">Department Data</p>
-                      </a>
-                    </li>
+                      <li class="nav-item"><a href="/Departments/HODReport" class="nav-link"><p>HOD Report</p></a></li>
+                    }
+                    <li class="nav-item"><a href="/AccessBiostarTA/DepartmentData" class="nav-link"><p>Department Data</p></a></li>
                     @if (User.IsInRole("Admin"))
                     {
-                      <li class="nav-item">
-                        <a href="/AspNetUserClaims/Index" class="nav-link">
-                          &nbsp; &nbsp;  <i class="far fa fa-key"></i>
-                          <p style="margin-left: 5px;">Access Rights</p>
-                        </a>
-                      </li>
+                      <li class="nav-item"><a href="/AccessBiostarTA/Countriesdata" class="nav-link"><p>Countries Data</p></a></li>
+                      <li class="nav-item"><a href="/AccessBiostarTA/MonthsWiseData" class="nav-link"><p>Months Wise Data</p></a></li>
+                      <li class="nav-item"><a href="/AccessBiostarTA/WhoIsIn" class="nav-link"><p>Who Is In</p></a></li>
                     }
                   </ul>
                 </li>
               }
 
-
               if (User.IsInRole("Admin"))
               {
+                <li class="nav-header">Administration</li>
+
+                <li class="nav-item">
+                  <a href="/AspNetUserClaims/Index" class="nav-link">
+                    <i class="nav-icon far fa-key"></i>
+                    <p>Access Rights</p>
+                  </a>
+                </li>
                 <li class="nav-item">
                   <a href="/Account/Index" class="nav-link">
-                    &nbsp;&nbsp;<i class="far fa fa-edit"></i>
+                    <i class="nav-icon far fa-edit"></i>
                     <p>Users Roles</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="/AspNetUsers/Index" class="nav-link">
-                    &nbsp; &nbsp;<i class="far fa fa-list"></i>
+                    <i class="nav-icon far fa-list"></i>
                     <p>Users List</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="/Countries/Index" class="nav-link">
-                    &nbsp; &nbsp; <i class="far fa fa-list"></i>
+                    <i class="nav-icon far fa-globe"></i>
                     <p>Countries List</p>
                   </a>
                 </li>
                 <li class="nav-item">
-                  @*<a href="/Departments/Index" class="nav-link">
-                      &nbsp; &nbsp; <i class="far fa fa-list"></i>
-                      <p>Departments List</p>
-                    </a>*@
                   <a href="/DepartmentNames/Index" class="nav-link">
-                    &nbsp; &nbsp; <i class="far fa fa-list"></i>
+                    <i class="nav-icon far fa-building"></i>
                     <p>Departments List</p>
                   </a>
                 </li>
                 <li class="nav-item">
-
-                  @*<a href="http://lms.intechww.com:1001/Home/Sync" class="nav-link">
-                      &nbsp; &nbsp; <i class="far fa fa-list"></i>
-                      <p>Sync</p>
-                    </a>*@
-
                   <a href="https://localhost:44339/Home/Sync" class="nav-link">
-                    &nbsp; &nbsp; <i class="far fa fa-list"></i>
+                    <i class="nav-icon far fa-sync"></i>
                     <p>Sync</p>
                   </a>
                 </li>
               }
             }
-            @*<li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-tachometer-alt"></i>
-                  <p>
-                    Dashboard
-                    <i class="right fas fa-angle-left"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/index.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Dashboard v1</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/index2.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Dashboard v2</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/index3.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Dashboard v3</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a href="~/pages/widgets.html" class="nav-link">
-                  <i class="nav-icon fas fa-th"></i>
-                  <p>
-                    Widgets
-                    <span class="right badge badge-danger">New</span>
-                  </p>
-                </a>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-copy"></i>
-                  <p>
-                    Layout Options
-                    <i class="fas fa-angle-left right"></i>
-                    <span class="badge badge-info right">6</span>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/layout/top-nav.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Top Navigation</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/layout/top-nav-sidebar.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Top Navigation + Sidebar</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/layout/boxed.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Boxed</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/layout/fixed-sidebar.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Fixed Sidebar</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/layout/fixed-topnav.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Fixed Navbar</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/layout/fixed-footer.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Fixed Footer</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/layout/collapsed-sidebar.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Collapsed Sidebar</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-chart-pie"></i>
-                  <p>
-                    Charts
-                    <i class="right fas fa-angle-left"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/charts/chartjs.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>ChartJS</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/charts/flot.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Flot</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/charts/inline.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Inline</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-tree"></i>
-                  <p>
-                    UI Elements
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/UI/general.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>General</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/icons.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Icons</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/buttons.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Buttons</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/sliders.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Sliders</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/modals.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Modals & Alerts</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/navbar.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Navbar & Tabs</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/timeline.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Timeline</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/UI/ribbons.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Ribbons</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item has-treeview menu-open">
-                <a href="#" class="nav-link active">
-                  <i class="nav-icon fas fa-edit"></i>
-                  <p>
-                    Forms
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/forms/general.html" class="nav-link active">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>General Elements</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/forms/advanced.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Advanced Elements</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/forms/editors.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Editors</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/forms/validation.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Validation</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-table"></i>
-                  <p>
-                    Tables
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/tables/simple.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Simple Tables</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/tables/data.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>DataTables</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/tables/jsgrid.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>jsGrid</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-header">EXAMPLES</li>
-              <li class="nav-item">
-                <a href="~/pages/calendar.html" class="nav-link">
-                  <i class="nav-icon far fa-calendar-alt"></i>
-                  <p>
-                    Calendar
-                    <span class="badge badge-info right">2</span>
-                  </p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="~/pages/gallery.html" class="nav-link">
-                  <i class="nav-icon far fa-image"></i>
-                  <p>
-                    Gallery
-                  </p>
-                </a>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon far fa-envelope"></i>
-                  <p>
-                    Mailbox
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/mailbox/mailbox.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Inbox</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/mailbox/compose.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Compose</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/mailbox/read-mail.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Read</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-book"></i>
-                  <p>
-                    Pages
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/examples/invoice.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Invoice</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/profile.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Profile</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/e-commerce.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>E-commerce</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/projects.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Projects</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/project-add.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Project Add</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/project-edit.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Project Edit</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/project-detail.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Project Detail</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/contacts.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Contacts</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon far fa-plus-square"></i>
-                  <p>
-                    Extras
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="~/pages/examples/login.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Login</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/register.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Register</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/forgot-password.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Forgot Password</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/recover-password.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Recover Password</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/lockscreen.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Lockscreen</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/legacy-user-menu.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Legacy User Menu</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/language-menu.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Language Menu</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/404.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Error 404</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/500.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Error 500</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/pace.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Pace</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/pages/examples/blank.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Blank Page</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="~/starter.html" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Starter Page</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-header">MISCELLANEOUS</li>
-              <li class="nav-item">
-                <a href="https://adminlte.io/docs/3.0" class="nav-link">
-                  <i class="nav-icon fas fa-file"></i>
-                  <p>Documentation</p>
-                </a>
-              </li>
-              <li class="nav-header">MULTI LEVEL EXAMPLE</li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="fas fa-circle nav-icon"></i>
-                  <p>Level 1</p>
-                </a>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas fa-circle"></i>
-                  <p>
-                    Level 1
-                    <i class="right fas fa-angle-left"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="#" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Level 2</p>
-                    </a>
-                  </li>
-                  <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>
-                        Level 2
-                        <i class="right fas fa-angle-left"></i>
-                      </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                      <li class="nav-item">
-                        <a href="#" class="nav-link">
-                          <i class="far fa-dot-circle nav-icon"></i>
-                          <p>Level 3</p>
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a href="#" class="nav-link">
-                          <i class="far fa-dot-circle nav-icon"></i>
-                          <p>Level 3</p>
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a href="#" class="nav-link">
-                          <i class="far fa-dot-circle nav-icon"></i>
-                          <p>Level 3</p>
-                        </a>
-                      </li>
-                    </ul>
-                  </li>
-                  <li class="nav-item">
-                    <a href="#" class="nav-link">
-                      <i class="far fa-circle nav-icon"></i>
-                      <p>Level 2</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="fas fa-circle nav-icon"></i>
-                  <p>Level 1</p>
-                </a>
-              </li>
-              <li class="nav-header">LABELS</li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon far fa-circle text-danger"></i>
-                  <p class="text">Important</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon far fa-circle text-warning"></i>
-                  <p>Warning</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon far fa-circle text-info"></i>
-                  <p>Informational</p>
-                </a>
-              </li>*@
           </ul>
         </nav>
-        <!-- /.sidebar-menu -->
+
+        @*<div class="sidebar-footer-panel">
+          <div class="avatar-circle">@ViewBag.EmployeeNumber</div>
+          <div style="flex:1; min-width:0;">
+            <p class="footer-name">Employee #@ViewBag.EmployeeNumber</p>
+            <p class="footer-sub">@DateTime.Now.ToString("dd MMM yyyy")</p>
+          </div>
+          <a href="/Account/Logout" title="Log out"><i class="fas fa-ellipsis-v" style="color:var(--sb-text-muted)"></i></a>
+        </div>*@
+
       </div>
-      <!-- /.sidebar -->
     </aside>
 
     <!-- Content Wrapper. Contains page content -->
@@ -1118,8 +648,7 @@
     </aside>
     <!-- /.control-sidebar -->
   </div>
-  <!-- ./wrapper -->
-  <!-- jQuery -->
+  
    
 
 
