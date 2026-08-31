@@ -90,6 +90,7 @@
   <script src="../../dist/js/demo.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     toastr.options = {
       "closeButton": true,
@@ -277,7 +278,7 @@
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <!-- Add icons to the links using the .nav-icon class
-            with font-awesome or any other icon font library -->
+  with font-awesome or any other icon font library -->
             @if (User.Identity.IsAuthenticated)
             {
 
@@ -357,7 +358,7 @@
                         <p>Compensatory Approval Req.</p>
                       </a>
                     </li>
-                    
+
                   </ul>
                 </li>
               }
@@ -452,31 +453,31 @@
 
                     @if (User.IsInRole("Admin"))
                     {
-                  <li class="nav-item">
-                    <a href="/Departments/HODReport" class="nav-link">
-                      &nbsp; &nbsp; <i class="far fa fa-file-alt"></i>
-                      <p style="margin-left: 5px;">HOD Report</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="/AccessBiostarTA/Countriesdata" class="nav-link">
-                      &nbsp; &nbsp;  <i class="far fa fa-globe"></i>
-                      <p style="margin-left: 5px;">Countries Data</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="/AccessBiostarTA/MonthsWiseData" class="nav-link">
-                      &nbsp; &nbsp;  <i class="far fa fa-calendar-alt"></i>
-                      <p style="margin-left: 5px;">Months Wise Data</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="/AccessBiostarTA/WhoIsIn" class="nav-link">
-                      &nbsp; &nbsp;  <i class="far fa fa-user-check"></i>
-                      <p style="margin-left: 5px;">Who Is In</p>
-                    </a>
-                  </li>
-                }
+                      <li class="nav-item">
+                        <a href="/Departments/HODReport" class="nav-link">
+                          &nbsp; &nbsp; <i class="far fa fa-file-alt"></i>
+                          <p style="margin-left: 5px;">HOD Report</p>
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a href="/AccessBiostarTA/Countriesdata" class="nav-link">
+                          &nbsp; &nbsp;  <i class="far fa fa-globe"></i>
+                          <p style="margin-left: 5px;">Countries Data</p>
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a href="/AccessBiostarTA/MonthsWiseData" class="nav-link">
+                          &nbsp; &nbsp;  <i class="far fa fa-calendar-alt"></i>
+                          <p style="margin-left: 5px;">Months Wise Data</p>
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a href="/AccessBiostarTA/WhoIsIn" class="nav-link">
+                          &nbsp; &nbsp;  <i class="far fa fa-user-check"></i>
+                          <p style="margin-left: 5px;">Who Is In</p>
+                        </a>
+                      </li>
+                    }
                     <li class="nav-item">
                       <a href="/AccessBiostarTA/DepartmentData" class="nav-link">
                         &nbsp; &nbsp;  <i class="far fa fa-building"></i>
@@ -517,31 +518,37 @@
                     <p>Countries List</p>
                   </a>
                 </li>
-                <li class="nav-item">
-                  @*<a href="/Departments/Index" class="nav-link">
+                          <li class="nav-item">
+                            <a href="/HRBP/Index" class="nav-link">
+                              &nbsp; &nbsp; <i class="far fa fa-list"></i>
+                              <p>HRBP </p>
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            @*<a href="/Departments/Index" class="nav-link">
                       &nbsp; &nbsp; <i class="far fa fa-list"></i>
                       <p>Departments List</p>
                     </a>*@
-                  <a href="/DepartmentNames/Index" class="nav-link">
-                    &nbsp; &nbsp; <i class="far fa fa-list"></i>
-                    <p>Departments List</p>
-                  </a>
-                </li>
-                <li class="nav-item">
+                            <a href="/DepartmentNames/Index" class="nav-link">
+                              &nbsp; &nbsp; <i class="far fa fa-list"></i>
+                              <p>Departments List</p>
+                            </a>
+                          </li>
+                          <li class="nav-item">
 
-                  @*<a href="http://lms.intechww.com:1001/Home/Sync" class="nav-link">
+                            @*<a href="http://lms.intechww.com:1001/Home/Sync" class="nav-link">
                       &nbsp; &nbsp; <i class="far fa fa-list"></i>
                       <p>Sync</p>
                     </a>*@
 
-                  <a href="https://localhost:44339/Home/Sync" class="nav-link">
-                    &nbsp; &nbsp; <i class="far fa fa-list"></i>
-                    <p>Sync</p>
-                  </a>
-                </li>
-              }
-            }
-            @*<li class="nav-item has-treeview">
+                            <a href="https://localhost:44339/Home/Sync" class="nav-link">
+                              &nbsp; &nbsp; <i class="far fa fa-list"></i>
+                              <p>Sync</p>
+                            </a>
+                          </li>
+                        }
+                      }
+                      @*<li class="nav-item has-treeview">
                 <a href="#" class="nav-link">
                   <i class="nav-icon fas fa-tachometer-alt"></i>
                   <p>

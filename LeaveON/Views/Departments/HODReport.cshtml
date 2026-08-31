@@ -3,8 +3,7 @@
 
 @{ ViewBag.Title = "Leave/Absent";
   Layout = "~/Views/Shared/_Layout.cshtml"; }
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+ 
 <div>
 
   <div class="row   ">
@@ -12,7 +11,9 @@
       <section class="content">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">HOD Report</h3>
+            <h3 class="card-title">HOD Report </h3><br />
+
+            <h6  >(Report Email Will Be Sent To Selected HOD)</h6>
 
 
           </div>
@@ -64,16 +65,11 @@
   </div>
 </div>
 
-@*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>*@
-
+ 
+ 
 
 
-<link rel="stylesheet" href="/resources/demos/style.css">
 
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
@@ -83,6 +79,7 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
+
 
     flatpickr("#datepickerStart", {
 
@@ -95,104 +92,136 @@
         })
       ]
     });
-    $('#load').click(function () {
-      debugger
-      // Show the loader and hide the button text
-      $('.loader').show();
-      $('.button-text').hide();
-      $("#wait").css("display", "block");
 
+  });
 
+ 
+$('#load').click(function () {
+    debugger;
 
-            var startDate = $('#datepickerStart').val();
-           // var endDate = $('#datepickerEnd').val();
+    var startDate = $('#datepickerStart').val();
 
-            var requestData;
+    var selecteddepartments = $('#listDepartments option:selected')
+        .map(function () {
+            return $(this).val();
+        })
+        .get();
 
+    var selectedEmployees = $('#listHOD option:selected')
+        .map(function () {
+            return $(this).val();
+        })
+        .get();
 
-      var selecteddepartments = $('#listDepartments option:selected').map(function () {
-        return $(this).val();
-      }).get();
-
-      var selectedEmployees = $('#listHOD option:selected').map(function () {
-                return $(this).val();
-              }).get();
-
-
-      if (selecteddepartments.length === 0)
-      {
-          alert('Please select at least one department.');
-          $('.loader').hide();
-          $('.button-text').show();
-          $("#wait").css("display", "none");
-          disableInputs(false);
-          return;
-      }
-
-      if (selectedEmployees.length === 0)
-      {
-        alert('Please select at least one HOD.');
-        $('.loader').hide();
-        $('.button-text').show();
-        $("#wait").css("display", "none");
-        disableInputs(false);
+    // Validate Department
+    if (selecteddepartments.length === 0) {
+        Swal.fire({
+            title: 'Validation',
+            text: 'Please select at least one department.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
         return;
-      }
+    }
 
+    // Validate HOD
+    if (selectedEmployees.length === 0) {
+        Swal.fire({
+            title: 'Validation',
+            text: 'Please select at least one HOD.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
 
-              if (!startDate)
-              {
-                alert('Please select start date.');
-                $('.loader').hide();
-                $('.button-text').show();
-                $("#wait").css("display", "none");
-                disableInputs(false);
-                return;
-              }
+    // Validate Start Date
+    if (!startDate) {
+        Swal.fire({
+            title: 'Validation',
+            text: 'Please select start date.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
 
-              //if (!endDate)
-              //{
-              //  alert('Please select end date.');
-              //  $('.loader').hide();
-              //  $('.button-text').show();
-              //  $("#wait").css("display", "none");
-              //  disableInputs(false);
-              //  return;
-              //}
+    var requestData = {
+        startDate: startDate,
+        departments: selecteddepartments,
+        hodIDs: selectedEmployees
+    };
 
+    // Confirmation
+    Swal.fire({
+        title: 'Confirm Report',
+        text: 'Report Email Will Be Sent To Selected HOD',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, Send Report',
+        cancelButtonText: 'Cancel'
+    }).then(function (result) {
 
-      requestData = { 'startDate': startDate,   'departments': selecteddepartments,'hodIDs': selectedEmployees };
+        if (!result.isConfirmed) {
+            return;
+        }
 
+        // Show loader only after confirmation
+        $('.loader').show();
+        $('.button-text').hide();
+        $('#wait').css('display', 'block');
 
+        $.ajax({
+            url: '@Url.Action("HODReports", "Departments")',
+            data: requestData,
+            type: 'POST',
 
-              $.ajax({
-                url: "@Url.Action("HODReports", "Departments")",
-                data: requestData,
-                  type: "POST",
-                success: function (data)
-                {
-                  if (data == "Success") {
+            success: function (data) {
+
+                if (data === 'Success') {
+
                     Swal.fire({
-                      title: "Success",
-                      text: "Reporthas been saved successfully.",
-                      icon: "success"
+                        title: 'Success',
+                        text: 'Report has been sent successfully.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
                     });
 
-                  }
-                  },
-                  error: function (xhr, ajaxOptions, thrownError) {
-                      alert('Data provided was not valid');
-                },
-                complete: function () {
-                  // Hide the loader when the request is complete (success or error)
-                  $('.loader').hide();
-                  $('.button-text').show();
-                  $("#wait").css("display", "none");
-                  disableInputs(false);
+                } else {
+
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Unable to send the report.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
-              });
-          });
-  });
+            },
+
+            error: function (xhr, ajaxOptions, thrownError) {
+
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Data provided was not valid.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            },
+
+            complete: function () {
+                $('.loader').hide();
+                $('.button-text').show();
+                $('#wait').css('display', 'none');
+
+                disableInputs(false);
+            }
+        });
+    });
+});
+ 
+
 
 </script>
 

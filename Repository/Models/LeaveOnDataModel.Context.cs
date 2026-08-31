@@ -39,10 +39,10 @@ namespace Repository.Models
         public virtual DbSet<BreakHour> BreakHours { get; set; }
         public virtual DbSet<HR_Monthly_Leaves_Report> HR_Monthly_Leaves_Report { get; set; }
         public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
-        public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
         public virtual DbSet<UserLeavePolicy> UserLeavePolicies { get; set; }
-        public virtual DbSet<DepartmentName> DepartmentNames { get; set; }
         public virtual DbSet<LeaveBalance> LeaveBalances { get; set; }
         public virtual DbSet<tblHRBP> tblHRBPs { get; set; }
+        public virtual DbSet<DepartmentName> DepartmentNames { get; set; }
+        public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
     }
 }

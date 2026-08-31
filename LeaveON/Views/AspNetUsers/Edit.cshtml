@@ -85,12 +85,12 @@
 
     <div class="form-group">
 
-      @Html.Label("HRBP Email")
-      @Html.DropDownListFor(model => model.tblHRBPs,
+      @Html.Label("HRBP")
+      @Html.DropDownListFor(model => model.HRBPID,
           (SelectList)ViewBag.HRBPEmailList,
           "Please Select HRBP Manger",
           new { @class = "form-control" })
-      @Html.ValidationMessageFor(model => model.HRBPEmail, "", new { @class = "text-danger" })
+      @Html.ValidationMessageFor(model => model.HRBPID, "", new { @class = "text-danger" })
 
     </div>
 
@@ -120,6 +120,7 @@
 
       @Html.Label("If Employee is temporarily relocated to some other country please check and select that to show correct attendance data", htmlAttributes: new { @class = " " })
       @Html.CheckBoxFor(model => model.IsRelocated, new { htmlAttributes = new { @class = "form-control" } })
+
       @Html.DropDownList("CntryNameTemp", new MultiSelectList(ViewBag.CountryNames, "Value", "Text"), htmlAttributes: new { @class = "form-control", @disabled = "disabled" })
  
       @Html.ValidationMessageFor(model => model.CntryNameTemp, "", new { @class = "text-danger" })

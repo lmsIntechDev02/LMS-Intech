@@ -201,9 +201,18 @@ namespace LeaveON.Services
             continue;
           List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users, false);
           string hRBPEmail = String.Empty;
+
           if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
           {
-            hRBPEmail = "";// departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+            // commment for now but it will use in 
+            //if (!string.IsNullOrEmpty(managerEmail.HRBPEmail))
+            //{
+            //  hRBPEmail = managerEmail.HRBPEmail;
+            //    }
+            //else
+            //{
+            //  hRBPEmail =   departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+            //}
           }
 
           GeneratePDFManager1(
@@ -1323,7 +1332,9 @@ namespace LeaveON.Services
           Email = u.Email,
           PhoneNumber = u.PhoneNumber,
           ManagerName = u.ManagerName,
-          DepartmentName = u.DepartmentName
+          DepartmentName = u.DepartmentName,
+          HRBPEmail = u.tblHRBP != null ? u.tblHRBP.HRBPEmail : string.Empty,
+
         })
         .ToList();
       }
@@ -1924,6 +1935,7 @@ namespace LeaveON.Services
     public string ManagerName { get; set; }
     public string DepartmentName { get; set; }
     public string HoDName { get; set; }
+    public string HRBPEmail { get; set; }
   }
 }
 

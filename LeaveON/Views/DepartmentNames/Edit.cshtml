@@ -27,11 +27,11 @@
 
     <div class="form-group">
       @Html.Label("HRBP Email")
-      @Html.DropDownListFor(model => model.HRBPEmail,
+      @Html.DropDownListFor(model => model.HRBPID,
           (SelectList)ViewBag.HRBPEmailList,
           "Please Select HRBP Manger",
           new { @class = "form-control" })
-      @Html.ValidationMessageFor(model => model.HRBPEmail, "", new { @class = "text-danger" })
+      @Html.ValidationMessageFor(model => model.HRBPID, "", new { @class = "text-danger" })
 
     </div>
     <div class="form-group">

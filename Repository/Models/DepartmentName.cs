@@ -19,5 +19,8 @@ namespace Repository.Models
         public string HRBPEmail { get; set; }
         public Nullable<int> HRBPBiostarEmpNum { get; set; }
         public Nullable<int> HODID { get; set; }
+        public Nullable<int> HRBPID { get; set; }
+    
+        public virtual tblHRBP tblHRBP { get; set; }
     }
 }

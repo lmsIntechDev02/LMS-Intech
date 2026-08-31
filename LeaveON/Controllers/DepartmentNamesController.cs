@@ -27,9 +27,7 @@ namespace LeaveON.Controllers
       {
         ditem =  new DepartmentModel();
         ditem.Name = item.Name;
-        ditem.HRBPName = !string.IsNullOrEmpty(item.HRBPEmail)
-                                                      ? item.HRBPEmail.Split('@')[0].Replace(".", " ")
-                                                      : string.Empty;
+        ditem.HRBPName = item.tblHRBP != null? item.tblHRBP.HRBPName:string.Empty;
         ditem.Id = item.Id;
         if (item.HODID.HasValue)
         {
@@ -101,27 +99,35 @@ namespace LeaveON.Controllers
       var userlist = db.AspNetUsers
       .Where(u => u.Email != null && u.IsActive == true).AsEnumerable();
 
-          // Fetch available HRBP emails from AspNetUsers
-      var hrbpEmails = userlist
+
+      var hrbplist = db.tblHRBPs.Where(u =>   u.IsActive == true).AsEnumerable();
+      // Fetch available HRBP emails from AspNetUsers
+      var hrbpEmails = hrbplist
           .Select(u => new SelectListItem
           {
-            Value = u.Email,
-            Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName : System.Globalization.CultureInfo.CurrentCulture.TextInfo
-                                .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
+            Value = u.ID.ToString(),
+            Text = u.HRBPName
           })
           .ToList();
 
-        var departmenUser= userlist.Select(u => new SelectListItem
+      var departmenUser= userlist.Select(u => new SelectListItem
         {
           Value = u.BioStarEmpNum.ToString(),
           Text = !String.IsNullOrEmpty(u.EmpolyeeName) ? u.EmpolyeeName :System.Globalization.CultureInfo.CurrentCulture.TextInfo
                                 .ToTitleCase(u.Email.Split('@')[0].Replace(".", " "))
         })
-          .ToList();  
+          .ToList();
 
 
       // Pass list to ViewBag
-      ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", departmentName.HRBPEmail);
+      if (departmentName.HRBPID.HasValue)
+      {
+        ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", departmentName.HRBPID.ToString());
+      }
+      else
+      {
+        ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", null);
+      }
        ViewBag.departmenUserList = new SelectList(departmenUser, "Value", "Text", departmentName.HODID.ToString());
 
           return View(departmentName);
@@ -132,18 +138,18 @@ namespace LeaveON.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail,HODID")] DepartmentName departmentName)
+        public async Task<ActionResult> Edit([Bind(Include = "Id,Name,HRBPEmail,HODID,HRBPID")] DepartmentName departmentName)
         {
             if (ModelState.IsValid)
             {
-                var user = await db.AspNetUsers.FirstOrDefaultAsync(u => u.Email == departmentName.HRBPEmail);
+                //var user = await db.AspNetUsers.FirstOrDefaultAsync(u => u.Email == departmentName.HRBPEmail);
 
-                if (user != null)
-                {
-                  // Assuming HRBPBiostarEmpID is a column in DepartmentName table
-                  departmentName.HRBPBiostarEmpNum = user.BioStarEmpNum; 
-                  //departmentName.HODID = user.HODID; 
-                }
+                //if (user != null)
+                //{
+                //  // Assuming HRBPBiostarEmpID is a column in DepartmentName table
+                //  departmentName.HRBPBiostarEmpNum = user.BioStarEmpNum; 
+                //  //departmentName.HODID = user.HODID; 
+                //}
        // departmentName.Id = 0;
 
          //db.DepartmentNames.Add(departmentName);

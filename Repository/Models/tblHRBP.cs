@@ -14,12 +14,23 @@ namespace Repository.Models
     
     public partial class tblHRBP
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public tblHRBP()
+        {
+            this.DepartmentNames = new HashSet<DepartmentName>();
+            this.AspNetUsers = new HashSet<AspNetUser>();
+        }
+    
         public int ID { get; set; }
         public string UserID { get; set; }
         public string HRBPEmail { get; set; }
         public string HRBPName { get; set; }
-        public string HRBPID { get; set; }
+        public Nullable<bool> IsActive { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<DepartmentName> DepartmentNames { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
         public virtual AspNetUser AspNetUser { get; set; }
     }
 }
