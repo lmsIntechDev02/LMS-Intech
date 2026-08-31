@@ -18,9 +18,9 @@ namespace Repository.Models
         public UserLeavePolicy()
         {
             this.AnnualOffDays = new HashSet<AnnualOffDay>();
-            this.AspNetUsers = new HashSet<AspNetUser>();
             this.UserLeavePolicyDetails = new HashSet<UserLeavePolicyDetail>();
             this.LeaveBalances = new HashSet<LeaveBalance>();
+            this.AspNetUsers = new HashSet<AspNetUser>();
         }
     
         public int Id { get; set; }
@@ -39,8 +39,6 @@ namespace Repository.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AnnualOffDay> AnnualOffDays { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
         public virtual CountryName CountryName { get; set; }
         public virtual UserLeavePolicy UserLeavePolicy1 { get; set; }
         public virtual UserLeavePolicy UserLeavePolicy2 { get; set; }
@@ -48,5 +46,7 @@ namespace Repository.Models
         public virtual ICollection<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<LeaveBalance> LeaveBalances { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
     }
 }

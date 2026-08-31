@@ -12,24 +12,25 @@ namespace Repository.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class CountryName
+    public partial class tblHRBP
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public CountryName()
+        public tblHRBP()
         {
-            this.UserLeavePolicies = new HashSet<UserLeavePolicy>();
+            this.DepartmentNames = new HashSet<DepartmentName>();
             this.AspNetUsers = new HashSet<AspNetUser>();
         }
     
-        public decimal Id { get; set; }
-        public string Name { get; set; }
-        public string TimeZone { get; set; }
+        public int ID { get; set; }
+        public string UserID { get; set; }
+        public string HRBPEmail { get; set; }
+        public string HRBPName { get; set; }
+        public Nullable<bool> IsActive { get; set; }
     
-        public virtual CountryName CountryNames1 { get; set; }
-        public virtual CountryName CountryName1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<UserLeavePolicy> UserLeavePolicies { get; set; }
+        public virtual ICollection<DepartmentName> DepartmentNames { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
+        public virtual AspNetUser AspNetUser { get; set; }
     }
 }

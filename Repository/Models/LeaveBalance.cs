@@ -25,8 +25,8 @@ namespace Repository.Models
         public Nullable<decimal> AnnualAmountAjustmesnt { get; set; }
         public Nullable<System.DateTime> AnnualAmountAjustmesntModifyDate { get; set; }
     
-        public virtual AspNetUser AspNetUser { get; set; }
         public virtual LeaveType LeaveType { get; set; }
         public virtual UserLeavePolicy UserLeavePolicy { get; set; }
+        public virtual AspNetUser AspNetUser { get; set; }
     }
 }

@@ -1,0 +1,96 @@
+ 
+@model  LeaveON.Models.HRBPModel
+
+
+
+
+@{
+  ViewBag.Title = "Add/Edit HRBP";
+  Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="">
+  <!-- general form elements -->
+  <div class="card card-primary mt-5">
+    <div class="card-header">
+      <h3 class="card-title">Apply Leave</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+
+    @using (Html.BeginForm())
+    {
+      @Html.AntiForgeryToken()
+
+      @Html.HiddenFor(model => model.HRBPID)
+
+      <div class="form-horizontal p-3">
+        <div class="row">
+
+          @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+          <div class="col-3">
+
+
+
+            <div class="form-group">
+              @Html.Label("HRBP Email")
+
+
+              @Html.DropDownListFor(model => model.UserID,
+                  (SelectList)ViewBag.HRBPEmailList,
+                  "Please Select HRBP Manger",
+                  new { @class = "form-control select2" })
+              @Html.ValidationMessageFor(model => model.UserID, "", new { @class = "text-danger   " })
+
+            </div>
+
+    
+
+
+
+          </div>
+
+
+
+
+
+
+
+          <div class="col-3">
+            <div class="form-group">
+              @Html.Label("Status")
+              @Html.DropDownListFor(model => model.IsActive, new List<SelectListItem>
+                {new SelectListItem{Text = "Active",Value = "true"},new SelectListItem{Text = "Inactive",Value = "false"}
+                }, new { @class = "form-control" })
+
+
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="form-group">
+              <br />
+              <div class="col-md-offset-2 col-md-12">
+                <input type="submit"
+                       value="Save"
+                       class="btn btn-primary" />
+
+                @Html.ActionLink("Back to List", "Index",
+                    null,
+                    new { @class = "btn btn-default" })
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>
+
+
+
+

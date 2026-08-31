@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using Repository.Models;
 using LeaveON.UtilityClasses;
 using System.Globalization;
+using LeaveON.Models;
 
 namespace LeaveON.Controllers
 {
@@ -22,7 +23,7 @@ namespace LeaveON.Controllers
     // GET: AspNetUsers
     public async Task<ActionResult> Index()
     {
-      var aspNetUsers = db.AspNetUsers.Where(k=>k.IsDeleted != true &&  k.BioStarEmpNum>0);//.Include(a => a.Department);
+      var aspNetUsers = db.AspNetUsers.Where(k => k.IsDeleted != true && k.BioStarEmpNum > 0);//.Include(a => a.Department);
       return View(await aspNetUsers.ToListAsync());
     }
 
@@ -69,11 +70,28 @@ namespace LeaveON.Controllers
     // GET: AspNetUsers/Edit/5
     public async Task<ActionResult> Edit(string id)
     {
+      UserModel model = new UserModel();
       if (id == null)
       {
         return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
       }
       AspNetUser aspNetUser = await db.AspNetUsers.FindAsync(id);
+      BindUserModelData(aspNetUser,model);
+      tblHRBP hrbp = db.tblHRBPs.Where(j => j.UserID == id).FirstOrDefault();
+      var userlist = db.AspNetUsers
+     .Where(u => u.Email != null && u.IsActive == true).AsEnumerable();
+
+      var hrbplist = db.tblHRBPs.Where(u => u.IsActive == true).AsEnumerable();
+      var hrbpEmails = hrbplist.Select(u => new SelectListItem { Value = u.ID.ToString(), Text = u.HRBPName }).ToList();
+      if (aspNetUser.HRBPID.HasValue)
+      {
+        ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", aspNetUser.HRBPID.ToString());
+      }
+      else
+      {
+        ViewBag.HRBPEmailList = new SelectList(hrbpEmails, "Value", "Text", "Select HRBP");
+      }
+
       if (aspNetUser == null)
       {
         return HttpNotFound();
@@ -94,7 +112,7 @@ namespace LeaveON.Controllers
       {
         ViewBag.Gender = new SelectList(genderList, "Value", "Text", "Select Gender");
       }
-     // aspNetUser.RoleId = aspNetUser.AspNetRoles.ToList()[0].Id;
+      // aspNetUser.RoleId = aspNetUser.AspNetRoles.ToList()[0].Id;
 
       ViewBag.CountryNames = new SelectList(db.CountryNames, "Name", "Name", aspNetUser.CountryName);
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
@@ -106,9 +124,9 @@ namespace LeaveON.Controllers
       //   ViewBag.Role = new SelectList(db.AspNetRoles.ToHashSet(), "Id", "Name", aspNetUser.RoleId);
 
 
-      Int32 currentPolycyID = aspNetUser.UserLeavePolicyId.HasValue? aspNetUser.UserLeavePolicyId.Value:0;
+      Int32 currentPolycyID = aspNetUser.UserLeavePolicyId.HasValue ? aspNetUser.UserLeavePolicyId.Value : 0;
 
-      if (currentPolycyID>0)
+      if (currentPolycyID > 0)
       {
 
 
@@ -116,22 +134,63 @@ namespace LeaveON.Controllers
       .Where(k => k.UserId == aspNetUser.Id
                && k.LeaveTypeId == 2 && k.UserLeavePolicyId == currentPolycyID).ToList();
 
-        if(balance!= null &&  balance.Count()>0)
+        if (balance != null && balance.Count() > 0)
         {
-          ViewBag.UserAnnualLeaveBalance =  balance.Sum(k=>k.Balance); 
+          ViewBag.UserAnnualLeaveBalance = balance.Sum(k => k.Balance);
         }
         else
         {
-          var policy=db.UserLeavePolicyDetails.FirstOrDefault(l => l.UserLeavePolicyId == currentPolycyID && l.LeaveTypeId == 2);
-          if (policy != null) 
+          var policy = db.UserLeavePolicyDetails.FirstOrDefault(l => l.UserLeavePolicyId == currentPolycyID && l.LeaveTypeId == 2);
+          if (policy != null)
           {
             ViewBag.UserAnnualLeaveBalance = policy.Allowed;
-              }
+          }
         }
 
-         
+
       }
-      return View(aspNetUser);
+      return View(model);
+    }
+
+    public void BindUserModelData(AspNetUser user, UserModel model)
+    {
+      model.Id = user.Id;
+
+
+
+
+      model.Hometown = user.Hometown;
+      model.Email = user.Email;
+      model.EmailConfirmed = user.EmailConfirmed;
+      model.PasswordHash = user.PasswordHash;
+      model.SecurityStamp = user.SecurityStamp;
+      model.PhoneNumber = user.PhoneNumber;
+      model.PhoneNumberConfirmed = user.PhoneNumberConfirmed;
+      model.TwoFactorEnabled = user.TwoFactorEnabled;
+      model.LockoutEndDateUtc = user.LockoutEndDateUtc;
+      model.LockoutEnabled = user.LockoutEnabled;
+      model.AccessFailedCount = user.AccessFailedCount;
+      model.UserName = user.UserName;
+      model.BioStarEmpNum = user.BioStarEmpNum;
+      model.UserLeavePolicyId = user.UserLeavePolicyId;
+      model.Remarks = user.Remarks;
+      model.DepartmentName = user.DepartmentName;
+      model.CntryName = user.CntryName;
+      model.CntryNameTemp = user.CntryNameTemp;
+      model.IsRelocated = user.IsRelocated;
+      model.EmpolyeeName = user.EmpolyeeName;
+
+      model.Gender = user.Gender;
+      model.ManagerID = user.ManagerID;
+      model.ManagerName = user.ManagerName;
+      model.ManagerEmail = user.ManagerEmail;
+      model.Manager2ID = user.Manager2ID;
+      model.Manager2Name = user.Manager2Name;
+      model.Manager2Email = user.Manager2Email;
+      model.HRBPID = user.HRBPID;
+
+
+
     }
 
     // POST: AspNetUsers/Edit/5
@@ -139,12 +198,12 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName, ManagerEmail, Manager2ID, Manager2Name, Manager2Email")] AspNetUser aspNetUser)
+    public async Task<ActionResult> Edit([Bind(Include = "Id,Hometown,Email,EmailConfirmed, Gender, PasswordHash,SecurityStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEndDateUtc,LockoutEnabled,AccessFailedCount,UserName,DateCreated,DateModified,Remarks,DepartmentName,CountryId,UserLeavePolicyId,BioStarEmpNum,CntryName,CntryNameTemp,IsRelocated, ManagerID, ManagerName, ManagerEmail, Manager2ID, Manager2Name, Manager2Email,HRBPID")] UserModel aspNetUser)
     {
       aspNetUser.DateModified = DateTime.Now;
 
+      AspNetUser olduser = db.AspNetUsers.Where(u => u.Id == aspNetUser.Id).FirstOrDefault();
 
-     
       var managerEmail = db.AspNetUsers
                            .Where(u => u.Id == aspNetUser.ManagerID)
                            .Select(u => u.UserName)
@@ -156,6 +215,8 @@ namespace LeaveON.Controllers
                      .FirstOrDefault();
       aspNetUser.ManagerEmail = managerEmail;
       aspNetUser.Manager2Email = manager2Email;
+
+
       if (!string.IsNullOrEmpty(managerEmail))
       {
         var namePart = managerEmail.Split('@')[0].Replace('.', ' ');
@@ -174,58 +235,31 @@ namespace LeaveON.Controllers
       {
         aspNetUser.Manager2Name = "No Manager";
       }
-      // Ensure Manager 1 exists
-      if (!string.IsNullOrEmpty(aspNetUser.ManagerID))
-      {
-        //var managerExists = db.Managers.Any(m => m.UserID == aspNetUser.ManagerID);
-        var managerExists = db.AspNetUsers.Any(user => user.Id == aspNetUser.ManagerID || user.Id == aspNetUser.Manager2ID);
-        if (!managerExists)
-        {
-          //var newManager = new Manager
-          //{
-          //  UserID = aspNetUser.ManagerID,
-          //  UserName = aspNetUser.ManagerName,
-          //  Email = aspNetUser.ManagerEmail
-          //};
-          //db.Managers.Add(newManager);
-        }
-      }
 
-      // Ensure Manager 2 exists
-      if (!string.IsNullOrEmpty(aspNetUser.Manager2ID))
-      {
-        //var manager2Exists = db.Managers.Any(m => m.UserID == aspNetUser.Manager2ID);
-        var manager2Exists = db.AspNetUsers.Any(user => user.Id == aspNetUser.ManagerID || user.Id == aspNetUser.Manager2ID);
 
-        if (!manager2Exists)
-        {
-          //var newManager2 = new Manager
-          //{
-          //  UserID = aspNetUser.Manager2ID,
-          //  UserName = aspNetUser.Manager2Name,
-          //  Email = aspNetUser.Manager2Email
-          //};
-          //db.Managers.Add(newManager2);
-        }
-      }
+
+       
+
+       
       if (ModelState.IsValid)
       {
-        db.AspNetUsers.Attach(aspNetUser);
-        db.Entry(aspNetUser).Property(x => x.DateModified).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.Remarks).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.Gender).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.ManagerID).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.ManagerName).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.ManagerEmail).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.Manager2ID).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.Manager2Name).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.Manager2Email).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.DepartmentName).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.UserLeavePolicyId).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.CntryNameTemp).IsModified = true;
-        db.Entry(aspNetUser).Property(x => x.IsRelocated).IsModified = true;
+        //db.AspNetUsers.Attach(aspNetUser);
+        olduser.DateModified      = aspNetUser.DateModified     ;
+        olduser.Remarks           = aspNetUser.Remarks          ;
+        olduser.Gender            = aspNetUser.Gender           ;
+        olduser.ManagerID         = aspNetUser.ManagerID        ;
+        olduser.ManagerName       = aspNetUser.ManagerName      ;
+        olduser.ManagerEmail      = aspNetUser.ManagerEmail     ;
+        olduser.Manager2ID        = aspNetUser.Manager2ID       ;
+        olduser.Manager2Name      = aspNetUser.Manager2Name     ;
+        olduser.Manager2Email     = aspNetUser.Manager2Email    ;
+        olduser.DepartmentName    = aspNetUser.DepartmentName   ;
+        olduser.UserLeavePolicyId = aspNetUser.UserLeavePolicyId;
+        olduser.CntryNameTemp     = aspNetUser.CntryNameTemp    ;
+        olduser.IsRelocated       = aspNetUser.IsRelocated;
+        olduser.HRBPID = aspNetUser.HRBPID;
 
-        
+
         try
         {
           await db.SaveChangesAsync();
@@ -296,12 +330,12 @@ namespace LeaveON.Controllers
         balance = await db.LeaveBalances
       .FirstOrDefaultAsync(k => k.UserLeavePolicyId == currentPolycyID && k.UserId == aspNetUser.Id
                && k.LeaveTypeId == 2);
-        if(balance != null)
+        if (balance != null)
         {
           balance.AnnualAmountAjustmesnt += carryAmount;
           balance.Balance += carryAmount;
           balance.AnnualAmountAjustmesntModifyDate = DateTime.Now;
-         
+
         }
         else
         {
@@ -309,19 +343,19 @@ namespace LeaveON.Controllers
           if (detail != null)
           {
             balance = new LeaveBalance();
-            balance.Balance = detail.Allowed+ carryAmount;
+            balance.Balance = detail.Allowed + carryAmount;
             balance.UserLeavePolicyId = currentPolycyID;
             balance.UserId = aspNetUser.Id;
             balance.AnnualAmountAjustmesnt = carryAmount;
             balance.AnnualAmountAjustmesntModifyDate = DateTime.Now;
             balance.Taken = 0;
             balance.LeaveTypeId = 2;// annual typedb
-  
+
           }
           else
           {
             balance = new LeaveBalance();
-            balance.Balance =   carryAmount;
+            balance.Balance = carryAmount;
             balance.UserLeavePolicyId = currentPolycyID;
             balance.UserId = aspNetUser.Id;
             balance.AnnualAmountAjustmesnt = carryAmount;
@@ -332,9 +366,9 @@ namespace LeaveON.Controllers
           db.LeaveBalances.Add(balance);
         }
 
-      
+
       }
-    
+
       await db.SaveChangesAsync();
 
       return Json(new

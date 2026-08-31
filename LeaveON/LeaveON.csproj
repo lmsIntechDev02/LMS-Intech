@@ -273,6 +273,7 @@
     <Compile Include="Controllers\DashboardController.cs" />
     <Compile Include="Controllers\DepartmentNamesController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
+    <Compile Include="Controllers\HRBPController.cs" />
     <Compile Include="Controllers\SharedController.cs" />
     <Compile Include="Controllers\UserRolesController.cs" />
     <Compile Include="Controllers\AspNetUsersController.cs" />
@@ -356,12 +357,14 @@
     <Compile Include="Models\AnnualLeaveModel.cs" />
     <Compile Include="Models\DepartmentModel1.cs" />
     <Compile Include="Models\ErrorViewModel.cs" />
+    <Compile Include="Models\HRBPModel.cs" />
     <Compile Include="Models\Procedures\LeaveAbsentModel.cs" />
     <Compile Include="Models\RightsViewModel.cs" />
     <Compile Include="Models\UserLeavePolicyViewModel.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\MeViewModels.cs" />
+    <Compile Include="Models\UserModel.cs" />
     <Compile Include="Models\UserRoleModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
@@ -2484,6 +2487,8 @@
     <Content Include="Views\LeavesResponse\LeaveAbsentReport.cshtml" />
     <Content Include="Views\LeavesResponse\_LeaveAbsentReport.cshtml" />
     <Content Include="Views\Departments\HODReport.cshtml" />
+    <Content Include="Views\HRBP\Index.cshtml" />
+    <Content Include="Views\HRBP\AddEdit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
