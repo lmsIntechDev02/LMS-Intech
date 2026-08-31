@@ -88,6 +88,7 @@ public class HRBPController : Controller
          Name = k.HRBPName,
          UserID = k.UserID,
          HRBPID = k.ID,
+         IsActive= k.IsActive.HasValue  ? k.IsActive.Value : false
        })
        .FirstOrDefault();
       }
