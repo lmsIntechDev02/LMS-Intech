@@ -44,5 +44,29 @@ namespace Repository.Models
         public virtual DbSet<tblHRBP> tblHRBPs { get; set; }
         public virtual DbSet<DepartmentName> DepartmentNames { get; set; }
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+        public override int SaveChanges()
+        {
+            //var auditLogs = CreateAuditLogs();
+
+            // AuditLogs.AddRange(auditLogs);
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    // New record
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    // Updated record
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    // Deleted record
+                }
+            }
+
+            return base.SaveChanges();
+        }
     }
 }
