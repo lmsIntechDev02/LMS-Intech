@@ -650,9 +650,19 @@ namespace LeaveON.Controllers
     {
       string UserId = leave.UserId;
       int LeaveTypeId = leave.LeaveTypeId;
+      int? userLeavePolicyID = leave.UserLeavePolicyID;
       //List<int> weeklyOffDays = leave.AspNetUser.UserLeavePolicy.WeeklyOffDays.Split(',').Select(int.Parse).ToList();
+      LeaveBalance lb = new LeaveBalance();
+       if (userLeavePolicyID.HasValue)
+      {
+        lb = leave.AspNetUser.LeaveBalances.FirstOrDefault(x => x.UserId == UserId && x.LeaveTypeId == LeaveTypeId && x.UserLeavePolicyId ==  userLeavePolicyID.Value);
 
-      LeaveBalance lb = leave.AspNetUser.LeaveBalances.FirstOrDefault(x => x.UserId == UserId && x.LeaveTypeId == LeaveTypeId);
+      }
+      else
+      {
+        lb = leave.AspNetUser.LeaveBalances.FirstOrDefault(x => x.UserId == UserId && x.LeaveTypeId == LeaveTypeId  );
+
+      }
       return lb;
 
     }

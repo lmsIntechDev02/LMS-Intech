@@ -491,13 +491,14 @@ namespace LeaveON.Controllers
             leaveBalance.LeaveTypeId == leave.LeaveTypeId)
           .Select(detail => detail.Balance).FirstOrDefault();
 
-        if (balanceCheck == null)
+        if (balanceCheck == null ) 
         {
           var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == leave.AspNetUser.UserLeavePolicyId);
           DateTime fiscalStart = (DateTime)userPolicy.FiscalYearStart;
           DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
           int workedMonths = 12;
-          if (leave.AspNetUser.JoiningDate.HasValue && leave.AspNetUser.JoiningDate > fiscalStart)
+          // calualte prorated for  only sicj and casual leave
+          if (  (leave.LeaveTypeId == 1 || leave.LeaveTypeId == 2) && leave.AspNetUser.JoiningDate.HasValue && leave.AspNetUser.JoiningDate > fiscalStart)
           {
             int joiningYear = leave.AspNetUser.JoiningDate?.Year ?? 0;
             int joiningMonth = leave.AspNetUser.JoiningDate?.Month ?? 0;
@@ -526,11 +527,14 @@ namespace LeaveON.Controllers
             if (leave.LeaveType.Id == 2)
             {
               balanceCheck = annualLeave;
-            } 
+            }
             if (leave.LeaveType.Id == 1)
             {
               balanceCheck = casualLeave;
             }
+        
+
+            
 
             
           }
