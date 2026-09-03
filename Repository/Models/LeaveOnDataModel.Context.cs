@@ -81,7 +81,7 @@ namespace Repository.Models
             }
 
             // Save actual changes first
-            int result = base.SaveChanges();
+            int result = 0;// base.SaveChanges();
 
             // Create audit records
             var auditLogs = new List<AuditLog>();
@@ -287,30 +287,30 @@ namespace Repository.Models
         {
             try
             {
+                return "System";
+                //var httpContext = null; //  HttpContext.Current;
 
-                var httpContext = null; //  HttpContext.Current;
+                //if (httpContext == null)
+                //{
+                //    return "System";
+                //}
 
-                if (httpContext == null)
-                {
-                    return "System";
-                }
+                //var routeData =
+                //    httpContext.Request.RequestContext.RouteData;
 
-                var routeData =
-                    httpContext.Request.RequestContext.RouteData;
+                //var controller =
+                //    routeData.Values["controller"]?.ToString();
 
-                var controller =
-                    routeData.Values["controller"]?.ToString();
+                //var action =
+                //    routeData.Values["action"]?.ToString();
 
-                var action =
-                    routeData.Values["action"]?.ToString();
+                //if (!string.IsNullOrEmpty(controller) &&
+                //    !string.IsNullOrEmpty(action))
+                //{
+                //    return controller + "/" + action;
+                //}
 
-                if (!string.IsNullOrEmpty(controller) &&
-                    !string.IsNullOrEmpty(action))
-                {
-                    return controller + "/" + action;
-                }
-
-                return controller ?? "Unknown";
+                //return controller ?? "Unknown";
             }
             catch
             {
@@ -327,16 +327,17 @@ namespace Repository.Models
         {
             try
             {
-                var user =  HttpContext.Current?.User;
-
-                if (user != null &&
-                    user.Identity != null &&
-                    user.Identity.IsAuthenticated)
-                {
-                    return user.Identity.Name;
-                }
-
                 return "System";
+                //var user   = null; ;// HttpContext.Current?.User;
+
+                //if (user != null &&
+                //    user.Identity != null &&
+                //    user.Identity.IsAuthenticated)
+                //{
+                //    return user.Identity.Name;
+                //}
+
+                //return "System";
             }
             catch
             {
