@@ -7,24 +7,32 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using System.Data.Entity.Infrastructure;
+
 namespace Repository.Models
 {
+ 
+    using System.Data.Entity.Core.Objects;
+ 
+
     using System;
+    using System.Collections.Generic;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
-    
+    using System.Linq;
+
     public partial class LeaveONEntities : DbContext
     {
         public LeaveONEntities()
             : base("name=LeaveONEntities")
         {
         }
-    
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             throw new UnintentionalCodeFirstException();
         }
-    
+
         public virtual DbSet<AnnualLeaveManager> AnnualLeaveManagers { get; set; }
         public virtual DbSet<AnnualOffDay> AnnualOffDays { get; set; }
         public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
@@ -44,29 +52,328 @@ namespace Repository.Models
         public virtual DbSet<tblHRBP> tblHRBPs { get; set; }
         public virtual DbSet<DepartmentName> DepartmentNames { get; set; }
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+        public virtual DbSet<AuditLog> AuditLogs { get; set; }
+
         public override int SaveChanges()
         {
-            //var auditLogs = CreateAuditLogs();
+            // Get all entities that are being Added, Modified or Deleted
+            var entries = ChangeTracker.Entries()
+                .Where(e =>
+                    !(e.Entity is AuditLog) &&
+                    (e.State == EntityState.Added ||
+                     e.State == EntityState.Modified ||
+                     e.State == EntityState.Deleted))
+                .ToList();
 
-            // AuditLogs.AddRange(auditLogs);
+            // Store audit information BEFORE SaveChanges
+            var auditData = new List<AuditData>();
 
-            foreach (var entry in ChangeTracker.Entries())
+            foreach (var entry in entries)
             {
-                if (entry.State == EntityState.Added)
+                auditData.Add(new AuditData
                 {
-                    // New record
+                    Entry = entry,
+                    TableName = GetTableName(entry),
+                    Action = GetAction(entry.State),
+                    ScreenName = GetScreenName(),
+                    UserId = GetUserId()
+                });
+            }
+
+            // Save actual changes first
+            int result = base.SaveChanges();
+
+            // Create audit records
+            var auditLogs = new List<AuditLog>();
+
+            foreach (var audit in auditData)
+            {
+                var entry = audit.Entry;
+
+                // Get primary key AFTER SaveChanges
+                // This is important for identity columns
+                string recordId = GetPrimaryKeyValue(entry);
+
+                // ==========================
+                // ADDED
+                // ==========================
+                if (audit.Action == "Added")
+                {
+                    foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                    {
+                        // Don't audit navigation properties
+                        var newValue = entry.CurrentValues[propertyName];
+
+                        auditLogs.Add(new AuditLog
+                        {
+                            TableName = audit.TableName,
+                            RecordId = recordId,
+                            Action = "Added",
+                            ScreenName = audit.ScreenName,
+                            ColumnName = propertyName,
+                            OldValue = null,
+                            NewValue = ConvertToString(newValue),
+                            UserId = audit.UserId,
+                            AuditDate = DateTime.Now
+                        });
+                    }
                 }
-                else if (entry.State == EntityState.Modified)
+
+                // ==========================
+                // MODIFIED
+                // ==========================
+                else if (audit.Action == "Modified")
                 {
-                    // Updated record
+                    foreach (var propertyName in entry.OriginalValues.PropertyNames)
+                    {
+                        var oldValue = entry.OriginalValues[propertyName];
+                        var newValue = entry.CurrentValues[propertyName];
+
+                        // Only save fields that actually changed
+                        if (!object.Equals(oldValue, newValue))
+                        {
+                            auditLogs.Add(new AuditLog
+                            {
+                                TableName = audit.TableName,
+                                RecordId = recordId,
+                                Action = "Modified",
+                                ScreenName = audit.ScreenName,
+                                ColumnName = propertyName,
+                                OldValue = ConvertToString(oldValue),
+                                NewValue = ConvertToString(newValue),
+                                UserId = audit.UserId,
+                                AuditDate = DateTime.Now
+                            });
+                        }
+                    }
                 }
-                else if (entry.State == EntityState.Deleted)
+
+                // ==========================
+                // DELETED
+                // ==========================
+                else if (audit.Action == "Deleted")
                 {
-                    // Deleted record
+                    foreach (var propertyName in entry.OriginalValues.PropertyNames)
+                    {
+                        var oldValue = entry.OriginalValues[propertyName];
+
+                        auditLogs.Add(new AuditLog
+                        {
+                            TableName = audit.TableName,
+                            RecordId = recordId,
+                            Action = "Deleted",
+                            ScreenName = audit.ScreenName,
+                            ColumnName = propertyName,
+                            OldValue = ConvertToString(oldValue),
+                            NewValue = null,
+                            UserId = audit.UserId,
+                            AuditDate = DateTime.Now
+                        });
+                    }
                 }
             }
 
-            return base.SaveChanges();
+            // Save audit records
+            if (auditLogs.Any())
+            {
+                AuditLogs.AddRange(auditLogs);
+
+                // Save audit records
+                base.SaveChanges();
+            }
+
+            return result;
+        }
+
+
+        // ============================================================
+        // Get Action
+        // ============================================================
+
+        private string GetAction(EntityState state)
+        {
+            switch (state)
+            {
+                case EntityState.Added:
+                    return "Added";
+
+                case EntityState.Modified:
+                    return "Modified";
+
+                case EntityState.Deleted:
+                    return "Deleted";
+
+                default:
+                    return "";
+
+            }
+        }
+        // ============================================================
+        // Get Table Name
+        // ============================================================
+
+        private string GetTableName(DbEntityEntry entry)
+        {
+            var objectContext =
+                ((IObjectContextAdapter)this).ObjectContext;
+
+            var objectType =
+                ObjectContext.GetObjectType(entry.Entity.GetType());
+
+            var entityType =
+                objectContext.MetadataWorkspace
+                    .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(
+                        System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
+                    .FirstOrDefault(x => x.Name == objectType.Name);
+
+            if (entityType != null)
+            {
+                return entityType.Name;
+            }
+
+            return objectType.Name;
+        }
+
+        // ============================================================
+        // Get Primary Key / Record ID
+        // ============================================================
+
+        private string GetPrimaryKeyValue(DbEntityEntry entry)
+        {
+            var objectContext =
+                ((IObjectContextAdapter)this).ObjectContext;
+
+            var objectType =
+                ObjectContext.GetObjectType(entry.Entity.GetType());
+
+            var entityType =
+                objectContext.MetadataWorkspace
+                    .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(
+                        System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
+                    .FirstOrDefault(x => x.Name == objectType.Name);
+
+            if (entityType == null)
+            {
+                return "";
+            }
+
+            var keyValues = new List<string>();
+
+            foreach (var keyProperty in entityType.KeyProperties)
+            {
+                object value;
+
+                if (entry.State == EntityState.Deleted)
+                {
+                    value = entry.OriginalValues[keyProperty.Name];
+                }
+                else
+                {
+                    value = entry.CurrentValues[keyProperty.Name];
+                }
+
+                keyValues.Add(ConvertToString(value));
+            }
+
+            return string.Join(",", keyValues);
+        }
+
+
+        // ============================================================
+        // Get Controller / Action
+        // ============================================================
+
+        private string GetScreenName()
+        {
+            try
+            {
+
+                var httpContext = null; //  HttpContext.Current;
+
+                if (httpContext == null)
+                {
+                    return "System";
+                }
+
+                var routeData =
+                    httpContext.Request.RequestContext.RouteData;
+
+                var controller =
+                    routeData.Values["controller"]?.ToString();
+
+                var action =
+                    routeData.Values["action"]?.ToString();
+
+                if (!string.IsNullOrEmpty(controller) &&
+                    !string.IsNullOrEmpty(action))
+                {
+                    return controller + "/" + action;
+                }
+
+                return controller ?? "Unknown";
+            }
+            catch
+            {
+                return "Unknown";
+            }
+        }
+
+
+        // ============================================================
+        // Get Current User
+        // ============================================================
+
+        private string GetUserId()
+        {
+            try
+            {
+                var user =  HttpContext.Current?.User;
+
+                if (user != null &&
+                    user.Identity != null &&
+                    user.Identity.IsAuthenticated)
+                {
+                    return user.Identity.Name;
+                }
+
+                return "System";
+            }
+            catch
+            {
+                return "System";
+            }
+        }
+
+
+        // ============================================================
+        // Convert Value to String
+        // ============================================================
+
+        private string ConvertToString(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            return Convert.ToString(value);
+        }
+
+        // ============================================================
+        // Helper class
+        // ============================================================
+
+        private class AuditData
+        {
+            public DbEntityEntry Entry { get; set; }
+
+            public string TableName { get; set; }
+
+            public string Action { get; set; }
+
+            public string ScreenName { get; set; }
+
+            public string UserId { get; set; }
         }
     }
 }
