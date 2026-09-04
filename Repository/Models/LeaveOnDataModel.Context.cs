@@ -13,13 +13,20 @@ namespace Repository.Models
 {
  
     using System.Data.Entity.Core.Objects;
- 
-
+  
+    using System.Web;
     using System;
     using System.Collections.Generic;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     using System.Linq;
+    using System.Threading.Tasks;
+
+
+ 
+   
+ 
+ 
 
     public partial class LeaveONEntities : DbContext
     {
@@ -54,124 +61,117 @@ namespace Repository.Models
         public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
         public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
-        public override int SaveChanges()
-        {
-            // Get all entities that are being Added, Modified or Deleted
-            var entries = ChangeTracker.Entries()
-                .Where(e =>
-                    !(e.Entity is AuditLog) &&
-                    (e.State == EntityState.Added ||
-                     e.State == EntityState.Modified ||
-                     e.State == EntityState.Deleted))
-                .ToList();
 
-            // Store audit information BEFORE SaveChanges
+        //public override int SaveChangesAsync()
+        public override async Task<int> SaveChangesAsync()
+        {
+            int result;
+            List<AuditLog> auditLogs;
+            BindLogs(out result, out auditLogs);
+
+            if (auditLogs.Any())
+            {
+                AuditLogs.AddRange(auditLogs);
+                base.SaveChanges();
+            }
+
+            return result;
+        }
+
+        private void BindLogs(out int result, out List<AuditLog> auditLogs)
+        {
+            ChangeTracker.DetectChanges();
+
+            var entries = ChangeTracker.Entries()
+                            .Where(e =>
+                                !(e.Entity is AuditLog) &&
+                                (e.State == EntityState.Added ||
+                                 e.State == EntityState.Modified ||
+                                 e.State == EntityState.Deleted))
+                            .ToList();
+
             var auditData = new List<AuditData>();
 
             foreach (var entry in entries)
             {
+                var propertyValues = new Dictionary<string, (object, object)>();
+
+                if (entry.State == EntityState.Modified)
+                {
+                    // Pull the TRUE original row from the database, untracked,
+                    // because the in-memory OriginalValues is unreliable for
+                    // disconnected/attached entities.
+                    var dbValues = entry.GetDatabaseValues();
+
+                    if (dbValues != null)
+                    {
+                        foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                        {
+                            object oldValue = dbValues[propertyName];
+                            object newValue = entry.CurrentValues[propertyName];
+                            propertyValues[propertyName] = (oldValue, newValue);
+                        }
+                    }
+                }
+                else if (entry.State == EntityState.Added)
+                {
+                    foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                        propertyValues[propertyName] = (null, entry.CurrentValues[propertyName]);
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    foreach (var propertyName in entry.OriginalValues.PropertyNames)
+                        propertyValues[propertyName] = (entry.OriginalValues[propertyName], null);
+                }
+
                 auditData.Add(new AuditData
                 {
                     Entry = entry,
                     TableName = GetTableName(entry),
                     Action = GetAction(entry.State),
                     ScreenName = GetScreenName(),
-                    UserId = GetUserId()
+                    UserId = GetUserId(),
+                    PropertyValues = propertyValues
                 });
             }
 
-            // Save actual changes first
-            int result = 0;// base.SaveChanges();
+            result = base.SaveChanges();
 
-            // Create audit records
-            var auditLogs = new List<AuditLog>();
-
+            auditLogs = new List<AuditLog>();
             foreach (var audit in auditData)
             {
-                var entry = audit.Entry;
+                string recordId = GetPrimaryKeyValue(audit.Entry);
 
-                // Get primary key AFTER SaveChanges
-                // This is important for identity columns
-                string recordId = GetPrimaryKeyValue(entry);
-
-                // ==========================
-                // ADDED
-                // ==========================
-                if (audit.Action == "Added")
+                foreach (var kvp in audit.PropertyValues)
                 {
-                    foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                    var propertyName = kvp.Key;
+                    var oldValue = kvp.Value.Item1;
+                    var newValue = kvp.Value.Item2;
+
+                    if (audit.Action == "Modified" && object.Equals(oldValue, newValue))
+                        continue;
+
+                    auditLogs.Add(new AuditLog
                     {
-                        // Don't audit navigation properties
-                        var newValue = entry.CurrentValues[propertyName];
-
-                        auditLogs.Add(new AuditLog
-                        {
-                            TableName = audit.TableName,
-                            RecordId = recordId,
-                            Action = "Added",
-                            ScreenName = audit.ScreenName,
-                            ColumnName = propertyName,
-                            OldValue = null,
-                            NewValue = ConvertToString(newValue),
-                            UserId = audit.UserId,
-                            AuditDate = DateTime.Now
-                        });
-                    }
-                }
-
-                // ==========================
-                // MODIFIED
-                // ==========================
-                else if (audit.Action == "Modified")
-                {
-                    foreach (var propertyName in entry.OriginalValues.PropertyNames)
-                    {
-                        var oldValue = entry.OriginalValues[propertyName];
-                        var newValue = entry.CurrentValues[propertyName];
-
-                        // Only save fields that actually changed
-                        if (!object.Equals(oldValue, newValue))
-                        {
-                            auditLogs.Add(new AuditLog
-                            {
-                                TableName = audit.TableName,
-                                RecordId = recordId,
-                                Action = "Modified",
-                                ScreenName = audit.ScreenName,
-                                ColumnName = propertyName,
-                                OldValue = ConvertToString(oldValue),
-                                NewValue = ConvertToString(newValue),
-                                UserId = audit.UserId,
-                                AuditDate = DateTime.Now
-                            });
-                        }
-                    }
-                }
-
-                // ==========================
-                // DELETED
-                // ==========================
-                else if (audit.Action == "Deleted")
-                {
-                    foreach (var propertyName in entry.OriginalValues.PropertyNames)
-                    {
-                        var oldValue = entry.OriginalValues[propertyName];
-
-                        auditLogs.Add(new AuditLog
-                        {
-                            TableName = audit.TableName,
-                            RecordId = recordId,
-                            Action = "Deleted",
-                            ScreenName = audit.ScreenName,
-                            ColumnName = propertyName,
-                            OldValue = ConvertToString(oldValue),
-                            NewValue = null,
-                            UserId = audit.UserId,
-                            AuditDate = DateTime.Now
-                        });
-                    }
+                        TableName = audit.TableName,
+                        RecordId = recordId,
+                        Action = audit.Action,
+                        ScreenName = audit.ScreenName,
+                        ColumnName = propertyName,
+                        OldValue = ConvertToString(oldValue),
+                        NewValue = ConvertToString(newValue),
+                        UserId = audit.UserId,
+                        AuditDate = DateTime.Now
+                    });
                 }
             }
+        }
+
+        public override int SaveChanges()
+        { // Get all entities that are being Added, Modified or Deleted
+            int result;
+            List<AuditLog> auditLogs;
+            BindLogs(out result, out auditLogs);
 
             // Save audit records
             if (auditLogs.Any())
@@ -287,30 +287,30 @@ namespace Repository.Models
         {
             try
             {
-                return "System";
-                //var httpContext = null; //  HttpContext.Current;
+                //return "System";
+                var httpContext =   HttpContext.Current;
 
-                //if (httpContext == null)
-                //{
-                //    return "System";
-                //}
+                if (httpContext == null)
+                {
+                    return "System";
+                }
 
-                //var routeData =
-                //    httpContext.Request.RequestContext.RouteData;
+                var routeData =
+                    httpContext.Request.RequestContext.RouteData;
 
-                //var controller =
-                //    routeData.Values["controller"]?.ToString();
+                var controller =
+                    routeData.Values["controller"]?.ToString();
 
-                //var action =
-                //    routeData.Values["action"]?.ToString();
+                var action =
+                    routeData.Values["action"]?.ToString();
 
-                //if (!string.IsNullOrEmpty(controller) &&
-                //    !string.IsNullOrEmpty(action))
-                //{
-                //    return controller + "/" + action;
-                //}
+                if (!string.IsNullOrEmpty(controller) &&
+                    !string.IsNullOrEmpty(action))
+                {
+                    return controller + "/" + action;
+                }
 
-                //return controller ?? "Unknown";
+                return controller ?? "Unknown";
             }
             catch
             {
@@ -327,17 +327,17 @@ namespace Repository.Models
         {
             try
             {
+                 
+                 var user  =  HttpContext.Current?.User;
+
+                if (user != null &&
+                    user.Identity != null &&
+                    user.Identity.IsAuthenticated)
+                {
+                    return user.Identity.Name;
+                }
+
                 return "System";
-                //var user   = null; ;// HttpContext.Current?.User;
-
-                //if (user != null &&
-                //    user.Identity != null &&
-                //    user.Identity.IsAuthenticated)
-                //{
-                //    return user.Identity.Name;
-                //}
-
-                //return "System";
             }
             catch
             {
@@ -364,6 +364,7 @@ namespace Repository.Models
         // Helper class
         // ============================================================
 
+       
         private class AuditData
         {
             public DbEntityEntry Entry { get; set; }
@@ -375,6 +376,8 @@ namespace Repository.Models
             public string ScreenName { get; set; }
 
             public string UserId { get; set; }
+            public Dictionary<string, (object OldValue, object NewValue)> PropertyValues { get; set; }
+
         }
     }
 }

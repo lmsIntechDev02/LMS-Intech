@@ -1,0 +1,103 @@
+@model LeaveON.Models.AuditLogFilterViewModel
+
+@{ ViewBag.Title = "Logs";
+  Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<h3>Audit Log</h3>
+
+@using (Html.BeginForm("Index", "Logs", FormMethod.Get))
+{
+
+<div class="row mb-3">
+  <div class="col-md-2">
+    @Html.DropDownList("TableName", new SelectList(ViewBag.TableNames), "All Tables", new { @class = "form-control" })
+  </div>
+  <div class="col-md-2">
+    @Html.TextBoxFor(m => m.RecordId, new { @class = "form-control", placeholder = "Record Id" })
+  </div>
+  <div class="col-md-2">
+    @Html.DropDownList("Action", new SelectList(ViewBag.Actions), "All Actions", new { @class = "form-control" })
+  </div>
+  <div class="col-md-2">
+    @Html.TextBoxFor(m => m.UserId, new { @class = "form-control", placeholder = "User" })
+  </div>
+  <div class="col-md-2">
+    @Html.TextBoxFor(m => m.FromDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+  </div>
+  <div class="col-md-2">
+    @Html.TextBoxFor(m => m.ToDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+  </div>
+</div>
+        <button type="submit" class="btn btn-primary mb-3">Filter</button>
+}
+
+<table class="table table-bordered table-hover">
+  <thead>
+    <tr>
+      <th style="width:30px;"></th>
+      <th>Date</th>
+      <th>Table</th>
+      <th>Record Id</th>
+      <th>Action</th>
+      <th>Screen</th>
+      <th>User</th>
+      <th># Fields Changed</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var group in Model.Results)
+    {
+      var rowId = $"detail-{group.TableName}-{group.RecordId}-{group.AuditDate.Ticks}";
+<tr class="group-row" data-target="#@rowId" style="cursor:pointer;">
+  <td><span class="toggle-icon">+</span></td>
+  <td>@group.AuditDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
+  <td>@group.TableName</td>
+  <td>@group.RecordId</td>
+  <td>
+    <span class="badge badge-@(group.Action == "Added" ? "success" : group.Action == "Deleted" ? "danger" : "warning")">
+      @group.Action
+    </span>
+  </td>
+  <td>@group.ScreenName</td>
+  <td>@group.UserId</td>
+  <td>@group.Fields.Count</td>
+</tr>
+        <tr id="@rowId" class="detail-row" style="display:none;">
+          <td colspan="8">
+            <table class="table table-sm table-striped mb-0">
+              <thead>
+                <tr><th>Field</th><th>Old Value</th><th>New Value</th></tr>
+              </thead>
+              <tbody>
+                @foreach (var f in group.Fields)
+                {
+        <tr>
+          <td>@f.ColumnName</td>
+          <td class="text-danger">@(f.OldValue ?? "NULL")</td>
+          <td class="text-success">@(f.NewValue ?? "NULL")</td>
+        </tr>
+}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+}
+  </tbody>
+</table>
+
+@section Scripts {
+  <script>
+  document.querySelectorAll('.group-row').forEach(function (row) {
+      row.addEventListener('click', function () {
+        var target = document.querySelector(row.dataset.target);
+        var icon = row.querySelector('.toggle-icon');
+        if (target.style.display === 'none') {
+          target.style.display = '';
+          icon.textContent = '−';
+        } else {
+          target.style.display = 'none';
+          icon.textContent = '+';
+        }
+      });
+    });</script>
+}

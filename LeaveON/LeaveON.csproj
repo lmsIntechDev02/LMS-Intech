@@ -274,6 +274,7 @@
     <Compile Include="Controllers\DepartmentNamesController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\HRBPController.cs" />
+    <Compile Include="Controllers\LogsController.cs" />
     <Compile Include="Controllers\SharedController.cs" />
     <Compile Include="Controllers\UserRolesController.cs" />
     <Compile Include="Controllers\AspNetUsersController.cs" />
@@ -355,6 +356,7 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\AnnualLeaveModel.cs" />
+    <Compile Include="Models\AuditLogViewModel.cs" />
     <Compile Include="Models\DepartmentModel1.cs" />
     <Compile Include="Models\ErrorViewModel.cs" />
     <Compile Include="Models\HRBPModel.cs" />
@@ -2489,6 +2491,7 @@
     <Content Include="Views\Departments\HODReport.cshtml" />
     <Content Include="Views\HRBP\Index.cshtml" />
     <Content Include="Views\HRBP\AddEdit.cshtml" />
+    <Content Include="Views\Logs\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
