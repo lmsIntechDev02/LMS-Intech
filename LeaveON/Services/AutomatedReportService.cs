@@ -205,14 +205,14 @@ namespace LeaveON.Services
           if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
           {
             // commment for now but it will use in 
-            //if (!string.IsNullOrEmpty(managerEmail.HRBPEmail))
-            //{
-            //  hRBPEmail = managerEmail.HRBPEmail;
-            //    }
-            //else
-            //{
-            //  hRBPEmail =   departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
-            //}
+            if (!string.IsNullOrEmpty(managerEmail.HRBPEmail))
+            {
+              hRBPEmail = managerEmail.HRBPEmail;
+            }
+            else
+            {
+              hRBPEmail = departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+            }
           }
 
           GeneratePDFManager1(
@@ -774,8 +774,9 @@ namespace LeaveON.Services
           }
           else
           {
-           // mail.To.Add("laiba.khan@intechww.com");
-            mail.To.Add("esswaqas@hotmail.com");
+            mail.To.Add(managerDetail.Email);
+            //mail.To.Add("laiba.khan@intechww.com");
+          //  mail.To.Add("esswaqas@hotmail.com");
           }
           
          //  mail.To.Add("esswaqas@hotmail.com");
@@ -783,7 +784,7 @@ namespace LeaveON.Services
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
         {
-          //mail.CC.Add("esswaqas@hotmail.com");
+          mail.CC.Add(hrBpEmail);
         }
 
         // BCC
@@ -868,7 +869,7 @@ namespace LeaveON.Services
               ////holidayCount = context.AnnualOffDays.Count(o =>
               ////    o.UserLeavePolicyId == (policyId== 2084? 2055: policyId) && o.OffDay >= mStart && o.OffDay <= mEnd);
               holidayCount = context.AnnualOffDays
-    .Where(o => o.UserLeavePolicyId == (policyId == 2084 ? 2055 : policyId)
+    .Where(o => o.UserLeavePolicyId == (policyId)
              && o.OffDay >= mStart
              && o.OffDay <= mEnd)
     .Select(o => o.OffDay)
@@ -1349,7 +1350,7 @@ namespace LeaveON.Services
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Digital Solutions",   "WELLHEAD & SKIDS", "ELECTRICAL SOLUTIONS" ,"IIS", "SUPPLY CHAIN", "Project Monitoring & Control" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        var allowedDepartments = new[] { "SUPPLY CHAIN" };  //, "Solution Centre" , "Project Monitoring & Control" 
                                                                                             //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
                                                                                             //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
