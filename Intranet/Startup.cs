@@ -18,17 +18,17 @@ namespace Intranet
                .UseSqlServerStorage("DefaultConnection");
 
             // Start Hangfire server
-            app.UseHangfireServer();
+            //app.UseHangfireServer();
 
-            // Enable dashboard
-            app.UseHangfireDashboard("/hangfire");
+            //// Enable dashboard
+            //app.UseHangfireDashboard("/hangfire");
 
-            // Schedule your AD sync job
-            // comment for testing
-            RecurringJob.AddOrUpdate(
-                "AD-Sync-Job",
-                () => new ScheduledTasks().SyncAppWithAD("Hangfire Job"),
-                Cron.MinuteInterval(15));   // Change schedule if needed
+            //// Schedule your AD sync job
+            //// comment for testing
+            //RecurringJob.AddOrUpdate(
+            //    "AD-Sync-Job",
+            //    () => new ScheduledTasks().SyncAppWithAD("Hangfire Job"),
+            //    Cron.MinuteInterval(15));   // Change schedule if needed
         }
     }
 }

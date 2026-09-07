@@ -125,7 +125,7 @@ namespace LeaveON.UtilityClasses
             {
                 List<string> userIds = new List<string>
 {
-  "3035"
+  "2388"
 
 
 };
@@ -253,8 +253,9 @@ namespace LeaveON.UtilityClasses
 
 
                         List<AspNetUser> userList = db.AspNetUsers.Where(x => x.IsDeleted != true).ToList<AspNetUser>();
-                          return;
+                          
                         List<AspNetUser> inActiveUserList = userList.Where(x => x.BioStarEmpNum.HasValue && x.IsDeleted != true && inactiveUserinAd.Any(k => k.FaxNumber == x.BioStarEmpNum.ToString())).ToList<AspNetUser>();
+                       // return;
                         UpdateInactiveADuserinLeaveonUser(inActiveUserList);
 
                         
