@@ -16,6 +16,7 @@ using LeaveON.EmailSender;
 using LeaveON.UtilityClasses;
 using System.Globalization;
 using LeaveON.Models;
+using LeaveON.Models.DatatableVmModel;
 
 namespace LeaveON.Controllers
 {
@@ -32,9 +33,174 @@ namespace LeaveON.Controllers
     public async Task<ActionResult> Index()
     {
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
-      string LoggedInUserId = User.Identity.GetUserId();
-      IQueryable<Leave> leaves = db.Leaves.Where(x => x.UserId == LoggedInUserId && (x.IsQuotaRequest == false || x.IsQuotaRequest == null)).AsQueryable<Leave>();
-      return View(await leaves.ToListAsync());
+      //string LoggedInUserId = User.Identity.GetUserId();
+      //IQueryable<Leave> leaves = db.Leaves.Where(x => x.UserId == LoggedInUserId && (x.IsQuotaRequest == false || x.IsQuotaRequest == null)).AsQueryable<Leave>();
+      //return View(await leaves.ToListAsync());
+      return View();
+    }
+    [HttpPost]
+    public async Task<JsonResult> GetLeaveHistory(DataTableRequest request)
+    {
+      string loggedInUserId = User.Identity.GetUserId();
+
+      // Base query
+      var query = db.Leaves
+          .Where(x => x.UserId == loggedInUserId &&
+                      (x.IsQuotaRequest == false || x.IsQuotaRequest == null))
+          .Select(x => new LeaveListViewModel
+          {
+            Id = Convert.ToInt32(x.Id),
+
+            DateCreated = x.DateCreated,
+            StartDate = x.StartDate,
+            EndDate = x.EndDate,
+
+            LeaveTypeName = x.LeaveType != null
+                  ? x.LeaveType.Name
+                  : "",
+
+            IsShortLeave = x.IsShortLeave ?? false,
+
+            TotalDays = x.TotalDays,
+
+            TotalHours = x.IsShortLeave == true
+                  ? DbFunctions.DiffHours(x.StartDate, x.EndDate)
+                  : 0,
+
+            Reason = x.Reason,
+
+            IsAccepted1 = x.IsAccepted1,
+            Remarks1 = x.Remarks1,
+
+            IsAccepted2 = x.IsAccepted2,
+            Remarks2 = x.Remarks2,
+
+          // Approval 1
+          ApprovalStatus1 =
+                  x.IsAccepted1.HasValue && x.IsAccepted1 > 0
+                      ? "Approved"
+                      : x.IsAccepted1.HasValue && x.IsAccepted1 == 0
+                          ? "Refused"
+                          : "",
+
+          // Approval 2
+          ApprovalStatus2 =
+                  x.IsAccepted2.HasValue && x.IsAccepted2 > 0
+                      ? "Approved"
+                      : x.IsAccepted2.HasValue && x.IsAccepted2 == 0
+                          ? "Refused"
+                          : ""
+          });
+
+      // Total records before search
+      var recordsTotal = await query.CountAsync();
+
+      // Search
+      if (request.Search != null &&
+          !string.IsNullOrWhiteSpace(request.Search.Value))
+      {
+        var search = request.Search.Value.Trim();
+
+        query = query.Where(x =>
+            x.LeaveTypeName.Contains(search) ||
+            x.Reason.Contains(search) ||
+            x.Remarks1.Contains(search) ||
+            x.Remarks2.Contains(search) ||
+            x.ApprovalStatus1.Contains(search) ||
+            x.ApprovalStatus2.Contains(search)
+        );
+      }
+
+      // Total records after search
+      var recordsFiltered = await query.CountAsync();
+
+      // Sorting
+      if (request.Order != null && request.Order.Count > 0)
+      {
+        var order = request.Order[0];
+
+        switch (order.Column)
+        {
+          // Date Created
+          case 0:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.DateCreated)
+                : query.OrderBy(x => x.DateCreated);
+            break;
+
+          // Start Date
+          case 1:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.StartDate)
+                : query.OrderBy(x => x.StartDate);
+            break;
+
+          // End Date
+          case 2:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.EndDate)
+                : query.OrderBy(x => x.EndDate);
+            break;
+
+          // Leave Type
+          case 3:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.LeaveTypeName)
+                : query.OrderBy(x => x.LeaveTypeName);
+            break;
+
+          // Total Days / Hours
+          case 4:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.TotalDays)
+                : query.OrderBy(x => x.TotalDays);
+            break;
+
+          // Reason
+          case 5:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.Reason)
+                : query.OrderBy(x => x.Reason);
+            break;
+
+          // Approval 1
+          case 6:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.ApprovalStatus1)
+                : query.OrderBy(x => x.ApprovalStatus1);
+            break;
+
+          // Approval 2
+          case 7:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.ApprovalStatus2)
+                : query.OrderBy(x => x.ApprovalStatus2);
+            break;
+
+          default:
+            query = query.OrderByDescending(x => x.DateCreated);
+            break;
+        }
+      }
+      else
+      {
+        query = query.OrderByDescending(x => x.DateCreated);
+      }
+
+      // Paging
+      var leaves = await query
+          .Skip(request.Start)
+          .Take(request.Length)
+          .ToListAsync();
+
+      // Response
+      return Json(new DataTableResponse<LeaveListViewModel>
+      {
+        draw = request.Draw,
+        recordsTotal = recordsTotal,
+        recordsFiltered = recordsFiltered,
+        data = leaves
+      });
     }
     public async Task<ActionResult> QuotaRequestHistory()
     {
@@ -154,19 +320,16 @@ namespace LeaveON.Controllers
       //ViewBag.UserId = "d0c9d0b1-d0e8-4d56-a410-72e74af3ced8";
       //ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name");
       string userId = User.Identity.GetUserId();
-      int policyId = db.AspNetUsers.FirstOrDefault(x => x.Id == userId).UserLeavePolicyId.GetValueOrDefault();
+      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
+      int policyId = currentUser.UserLeavePolicyId.GetValueOrDefault();
 
-      // db.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId);
+   ;
 
-      //ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes.Where(x => x.UserLeavePolicyDetails.Where(y => y.UserLeavePolicyId == policyId)), "Id", "Name");
       var filtereLeaves = new SelectList(Utility.FilteredLeavesTaken(userId, policyId), "Id", "Name", "1");
 
 
       ViewBag.LeaveTypeIdd = filtereLeaves;
-      //ViewBag.Leave1TypeId = new SelectList(db.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId).ToList <UserLeavePolicyDetail>(), "Id", "Name");
-
-      //ViewBag.LeaveTypeId = new SelectList(customLeaveTypes, "Id", "Name");
-      //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId");
+    
 
       if (policyId > 0)
       {
@@ -178,17 +341,10 @@ namespace LeaveON.Controllers
         return RedirectToAction("General", "Error");
       }
 
-      //List<AspNetUser> Seniors = GetSeniorStaff();
-      //ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
-      //UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
-
-      //db.AspNetUsers.Select(m => m.UserName.Substring(0, m.UserName.IndexOf('@')).Replace("."," ")).ToList();
-      //db.AspNetUsers = db.AspNetUsers.Select(m => m.UserName.Substring(0, m.UserName.IndexOf('@')).Replace(".", " ")).ToList<AspNetUser>();
-
-      //LstAspNetUser.Select(m => m.UserName.Substring(0, m.UserName.IndexOf('@')).Replace(".", " ")).ToList();
+      
 
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
-      var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId); 
+      
    // ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
       ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
              ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
@@ -256,23 +412,29 @@ namespace LeaveON.Controllers
       {
         proratedLeave = (int)Math.Floor(proratedLeaves);
       }
-
-      //HRBP Email 
-      var hrbpEmail = db.DepartmentNames
-            .Where(d => d.Name == currentUser.DepartmentName)
-            .Select(d => d.HRBPEmail)
-            .FirstOrDefault();
-
-      if (string.IsNullOrWhiteSpace(hrbpEmail))
+      string hrbpEmail = String.Empty;
+      if (currentUser.HRBPID.HasValue)
       {
-        hrbpEmail = db.AnnualLeaveManagers
-                .Select(m => m.ManagerEmail)
-                .FirstOrDefault();
+        hrbpEmail = currentUser.tblHRBP != null ?currentUser.tblHRBP.HRBPEmail:string.Empty;
+      }
+      else
+      {
+        hrbpEmail=db.DepartmentNames.FirstOrDefault(j => j.Name == currentUser.DepartmentName && j.tblHRBP != null).tblHRBP.HRBPEmail;
       }
 
-      ViewBag.HRBPEmail = !string.IsNullOrWhiteSpace(hrbpEmail)
-                          ? hrbpEmail
-                          : "HRBP email not available";
+
+      ViewBag.HRBPEmail = !string.IsNullOrEmpty(hrbpEmail) ? hrbpEmail : "HRBP email not available";
+
+
+
+      //if (string.IsNullOrEmpty(hrbpEmail))
+      //{
+      //  hrbpEmail = db.AnnualLeaveManagers
+      //          .Select(m => m.ManagerEmail)
+      //          .FirstOrDefault();
+      //}
+
+
 
       ViewBag.proratedLeave = proratedLeave;
 

@@ -5,13 +5,13 @@
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- DataTables -->
-<link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
 
+<!-- DataTables CSS -->
+<link rel="stylesheet"
+      href="~/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css" />
 
-<!-- DataTables -->
-<script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/2.1.0/css/buttons.dataTables.min.css" />
 
 
 
@@ -20,12 +20,12 @@
 <section class="content">
   <div class="row">
     <div class="col-12">
+      <div>
+
+        <h3 class="dashboard-title my-2">User List </h3>
+      </div>
       <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Users List</h3>
-
-
-        </div>
+        
 
 
         <div class="card-body">
@@ -38,152 +38,31 @@
             </div>
             <div class="row">
               <div class="col-sm-12">
-                <table id="example2" class="table table-bordered table-hover dataTable dtr-inline" role="grid" aria-describedby="example2_info">
+                <table id="example2"
+                       class="table table-bordered table-hover"
+                       style="width:100%;">
+
                   <thead>
-                    <tr role="row">
-
-                      @*<th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Email: activate to sort column ascending" aria-sort="descending">
-                          @Html.DisplayNameFor(model => model.Email)
-                        </th>*@
-                      <th>
-                        @*@Html.DisplayNameFor(model => model.Department.Country.Name)*@
-                        Emp. Id
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="UserName: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.UserName)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
-                        @*@Html.DisplayNameFor(model => model.Department.Name)*@
-                        Manager
-                      </th>
-
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="ManagerID: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.ManagerName)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Manager2ID: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.Manager2Name)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
-                        @*@Html.DisplayNameFor(model => model.Department.Name)*@
-                        Department
-                      </th>
-                      <th>
-                        @*@Html.DisplayNameFor(model => model.Department.Country.Name)*@
-                        Country
-                      </th>
-                      <th>
-                        Relocated Country
-                      </th>
-                      <th>
-                        Leave Policy
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="DateCreated: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.DateCreated)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="DateModified: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.DateModified)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Remarks: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.Remarks)
-                      </th>
-                      <th></th>
+                    <tr>
+                      <th>Emp. Id</th>
+                      <th>User Name</th>
+                      <th>Manager</th>
+                      <th>Manager ID</th>
+                      <th>Manager 2</th>
+                      <th>Department</th>
+                      <th>Country</th>
+                      <th>Relocated Country</th>
+                      <th>Leave Policy</th>
+                      <th>Date Created</th>
+                      <th>Date Modified</th>
+                      <th>Remarks</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
 
-                  @foreach (var item in Model)
-                  {
-                    <tr role="row" class="odd">
-
-                      @*<td>
-                          @Html.DisplayFor(modelItem => item.Email)
-                        </td>*@
-                      <td>
-                        @Html.DisplayFor(modelItem => item.BioStarEmpNum)
-                      </td>
-
-                      <td>
-                        @*@{ var nameParts = item.UserName.Split('@')[0].Split('.');
-                            var firstName = nameParts.Length > 0 ? nameParts[0] : "";
-                            var lastName = nameParts.Length > 1 ? nameParts[1] : ""; }
-
-                          @Html.DisplayFor(modelItem => firstName + " " + lastName)*@
-                        @{ string fullName = "";
-                          if (!string.IsNullOrEmpty(item.UserName))
-                          {
-                            var nameParts = item.UserName.Split('@')[0].Split('.');
-                            var firstName = nameParts.Length > 0 ? nameParts[0] : "";
-                            var lastName = nameParts.Length > 1 ? nameParts[1] : "";
-                            if (!string.IsNullOrEmpty(firstName))
-                            {
-                              firstName = char.ToUpper(firstName[0]) + firstName.Substring(1).ToLower();
-                            }
-
-                            if (!string.IsNullOrEmpty(lastName))
-                            {
-                              lastName = char.ToUpper(lastName[0]) + lastName.Substring(1).ToLower();
-                            }
-                            fullName = firstName + " " + lastName;
-                          } }
-
-                        <span>@fullName</span>
-                      </td>
-                      <td>
-                        @if (item.ManagerName != null)
-                        {
-                          @Html.DisplayFor(modelItem => item.ManagerName)}
-
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.ManagerName)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.Manager2Name)
-                      </td>
-                      <td>
-                        @if (item.DepartmentName != null)
-                        {
-                          @Html.DisplayFor(modelItem => item.DepartmentName)}
-
-                      </td>
-                      <td>
-                        @*@if (item.Country != null)
-                          {*@
-                        @Html.DisplayFor(modelItem => item.CntryName)
-                        @*}*@
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.CntryNameTemp)
-                      </td>
-                      <td>
-                        @if (item.UserLeavePolicy != null)
-                        {
-                          @Html.DisplayFor(modelItem => item.UserLeavePolicy.Description)
-                        }
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.DateCreated)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.DateModified)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.Remarks)
-                      </td>
-                      <td>
-                        @Html.ActionLink("Update", "Edit", new { id = item.Id })
-                        @*@Html.ActionLink("Update", "Edit", new { id = item.Id })*@ @*|*@
-                        @*@Html.ActionLink("Details", "Details", new { id = item.Id }) |*@
-                        @*@Html.ActionLink("Delete", "Delete", new { id = item.Id })*@
-                      </td>
-                    </tr>
-                  }
-                  <tfoot>
-
-                    <tr>
-                    </tr>
-
-
-                  </tfoot>
+                  <tbody>
+                    <!-- DataTables will load data here -->
+                  </tbody>
 
                 </table>
 
@@ -201,33 +80,112 @@
 
 </section>
 
-<link href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="https://cdn.datatables.net/buttons/2.1.0/css/buttons.dataTables.min.css" rel="stylesheet" />
+<!-- jQuery DataTables -->
+<script src="~/plugins/datatables/jquery.dataTables.min.js"></script>
 
+<script src="~/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+
+<!-- DataTables Buttons -->
 <script src="https://cdn.datatables.net/buttons/2.1.0/js/dataTables.buttons.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
 <script src="https://cdn.datatables.net/buttons/2.1.0/js/buttons.html5.min.js"></script>
 
 <!-- page script -->
 <script>
-  $(function () {
-    //$("#example1").DataTable({
-    //  "responsive": true,
-    //  "autoWidth": false,
-    //});
-    $('#example2').DataTable({
-      "paging": false,
-      "lengthChange": false,
-      "searching": true,
-      "ordering": true,
-      "info": false,
-      "autoWidth": false,
-      "responsive": true,
-      "order": [[1, "asc"]],
-      dom: 'Bfrtip',
-      buttons: [
-        'excel'
-      ]
-    });
-  });
+$('#example2').DataTable({
+    processing: true,
+    serverSide: true,
+
+    ajax: {
+        url: '@Url.Action("GetUsers", "AspNetUsers")',
+        type: 'POST'
+    },
+
+    pageLength: 10,
+
+    lengthMenu: [
+        [10, 25, 50, 100],
+        [10, 25, 50, 100]
+    ],
+
+    searching: true,
+    ordering: true,
+    responsive: true,
+    autoWidth: false,
+
+    order: [[1, 'asc']],
+
+  dom:
+    "<'row'" +
+    "<'col-sm-6 d-flex align-items-center justify-conten-start'l>" +
+    "<'col-sm-6 d-flex align-items-center justify-content-end'fB>" +
+    ">" +
+
+    "<'table-responsive'tr>" +
+
+    "<'row'" +
+    "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
+    "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
+    ">",
+
+    buttons: [
+      {
+        extend: 'excel',
+        text: 'Export to Excel',
+        className: 'btn btn-primary ml-2'
+      }
+    ],
+
+    columns: [
+        {
+            data: 'BioStarEmpNum'
+        },
+        {
+            data: 'UserName'
+        },
+        {
+            data: 'ManagerName'
+        },
+        {
+          data: 'ManagerID'
+        },
+        {
+            data: 'Manager2Name'
+        },
+        {
+            data: 'DepartmentName'
+        },
+        {
+            data: 'CntryName'
+        },
+        {
+            data: 'CntryNameTemp'
+        },
+        {
+            data: 'LeavePolicy'
+        },
+        {
+            data: 'DateCreated'
+        },
+        {
+            data: 'DateModified'
+        },
+        {
+            data: 'Remarks'
+        },
+        {
+            data: 'Id',
+            orderable: false,
+            searchable: false,
+          render: function (data) {
+              debugger
+                return '<a href="@Url.Action("Edit", "AspNetUsers")/' +
+                    data +
+                    '">Update</a>';
+            }
+        }
+    ]
+});
 </script>

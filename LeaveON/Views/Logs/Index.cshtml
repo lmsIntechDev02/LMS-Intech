@@ -3,101 +3,287 @@
 @{ ViewBag.Title = "Logs";
   Layout = "~/Views/Shared/_Layout.cshtml"; }
 
-<h3>Audit Log</h3>
+ 
+<section class="content">
+  <div class="row">
+    <div class="col-12">
+      <div>
 
-@using (Html.BeginForm("Index", "Logs", FormMethod.Get))
-{
+      <h3 class="dashboard-title my-2">Logs List </h3>
+      </div>
+      <div class="card">
 
-<div class="row mb-3">
-  <div class="col-md-2">
-    @Html.DropDownList("TableName", new SelectList(ViewBag.TableNames), "All Tables", new { @class = "form-control" })
-  </div>
-  <div class="col-md-2">
-    @Html.TextBoxFor(m => m.RecordId, new { @class = "form-control", placeholder = "Record Id" })
-  </div>
-  <div class="col-md-2">
-    @Html.DropDownList("Action", new SelectList(ViewBag.Actions), "All Actions", new { @class = "form-control" })
-  </div>
-  <div class="col-md-2">
-    @Html.TextBoxFor(m => m.UserId, new { @class = "form-control", placeholder = "User" })
-  </div>
-  <div class="col-md-2">
-    @Html.TextBoxFor(m => m.FromDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-  </div>
-  <div class="col-md-2">
-    @Html.TextBoxFor(m => m.ToDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-  </div>
-</div>
-        <button type="submit" class="btn btn-primary mb-3">Filter</button>
-}
+        <div class="card-body">
+          @using (Html.BeginForm("Index", "Logs", FormMethod.Get))
+          {
 
-<table class="table table-bordered table-hover">
-  <thead>
-    <tr>
-      <th style="width:30px;"></th>
-      <th>Date</th>
-      <th>Table</th>
-      <th>Record Id</th>
-      <th>Action</th>
-      <th>Screen</th>
-      <th>User</th>
-      <th># Fields Changed</th>
-    </tr>
-  </thead>
-  <tbody>
-    @foreach (var group in Model.Results)
-    {
-      var rowId = $"detail-{group.TableName}-{group.RecordId}-{group.AuditDate.Ticks}";
-<tr class="group-row" data-target="#@rowId" style="cursor:pointer;">
-  <td><span class="toggle-icon">+</span></td>
-  <td>@group.AuditDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
-  <td>@group.TableName</td>
-  <td>@group.RecordId</td>
-  <td>
-    <span class="badge badge-@(group.Action == "Added" ? "success" : group.Action == "Deleted" ? "danger" : "warning")">
-      @group.Action
-    </span>
-  </td>
-  <td>@group.ScreenName</td>
-  <td>@group.UserId</td>
-  <td>@group.Fields.Count</td>
-</tr>
-        <tr id="@rowId" class="detail-row" style="display:none;">
-          <td colspan="8">
-            <table class="table table-sm table-striped mb-0">
-              <thead>
-                <tr><th>Field</th><th>Old Value</th><th>New Value</th></tr>
-              </thead>
-              <tbody>
-                @foreach (var f in group.Fields)
-                {
-        <tr>
-          <td>@f.ColumnName</td>
-          <td class="text-danger">@(f.OldValue ?? "NULL")</td>
-          <td class="text-success">@(f.NewValue ?? "NULL")</td>
-        </tr>
-}
-              </tbody>
-            </table>
-          </td>
-        </tr>
-}
-  </tbody>
-</table>
+            <div class="row mb-3">
 
+
+              <div class="col-md-2">
+                @Html.TextBoxFor(m => m.RecordId, new { @class = "form-control", placeholder = "Record Id" })
+              </div>
+              <div class="col-md-2">
+                @Html.DropDownList("DDLAction", new SelectList(ViewBag.Actions), "All Actions", new { @class = "form-control" })
+              </div>
+              <div class="col-md-2">
+                @Html.TextBoxFor(m => m.UserId, new { @class = "form-control", placeholder = "User" })
+              </div>
+              <div class="col-md-2">
+                @Html.TextBoxFor(m => m.FromDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+              </div>
+              <div class="col-md-2">
+                @Html.TextBoxFor(m => m.ToDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary mb-3">Filter</button>
+              </div>
+            </div>
+
+          }
+
+
+          <table id="logsTable"
+                 class="table table-bordered table-hover">
+
+            <thead>
+              <tr>
+                <th style="width:30px;"></th>
+                <th>Date</th>
+                <th>Table</th>
+                <th>Record Id</th>
+                <th>Action</th>
+                <th>Screen</th>
+                <th>User</th>
+                <th># Fields Changed</th>
+              </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+
+          </table>
+
+
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+
+  
 @section Scripts {
+
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
   <script>
-  document.querySelectorAll('.group-row').forEach(function (row) {
-      row.addEventListener('click', function () {
-        var target = document.querySelector(row.dataset.target);
-        var icon = row.querySelector('.toggle-icon');
-        if (target.style.display === 'none') {
-          target.style.display = '';
-          icon.textContent = '−';
-        } else {
-          target.style.display = 'none';
-          icon.textContent = '+';
-        }
-      });
-    });</script>
+
+        $(document).ready(function () {
+
+            var table = $('#logsTable').DataTable({
+
+                processing: true,
+                serverSide: true,
+
+                ajax: {
+                    url: '@Url.Action("GetAuditLogs", "Logs")',
+                    type: 'POST',
+
+                    data: function (d) {
+
+                        d.TableName = $('#TableName').val();
+                        d.RecordId = $('#RecordId').val();
+                        d.DDLAction = $('#DDLAction').val();
+                        d.UserId = $('#UserId').val();
+                        d.FromDate = $('#FromDate').val();
+                        d.ToDate = $('#ToDate').val();
+
+                    }
+                },
+
+                pageLength: 10,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                order: [
+                    [1, 'desc']
+                ],
+
+                columns: [
+
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+
+                        render: function (data, type, row) {
+
+                            return '<span class="toggle-icon">+</span>';
+                        }
+                    },
+
+                    {
+                        data: 'AuditDate'
+                    },
+
+                    {
+                        data: 'TableName'
+                    },
+
+                    {
+                        data: 'RecordId'
+                    },
+
+                    {
+                        data: 'Action',
+
+                        render: function (data) {
+
+                            var badgeClass = 'warning';
+
+                            if (data === 'Added')
+                                badgeClass = 'success';
+
+                            if (data === 'Deleted')
+                                badgeClass = 'danger';
+
+                            return '<span class="badge badge-' +
+                                badgeClass + '">' +
+                                data +
+                                '</span>';
+                        }
+                    },
+
+                    {
+                        data: 'ScreenName'
+                    },
+
+                    {
+                        data: 'UserId'
+                    },
+
+                    {
+                        data: 'FieldsCount'
+                    }
+                ]
+            });
+
+
+            // ----------------------------------
+            // Filter button
+            // ----------------------------------
+
+            $('#filterButton').click(function () {
+
+                table.ajax.reload();
+
+            });
+
+
+            // ----------------------------------
+            // Expand / Collapse
+            // ----------------------------------
+
+            $('#logsTable tbody').on(
+                'click',
+                'td:first-child',
+                function () {
+
+                    var tr = $(this).closest('tr');
+
+                    var row = table.row(tr);
+
+                    var icon = $(this).find('.toggle-icon');
+
+
+                    if (row.child.isShown()) {
+
+                        row.child.hide();
+
+                        tr.removeClass('shown');
+
+                        icon.text('+');
+
+                    }
+                    else {
+
+                        var data = row.data();
+
+                        var html = `
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Old Value</th>
+                                        <th>New Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+
+                        $.each(data.Fields, function (index, field) {
+
+                            html += `
+                                <tr>
+                                    <td>${escapeHtml(field.ColumnName)}</td>
+
+                                    <td class="text-danger">
+                                        ${escapeHtml(field.OldValue || 'NULL')}
+                                    </td>
+
+                                    <td class="text-success">
+                                        ${escapeHtml(field.NewValue || 'NULL')}
+                                    </td>
+                                </tr>
+                            `;
+
+                        });
+
+
+                        html += `
+                                </tbody>
+                            </table>
+                        `;
+
+
+                        row.child(html).show();
+
+                        tr.addClass('shown');
+
+                        icon.text('-');
+                    }
+
+                }
+            );
+
+
+            // ----------------------------------
+            // HTML Encode
+            // ----------------------------------
+
+            function escapeHtml(value) {
+
+                if (value == null)
+                    return '';
+
+                return $('<div>')
+                    .text(value)
+                    .html();
+            }
+
+        });
+
+  </script>
 }
+ 
+
+
+

@@ -357,6 +357,9 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\AnnualLeaveModel.cs" />
     <Compile Include="Models\AuditLogViewModel.cs" />
+    <Compile Include="Models\DatatableVmModel\DataTableRequest.cs" />
+    <Compile Include="Models\DatatableVmModel\LeaveListViewModel.cs" />
+    <Compile Include="Models\DatatableVmModel\UserDataTableModel.cs" />
     <Compile Include="Models\DepartmentModel1.cs" />
     <Compile Include="Models\ErrorViewModel.cs" />
     <Compile Include="Models\HRBPModel.cs" />
