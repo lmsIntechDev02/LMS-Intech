@@ -1350,7 +1350,7 @@ namespace LeaveON.Services
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "SUPPLY CHAIN" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "AUTOMATION SOLUTIONS" };  //, "Solution Centre" , "Project Monitoring & Control" 
                                                                                             //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
                                                                                             //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
