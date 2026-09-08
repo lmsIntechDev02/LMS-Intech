@@ -180,9 +180,9 @@ namespace LeaveON.Services
          managerEmails = GetManagersIDs();
         List<string> managerids = new List<string>();
 
-      //managerids.Add("d7217d94-50fe-4c70-9f7e-6ef2b98cff3d");
-      
-        if (managerEmails.Any())
+      //managerids.Add("d7217d94-50fe-4c70-9f7e-6ef2b98cff3d"); //ht
+
+      if (managerEmails.Any())
       {
         managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
       }
@@ -775,7 +775,7 @@ namespace LeaveON.Services
           else
           {
             mail.To.Add(managerDetail.Email);
-            //mail.To.Add("laiba.khan@intechww.com");
+           //mail.To.Add("laiba.khan@intechww.com");
           //  mail.To.Add("esswaqas@hotmail.com");
           }
           
@@ -1350,7 +1350,7 @@ namespace LeaveON.Services
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "AUTOMATION SOLUTIONS" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        var allowedDepartments = new[] { "Sales" };  //, "Solution Centre" , "Project Monitoring & Control" 
                                                                                             //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
                                                                                             //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
