@@ -18,6 +18,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Drawing;
 using System.Globalization;
+using LeaveON.Models.DatatableVmModel;
 
 namespace LeaveON.Controllers
 {
@@ -39,10 +40,305 @@ namespace LeaveON.Controllers
     {
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
       //var leaves = db.Leaves.Include(l => l.LeaveType);
-      string LoggedInUserId = User.Identity.GetUserId();
-      
-      var leaves = db.Leaves.Where(x => x.IsQuotaRequest == true && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
-      return View(await leaves.ToListAsync());
+    //  string LoggedInUserId = User.Identity.GetUserId();
+
+      //var leaves = db.Leaves.Where(x => x.IsQuotaRequest == true && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
+      //return View(await leaves.ToListAsync());
+      return View();
+    }
+    [HttpPost]
+    public async Task<JsonResult> GetQuotaResponseHistory(DataTableRequest request, string status)
+    {
+      string loggedInUserId = User.Identity.GetUserId();
+
+      var query = db.Leaves
+          .Where(x =>
+              x.IsQuotaRequest == true &&
+              (x.LineManager1Id == loggedInUserId ||
+               x.LineManager2Id == loggedInUserId));
+
+      // ---------------------------------------
+      // STATUS FILTER
+      // ---------------------------------------
+      if (!string.IsNullOrEmpty(status) && status != "all")
+      {
+        if (status == "approved")
+        {
+          query = query.Where(x =>
+              x.IsAccepted1 == 1 &&
+              (x.LineManager2Id == null || x.IsAccepted2 == 1));
+        }
+        else if (status == "rejected")
+        {
+          query = query.Where(x =>
+              x.IsAccepted1 == 0 ||
+              x.IsAccepted2 == 0);
+        }
+        else if (status == "pending")
+        {
+          query = query.Where(x =>
+              x.IsAccepted1 == null ||
+              (x.LineManager2Id != null && x.IsAccepted2 == null));
+        }
+      }
+
+      // ---------------------------------------
+      // TOTAL RECORDS BEFORE SEARCH
+      // ---------------------------------------
+      int recordsTotal = await query.CountAsync();
+
+      // ---------------------------------------
+      // SEARCH
+      // ---------------------------------------
+      if (!string.IsNullOrWhiteSpace(request.Search?.Value))
+      {
+        string search = request.Search.Value.Trim();
+
+        query = query.Where(x =>
+            x.AspNetUser.UserName.Contains(search) ||
+            x.LeaveType.Name.Contains(search) ||
+            x.Reason.Contains(search)
+        );
+      }
+
+      // ---------------------------------------
+      // TOTAL AFTER SEARCH
+      // ---------------------------------------
+      int recordsFiltered = await query.CountAsync();
+
+      // ---------------------------------------
+      // SORTING
+      // ---------------------------------------
+      string sortColumn = request.Columns[request.Order[0].Column].Data;
+      string sortDirection = request.Order[0].Dir;
+
+      switch (sortColumn)
+      {
+        case "DateCreated":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.DateCreated)
+              : query.OrderByDescending(x => x.DateCreated);
+          break;
+
+        case "UserName":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.AspNetUser.UserName)
+              : query.OrderByDescending(x => x.AspNetUser.UserName);
+          break;
+
+        case "JoiningDate":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.AspNetUser.JoiningDate)
+              : query.OrderByDescending(x => x.AspNetUser.JoiningDate);
+          break;
+
+        case "StartDate":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.StartDate)
+              : query.OrderByDescending(x => x.StartDate);
+          break;
+
+        case "EndDate":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.EndDate)
+              : query.OrderByDescending(x => x.EndDate);
+          break;
+
+        case "LeaveType":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.LeaveType.Name)
+              : query.OrderByDescending(x => x.LeaveType.Name);
+          break;
+
+        case "TotalDays":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.TotalDays)
+              : query.OrderByDescending(x => x.TotalDays);
+          break;
+
+        default:
+          query = query.OrderByDescending(x => x.DateCreated);
+          break;
+      }
+
+      // ---------------------------------------
+      // PAGING + PROJECTION
+      // ---------------------------------------
+      var data = await query
+          .Skip(request.Start)
+          .Take(request.Length)
+          .Select(x => new
+          {
+            Id = x.Id,
+
+            DateCreated = x.DateCreated,
+
+            UserName = x.AspNetUser.UserName,
+
+            JoiningDate = x.AspNetUser.JoiningDate,
+
+            StartDate = x.StartDate,
+
+            EndDate = x.EndDate,
+
+            LeaveType = x.LeaveType.Name,
+
+            TotalDays = x.TotalDays,
+
+            Reason = x.Reason,
+
+            IsAccepted1 = x.IsAccepted1,
+
+            Remarks1 = x.Remarks1,
+
+            IsAccepted2 = x.IsAccepted2,
+
+            Remarks2 = x.Remarks2,
+
+            LineManager1Id = x.LineManager1Id,
+
+            LineManager2Id = x.LineManager2Id
+          })
+          .ToListAsync();
+
+      // ---------------------------------------
+      // CREATE RESPONSE
+      // ---------------------------------------
+      var result = data.Select(x =>
+      {
+        string currentUserId = loggedInUserId;
+
+        bool isManager1 = currentUserId == x.LineManager1Id;
+        bool isManager2 = currentUserId == x.LineManager2Id;
+
+        string rowStatus = "pending";
+
+        if (x.IsAccepted1 == 1 &&
+            (x.LineManager2Id == null || x.IsAccepted2 == 1))
+        {
+          rowStatus = "approved";
+        }
+        else if (x.IsAccepted1 == null ||
+                 (x.LineManager2Id != null && x.IsAccepted2 == null))
+        {
+          rowStatus = "pending";
+        }
+        else if (x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
+        {
+          rowStatus = "rejected";
+        }
+
+        string manager1 = "";
+
+        if (x.IsAccepted1 != null)
+        {
+          if (x.IsAccepted1 > 0)
+          {
+            manager1 =
+                "<span style='color:green'><b>Approved</b></span>" +
+                "<br/><span style='color:green;font-size:80%;'>" +
+                (x.Remarks1 ?? "") +
+                "</span>";
+          }
+          else
+          {
+            manager1 =
+                "<span style='color:red'><b>Refused</b></span>" +
+                "<br/><span style='color:red;font-size:80%;'>" +
+                (x.Remarks1 ?? "") +
+                "</span>";
+          }
+        }
+
+        string manager2 = "";
+
+        if (x.IsAccepted2 != null)
+        {
+          if (x.IsAccepted2 > 0)
+          {
+            manager2 =
+                "<span style='color:green'><b>Approved</b></span>" +
+                "<br/><span style='color:green;font-size:80%;'>" +
+                (x.Remarks2 ?? "") +
+                "</span>";
+          }
+          else
+          {
+            manager2 =
+                "<span style='color:red'><b>Refused</b></span>" +
+                "<br/><span style='color:red;font-size:80%;'>" +
+                (x.Remarks2 ?? "") +
+                "</span>";
+          }
+        }
+
+        string action = "";
+
+        if (isManager1 && x.IsAccepted1 == null)
+        {
+          action =
+              "<a href='" +
+              Url.Action("EditCompensatoryQuotaResponse",
+                  new { id = x.Id }) +
+              "'>Approve</a>";
+        }
+        else if (isManager2 &&
+                 x.IsAccepted2 == null &&
+                 x.IsAccepted1 == 1)
+        {
+          action =
+              "<a href='" +
+              Url.Action("EditCompensatoryQuotaResponse",
+                  new { id = x.Id }) +
+              "'>Approve</a>";
+        }
+        else if (x.IsAccepted1 == null)
+        {
+          action =
+              "<span style='color:red;font-size:80%;'>" +
+              "Waiting for approval from Line Manager 1" +
+              "</span>";
+        }
+
+        return new
+        {
+          x.Id,
+          DateCreated = x.DateCreated.HasValue
+                ? x.DateCreated.Value.ToString("MM/dd/yyyy")
+                : "",
+
+          x.UserName,
+
+          JoiningDate = x.JoiningDate.HasValue
+                ? x.JoiningDate.Value.ToString("MM/dd/yyyy")
+                : "",
+
+          StartDate = x.StartDate.ToString("MM/dd/yyyy"),
+           
+
+          EndDate = x.EndDate.ToString("MM/dd/yyyy"),
+                
+
+          x.LeaveType,
+          x.TotalDays,
+          x.Reason,
+
+          Manager1 = manager1,
+          Manager2 = manager2,
+
+          Action = action,
+
+          Status = rowStatus
+        };
+      });
+
+      return Json(new
+      {
+        draw = request.Draw,
+        recordsTotal = recordsTotal,
+        recordsFiltered = recordsFiltered,
+        data = result
+      });
     }
     public List<AspNetUser> GetSeniorStaff()
     {

@@ -5,192 +5,191 @@
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- DataTables -->
-<link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+ 
+
+<section class="content">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+
+        <h3 class="dashboard-title my-2">  My Leaves History </h3>
+        @Html.ActionLink("Apply Leave", "Create")
+      </div>
+      <div class="card">
 
 
 
-<!-- DataTables -->
-<script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-
-
-<form id="LeaveRequestIndex" action="login.cgi" method="post" autocomplete="off">
-
-  <section class="content">
-    <div class="row">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-
-               
-               
-               
-               
-               ">
-            <h3 class="card-title">
-              My Leaves History
-
-            </h3>
-          </div>
-
-
-          <div class="card-body">
-            @Html.ActionLink("Apply Leave", "Create")
-            <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
-              <div class="row">
-                <div class="col-sm-12 col-md-6">
-                </div>
-                <div class="col-sm-12 col-md-6"></div>
+        <div class="card-body">
+          @*@Html.ActionLink("Register User", "Register","Account")*@
+          <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
               </div>
-              <div class="row">
-                <div class="col-sm-12">
+              <div class="col-sm-12 col-md-6"></div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <table id="example2" class="table table-bordered table-hover dataTable dtr-inline">
+                  <thead>
+                    <tr>
+                      <th style="display:none;">Id</th>
+                      <th>Request Date</th>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Leave Type</th>
+                      <th>Days/Hours</th>
+                      <th>Reason</th>
+                      <th>Line Manager 1</th>
+                      <th>Line Manager 2</th>
 
-                  <table id="example2" class="table table-bordered table-hover dataTable dtr-inline" role="grid" aria-describedby="example2_info">
-                    <thead>
-                      <tr role="row">
-                        <th style="display:none">
-                          No.
-                        </th>
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="StartDate: activate to sort column ascending" aria-sort="descending">
-                          Request Date
-                        </th>
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="StartDate: activate to sort column ascending" aria-sort="descending">
-                          @Html.DisplayNameFor(model => model.StartDate)
-                        </th>
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="EndDate: activate to sort column ascending" aria-sort="descending">
-                          @Html.DisplayNameFor(model => model.EndDate)
-                        </th>
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
-                          @Html.DisplayNameFor(model => model.LeaveType.Name)
-                        </th>
-
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="TotalDays: activate to sort column ascending" aria-sort="descending">
-                          @Html.DisplayName("Days/Hours")
-                        </th>
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Reason: activate to sort column ascending" aria-sort="descending">
-                          @Html.DisplayNameFor(model => model.Reason)
-                        </th>
-
-
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="IsAccepted1: activate to sort column ascending" aria-sort="descending">
-                          @*@Html.DisplayNameFor(model => model.IsAccepted1)*@
-                          Line Manager 1
-                        </th>
-
-                        <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="IsAccepted2: activate to sort column ascending" aria-sort="descending">
-                          @*@Html.DisplayNameFor(model => model.IsAccepted2)*@
-                          Line Manager 2
-                        </th>
-
-                        <th></th>
-                      </tr>
-                    </thead>
-
-                    @foreach (var item in Model)
-                    {
-                      <tr role="row" class="odd">
-                        <td style="display:none">
-                          @Html.DisplayFor(modelItem => item.Id)
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.DateCreated)
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.StartDate)
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.EndDate)
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.LeaveType.Name)
-                        </td>
-                        <td>
-                          @if (item.IsShortLeave == false)
-                          {
-                            @Html.DisplayFor(modelItem => item.TotalDays) <text> Day(s)</text> }
-                          else
-                          {
-                            //(item.EndDate - item.StartDate).TotalHours
-                            @Html.DisplayFor(modelItem => (item.EndDate - item.StartDate).TotalHours) <text> Hour(s)</text>
-                          }
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.Reason)
-                        </td>
-
-
-
-                        <td>
-                          @*@Html.DisplayFor(modelItem => item.IsAccepted1)*@
-                          @if (item.IsAccepted1 != null && item.IsAccepted1 > 0)
-                          {
-                            <p style="color:green"><b> Approved </b></p>
-                            <p style="color:green;font-size:80%;">@item.Remarks1</p>
-
-                          }
-                          @if (item.IsAccepted1 != null && item.IsAccepted1 == 0)
-                          {
-                            <p style="color:red"><b> Refused </b></p>
-                            <p style="color:red;font-size:80%;">@item.Remarks1</p>
-                          }
-                        </td>
-
-                        <td>
-                          @*@Html.DisplayFor(modelItem => item.IsAccepted2)*@
-                          @if (item.IsAccepted2 != null && item.IsAccepted2 > 0)
-                          {
-                            <p style="color:green"><b> Approved </b></p>
-                            <p style="color:green;font-size:80%;">@item.Remarks2</p>
-
-                          }
-                          @if (item.IsAccepted2 != null && item.IsAccepted2 == 0)
-                          {
-                            <p style="color:red"><b> Refused </b></p>
-                            <p style="color:red;font-size:80%;">@item.Remarks2</p>
-
-                          }
-                        </td>
-
-
-                        <td>
-                        
-                        </td>
-                      </tr>
-
-                    }
-                   
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
 
 
 
 
-                  </table>
-
-
-                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-</form>
 
-<!-- page script -->
+</section>
+
+ 
+
+ 
 <script>
   $(function () {
 
     $('#example2').DataTable({
-      "paging": false,
-      "lengthChange": false,
-      "searching": true,
-      "ordering": true,
-      "info": false,
-      "autoWidth": false,
-      "responsive": true,
-      "order": [[0, "desc"]]
+
+        processing: true,
+        serverSide: true,
+        searching: true,
+        ordering: true,
+      pageLength: 10,
+      responsive: true,
+      autoWidth: false,
+
+        ajax: {
+            url: '@Url.Action("GetLeaveHistory", "LeavesRequest")',
+            type: 'POST'
+      },
+        columns: [
+         
+        {
+          data: 'DateCreated',
+          render: function (data) {
+            return data ? moment(data).format('MM/DD/YYYY') : '';
+          }
+        },
+        {
+          data: 'StartDate',
+          render: function (data) {
+            return data ? moment(data).format('MM/DD/YYYY') : '';
+          }
+        },
+        {
+          data: 'EndDate',
+          render: function (data) {
+            return data ? moment(data).format('MM/DD/YYYY') : '';
+          }
+        },
+        {
+          data: 'LeaveTypeName'
+          },
+
+          {
+            data: null,
+            render: function (data, type, row) {
+
+              if (row.IsShortLeave == false) {
+                return `${row.TotalDays} Day(s)`;
+              }
+              else {
+                return `${row.TotalHours} Hour(s)`;
+              }
+
+
+
+              return '';
+            }
+          },
+        {
+          data: 'Reason'
+        },
+        {
+          //data: 'ApprovalStatus1'
+          data: null,
+          render: function (data, type, row) {
+
+
+              return `
+                            <p style="color:green">
+                                <b>${row.ApprovalStatus1}</b>
+                            </p>
+                            <p style="color:green;font-size:80%;">
+                                ${row.remarks1 || ''}
+                            </p>`;
+
+
+
+
+
+          }
+          },
+          {
+            //data: 'ApprovalStatus1'
+            data: null,
+            render: function (data, type, row) {
+
+
+              return `
+                            <p style="color:green">
+                                <b>${row.ApprovalStatus2}</b>
+                            </p>
+                            <p style="color:green;font-size:80%;">
+                                ${row.Remarks2 || ''}
+                            </p>`;
+
+
+
+
+
+            }
+          },
+
+
+        //{
+        //    data: 'Id',
+        //    orderable: false,
+        //    searchable: false,
+        //  render: function (data)
+        //  {
+
+        //        return '';
+        //    }
+        //}
+    ],
+
+
+
+        order: [[1, 'desc']],
+
+        responsive: true,
+
+        language: {
+            processing: "Loading..."
+        }
     });
+
+
   });
 </script>
 

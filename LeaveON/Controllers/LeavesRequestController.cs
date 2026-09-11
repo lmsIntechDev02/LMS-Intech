@@ -43,138 +43,121 @@ namespace LeaveON.Controllers
     {
       string loggedInUserId = User.Identity.GetUserId();
 
-      // Base query
+      // -----------------------------------------
+      // 1. Base Query
+      // -----------------------------------------
       var query = db.Leaves
-          .Where(x => x.UserId == loggedInUserId &&
-                      (x.IsQuotaRequest == false || x.IsQuotaRequest == null))
-          .Select(x => new LeaveListViewModel
-          {
-            Id = Convert.ToInt32(x.Id),
+          .Where(x =>
+              x.UserId == loggedInUserId &&
+              (x.IsQuotaRequest == false || x.IsQuotaRequest == null)
+          );
 
-            DateCreated = x.DateCreated,
-            StartDate = x.StartDate,
-            EndDate = x.EndDate,
-
-            LeaveTypeName = x.LeaveType != null
-                  ? x.LeaveType.Name
-                  : "",
-
-            IsShortLeave = x.IsShortLeave ?? false,
-
-            TotalDays = x.TotalDays,
-
-            TotalHours = x.IsShortLeave == true
-                  ? DbFunctions.DiffHours(x.StartDate, x.EndDate)
-                  : 0,
-
-            Reason = x.Reason,
-
-            IsAccepted1 = x.IsAccepted1,
-            Remarks1 = x.Remarks1,
-
-            IsAccepted2 = x.IsAccepted2,
-            Remarks2 = x.Remarks2,
-
-          // Approval 1
-          ApprovalStatus1 =
-                  x.IsAccepted1.HasValue && x.IsAccepted1 > 0
-                      ? "Approved"
-                      : x.IsAccepted1.HasValue && x.IsAccepted1 == 0
-                          ? "Refused"
-                          : "",
-
-          // Approval 2
-          ApprovalStatus2 =
-                  x.IsAccepted2.HasValue && x.IsAccepted2 > 0
-                      ? "Approved"
-                      : x.IsAccepted2.HasValue && x.IsAccepted2 == 0
-                          ? "Refused"
-                          : ""
-          });
-
-      // Total records before search
+      // -----------------------------------------
+      // 2. Total Records
+      // -----------------------------------------
       var recordsTotal = await query.CountAsync();
 
-      // Search
+      // -----------------------------------------
+      // 3. Search
+      // -----------------------------------------
       if (request.Search != null &&
           !string.IsNullOrWhiteSpace(request.Search.Value))
       {
-        var search = request.Search.Value.Trim();
+        string search = request.Search.Value.Trim();
 
         query = query.Where(x =>
-            x.LeaveTypeName.Contains(search) ||
-            x.Reason.Contains(search) ||
-            x.Remarks1.Contains(search) ||
-            x.Remarks2.Contains(search) ||
-            x.ApprovalStatus1.Contains(search) ||
-            x.ApprovalStatus2.Contains(search)
+            (x.LeaveType != null &&
+             x.LeaveType.Name.Contains(search))
+
+            ||
+
+            (x.Reason != null &&
+             x.Reason.Contains(search))
+
+            ||
+
+            (x.Remarks1 != null &&
+             x.Remarks1.Contains(search))
+
+            ||
+
+            (x.Remarks2 != null &&
+             x.Remarks2.Contains(search))
+
+            ||
+
+            (search == "Approved" &&
+             ((x.IsAccepted1.HasValue && x.IsAccepted1 > 0) ||
+              (x.IsAccepted2.HasValue && x.IsAccepted2 > 0)))
+
+            ||
+
+            (search == "Refused" &&
+             ((x.IsAccepted1.HasValue && x.IsAccepted1 == 0) ||
+              (x.IsAccepted2.HasValue && x.IsAccepted2 == 0)))
         );
       }
 
-      // Total records after search
+      // -----------------------------------------
+      // 4. Filtered Records
+      // -----------------------------------------
       var recordsFiltered = await query.CountAsync();
 
-      // Sorting
+      // -----------------------------------------
+      // 5. Sorting
+      // -----------------------------------------
       if (request.Order != null && request.Order.Count > 0)
       {
         var order = request.Order[0];
 
         switch (order.Column)
         {
-          // Date Created
           case 0:
             query = order.Dir == "desc"
                 ? query.OrderByDescending(x => x.DateCreated)
                 : query.OrderBy(x => x.DateCreated);
             break;
 
-          // Start Date
           case 1:
             query = order.Dir == "desc"
                 ? query.OrderByDescending(x => x.StartDate)
                 : query.OrderBy(x => x.StartDate);
             break;
 
-          // End Date
           case 2:
             query = order.Dir == "desc"
                 ? query.OrderByDescending(x => x.EndDate)
                 : query.OrderBy(x => x.EndDate);
             break;
 
-          // Leave Type
           case 3:
             query = order.Dir == "desc"
-                ? query.OrderByDescending(x => x.LeaveTypeName)
-                : query.OrderBy(x => x.LeaveTypeName);
+                ? query.OrderByDescending(x => x.LeaveType.Name)
+                : query.OrderBy(x => x.LeaveType.Name);
             break;
 
-          // Total Days / Hours
           case 4:
             query = order.Dir == "desc"
                 ? query.OrderByDescending(x => x.TotalDays)
                 : query.OrderBy(x => x.TotalDays);
             break;
 
-          // Reason
           case 5:
             query = order.Dir == "desc"
                 ? query.OrderByDescending(x => x.Reason)
                 : query.OrderBy(x => x.Reason);
             break;
 
-          // Approval 1
           case 6:
             query = order.Dir == "desc"
-                ? query.OrderByDescending(x => x.ApprovalStatus1)
-                : query.OrderBy(x => x.ApprovalStatus1);
+                ? query.OrderByDescending(x => x.IsAccepted1)
+                : query.OrderBy(x => x.IsAccepted1);
             break;
 
-          // Approval 2
           case 7:
             query = order.Dir == "desc"
-                ? query.OrderByDescending(x => x.ApprovalStatus2)
-                : query.OrderBy(x => x.ApprovalStatus2);
+                ? query.OrderByDescending(x => x.IsAccepted2)
+                : query.OrderBy(x => x.IsAccepted2);
             break;
 
           default:
@@ -187,19 +170,77 @@ namespace LeaveON.Controllers
         query = query.OrderByDescending(x => x.DateCreated);
       }
 
-      // Paging
-      var leaves = await query
+      // -----------------------------------------
+      // 6. Get records from database
+      // -----------------------------------------
+      var data = await query
           .Skip(request.Start)
           .Take(request.Length)
           .ToListAsync();
 
-      // Response
+      // -----------------------------------------
+      // 7. Convert to ViewModel AFTER ToListAsync
+      //    NO DbFunctions here
+      // -----------------------------------------
+      var leavehistory = data.Select(x => new LeaveListViewModel
+      {
+        Id = Convert.ToInt32(x.Id),
+
+        DateCreated = x.DateCreated,
+
+        StartDate = x.StartDate,
+
+        EndDate = x.EndDate,
+
+        LeaveTypeName = x.LeaveType != null
+              ? x.LeaveType.Name
+              : "",
+
+        IsShortLeave = x.IsShortLeave ?? false,
+
+        TotalDays = x.TotalDays,
+
+        // IMPORTANT:
+        // This is normal C# calculation.
+        TotalHours = x.IsShortLeave == true
+              ? (x.EndDate - x.StartDate).TotalHours
+              : 0,
+
+        Reason = x.Reason,
+
+        IsAccepted1 = x.IsAccepted1,
+
+        Remarks1 = x.Remarks1,
+
+        IsAccepted2 = x.IsAccepted2,
+
+        Remarks2 = x.Remarks2,
+
+        ApprovalStatus1 =
+              x.IsAccepted1.HasValue && x.IsAccepted1 > 0
+                  ? "Approved"
+                  : x.IsAccepted1.HasValue && x.IsAccepted1 == 0
+                      ? "Refused"
+                      : "",
+
+        ApprovalStatus2 =
+              x.IsAccepted2.HasValue && x.IsAccepted2 > 0
+                  ? "Approved"
+                  : x.IsAccepted2.HasValue && x.IsAccepted2 == 0
+                      ? "Refused"
+                      : ""
+
+      }).ToList();
+
+      // -----------------------------------------
+      // 8. Return DataTable response
+      // -----------------------------------------
       return Json(new DataTableResponse<LeaveListViewModel>
       {
         draw = request.Draw,
         recordsTotal = recordsTotal,
         recordsFiltered = recordsFiltered,
-        data = leaves
+        data = leavehistory
       });
     }
     public async Task<ActionResult> QuotaRequestHistory()

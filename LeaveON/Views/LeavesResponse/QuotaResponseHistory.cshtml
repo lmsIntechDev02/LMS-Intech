@@ -1,291 +1,227 @@
-@model IEnumerable<Repository.Models.Leave>
 @using Microsoft.AspNet.Identity
-@using System.Web.Mvc.Html
 
 @{
-  ViewBag.Title = "Index";
+  ViewBag.Title = "Quota Response History";
   Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<!-- DataTables -->
-<link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
-
-
-
-<!-- DataTables -->
-<script src="../../plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="../../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-
-
-
-
-
 
 <section class="content">
   <div class="row">
     <div class="col-12">
+
       <div class="card">
+
         <div class="card-header">
-          <h3 class="card-title">Users Compensatory Quota Approval Requests History</h3>
-          @*&nbsp;*@
-          @*@Html.ActionLink("Create New", "Create")*@
-
+          <h3 class="card-title">
+            Users Compensatory Quota Approval Requests History
+          </h3>
         </div>
-
 
         <div class="card-body">
-          <div class="mb-3 d-flex gap-2">
-            <button id="btnAll" class="filter-btn active" data-status="all">All</button>
-            <button id="btnApproved" class="filter-btn " data-status="approved">Approved</button>
-            <button id="btnRejected" class="filter-btn" data-status="rejected">Rejected</button>
-            <button id="btnPending" class="filter-btn" data-status="pending">Pending</button>
+
+          <!-- FILTER BUTTONS -->
+          <div class="mb-3">
+
+            <button type="button"
+                    class="filter-btn active"
+                    data-status="all">
+              All
+            </button>
+
+            <button type="button"
+                    class="filter-btn"
+                    data-status="approved">
+              Approved
+            </button>
+
+            <button type="button"
+                    class="filter-btn"
+                    data-status="rejected">
+              Rejected
+            </button>
+
+            <button type="button"
+                    class="filter-btn"
+                    data-status="pending">
+              Pending
+            </button>
+
           </div>
 
-          <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
-            <div class="row">
-              <div class="col-sm-12 col-md-6">
-              </div>
-              <div class="col-sm-12 col-md-6"></div>
-            </div>
-            <div class="row">
-              <div class="col-sm-12">
-                <table id="example2" class="table table-bordered table-hover dataTable dtr-inline" role="grid" aria-describedby="example2_info">
-                  <thead>
-                    <tr role="row">
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="StartDate: activate to sort column ascending" aria-sort="descending">
-                        Request Date
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="StartDate: activate to sort column ascending" aria-sort="descending">
-                        Eamil
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="StartDate: activate to sort column ascending" aria-sort="descending">
-                        Joining Date
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="StartDate: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.StartDate)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="EndDate: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.EndDate)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column ascending" aria-sort="descending">
-                        @*@Html.DisplayNameFor(model => model.LeaveType.Name)*@
-                        Leave Type
-                      </th>
+          <!-- TABLE -->
+          <table id="example2"
+                 class="table table-bordered table-hover"
+                 style="width:100%">
 
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="TotalDays: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.TotalDays)
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Reason: activate to sort column ascending" aria-sort="descending">
-                        @Html.DisplayNameFor(model => model.Reason)
-                      </th>
-
-
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="IsAccepted1: activate to sort column ascending" aria-sort="descending">
-                        @*@Html.DisplayNameFor(model => model.IsAccepted1)*@
-                        Line Manager 1
-                      </th>
-                      <th class="sorting_desc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="IsAccepted2: activate to sort column ascending" aria-sort="descending">
-                        @*@Html.DisplayNameFor(model => model.IsAccepted2)*@
-                        Line Manager 2
-                      </th>
-
-
-
-                      <th></th>
-                    </tr>
-                  </thead>
-
-                  @foreach (var item in Model)
-                  {
-                    string status = "pending";
-
-                    // ✅ Approved: both approved OR LM1 approved and LM2 not exists
-                    if (item.IsAccepted1 == 1 && (item.LineManager2Id == null || item.IsAccepted2 == 1))
-                    {
-                      status = "approved";
-                    }
-                    // 🕓 Pending: any manager not responded yet
-                    else if (item.IsAccepted1 == null || (item.LineManager2Id != null && item.IsAccepted2 == null))
-                    {
-                      status = "pending";
-                    }
-                    // ❌ Rejected: any manager rejected
-                    else if (item.IsAccepted1 == 0 && item.IsAccepted2 == 0)
-                    {
-                      status = "rejected";
-                    }
-
-
-                    <tr role="row" class="odd" data-status="@status">
-                      <td>
-                        @Html.DisplayFor(modelItem => item.DateCreated)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.AspNetUser.UserName)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.AspNetUser.JoiningDate)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.StartDate)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.EndDate)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.LeaveType.Name)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.TotalDays)
-                      </td>
-                      <td>
-                        @Html.DisplayFor(modelItem => item.Reason)
-                      </td>
-
-
-
-                      <td>
-                        @*@Html.DisplayFor(modelItem => item.IsAccepted1)*@
-                        @if (item.IsAccepted1 != null && item.IsAccepted1 > 0)
-                        {
-                          <p style="color:green"><b> Approved </b></p>
-                          <p style="color:green;font-size:80%;">@item.Remarks1</p>
-                        }
-                        @if (item.IsAccepted1 != null && item.IsAccepted1 == 0)
-                        {
-                          <p style="color:red"><b> Refused </b></p>
-                          <p style="color:red;font-size:80%;">@item.Remarks1</p>
-                        }
-                      </td>
-
-                      <td>
-                        @*@Html.DisplayFor(modelItem => item.IsAccepted2)*@
-                        @if (item.IsAccepted2 != null && item.IsAccepted2 > 0)
-                        {
-                          <p style="color:green"><b> Approved </b></p>
-                          <p style="color:green;font-size:80%;">@item.Remarks2</p>
-                        }
-                        @if (item.IsAccepted2 != null && item.IsAccepted2 == 0)
-                        {
-                          <p style="color:red"><b> Refused </b></p>
-                          <p style="color:red;font-size:80%;">@item.Remarks2</p>
-                        }
-                      </td>
-
-
-
-
-                      <td>
-                        @{
-                          string currentUserId = User.Identity.GetUserId();
-                          bool isManager1 = currentUserId == item.LineManager1Id;
-                          bool isManager2 = currentUserId == item.LineManager2Id;
-                        }
-                        @if (isManager1 && item.IsAccepted1 == null)
-                        {
-                          // Show approval code for Line Manager 1
-                          @Html.ActionLink("Approve", "EditCompensatoryQuotaResponse", new { id = item.Id })
-                        }
-                        else if (isManager2 && item.IsAccepted2 == null && item.IsAccepted1 == 1)
-                        {
-                          // Show approval code for Line Manager 2
-                          @Html.ActionLink("Approve", "EditCompensatoryQuotaResponse", new { id = item.Id })
-                        }
-                        else if (item.IsAccepted1 == null)
-                        {
-                          // Show message: Waiting for approval from Line Manager 1
-                          <p style="color:red;font-size:80%;">Waiting for approval from Line Manager 1</p>
-                        }
-                        @*@Html.ActionLink("Details", "Details", new { id = item.Id }) |*@
-                        @*@Html.ActionLink("Delete", "Delete", new { id = item.Id })*@
-                      </td>
-                    </tr>
-
-                  }
-                  @*<tfoot>
+            <thead>
               <tr>
+                <th>Request Date</th>
+                <th>Email</th>
+                <th>Joining Date</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Leave Type</th>
+                <th>Total Days</th>
+                <th>Reason</th>
+                <th>Line Manager 1</th>
+                <th>Line Manager 2</th>
+                <th>Action</th>
               </tr>
-            </tfoot>*@
+            </thead>
 
+          </table>
 
-
-
-                </table>
-
-
-              </div>
-            </div>
-          </div>
         </div>
+
       </div>
+
     </div>
   </div>
 </section>
 
-
-
-<!-- page script -->
 <script>
-  $(function () {
 
-    var table = $('#example2').DataTable({
-      "paging": false,
-      "lengthChange": false,
-      "searching": true,
-      "ordering": true,
-      "info": false,
-      "autoWidth": false,
-      "responsive": true,
-      "order": [[0, "desc"]]
+    $(document).ready(function () {
+
+        var currentStatus = "all";
+
+        var table = $('#example2').DataTable({
+
+            processing: true,
+
+            serverSide: true,
+
+            searching: true,
+
+            ordering: true,
+
+            paging: true,
+
+            pageLength: 10,
+
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+
+            responsive: true,
+
+            order: [
+                [0, "desc"]
+            ],
+
+            ajax: {
+                url: '@Url.Action("GetQuotaResponseHistory", "LeavesResponse")',
+                type: 'POST',
+
+                data: function (d) {
+
+                    d.status = currentStatus;
+
+                }
+            },
+
+            columns: [
+
+                {
+                    data: "DateCreated",
+                    name: "DateCreated"
+                },
+
+                {
+                    data: "UserName",
+                    name: "UserName"
+                },
+
+                {
+                    data: "JoiningDate",
+                    name: "JoiningDate"
+                },
+
+                {
+                    data: "StartDate",
+                    name: "StartDate"
+                },
+
+                {
+                    data: "EndDate",
+                    name: "EndDate"
+                },
+
+                {
+                    data: "LeaveType",
+                    name: "LeaveType"
+                },
+
+                {
+                    data: "TotalDays",
+                    name: "TotalDays"
+                },
+
+                {
+                    data: "Reason",
+                    name: "Reason"
+                },
+
+                {
+                    data: "Manager1",
+                    name: "Manager1",
+                    orderable: false,
+                    searchable: false
+                },
+
+                {
+                    data: "Manager2",
+                    name: "Manager2",
+                    orderable: false,
+                    searchable: false
+                },
+
+                {
+                    data: "Action",
+                    name: "Action",
+                    orderable: false,
+                    searchable: false
+                }
+
+            ]
+
+        });
+
+
+        // ----------------------------------------
+        // FILTER BUTTON
+        // ----------------------------------------
+
+        $('.filter-btn').on('click', function () {
+
+            $('.filter-btn').removeClass('active');
+
+            $(this).addClass('active');
+
+            currentStatus = $(this).data('status');
+
+            // Reload from server
+            table.ajax.reload(null, true);
+
+        });
+
     });
 
-    // Helper: show rows based on status
-    function filterByStatus(status) {
-      table.rows().every(function () {
-        var row = $(this.node());
-        if (status === 'all' || row.data('status') === status) {
-          row.show();
-        } else {
-          row.hide();
-        }
-      });
-    }
-    // Manage active state
-    $('.filter-btn').on('click', function () {
-      $('.filter-btn').removeClass('active');
-      $(this).addClass('active');
-    });
-
-    // Button events
-    $('#btnAll').click(function () {
-      filterByStatus('all');
-    });
-
-    $('#btnApproved').click(function () {
-      filterByStatus('approved');
-    });
-
-    $('#btnRejected').click(function () {
-      filterByStatus('rejected');
-    });
-
-    $('#btnPending').click(function () {
-      filterByStatus('pending');
-    });
-  });
 </script>
 
-
 <style>
+
   .filter-btn {
     color: #000;
+    background-color: #fff;
     border: 1px solid #c5c5c5;
     padding: 6px 12px;
     width: 110px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    margin-left: 7px;
+    margin-right: 7px;
   }
 
     .filter-btn:hover {
@@ -294,8 +230,8 @@
     }
 
     .filter-btn.active {
+      background-color: #f1f1f1;
       border: 1px solid #000;
+      font-weight: 600;
     }
 </style>
-
-
