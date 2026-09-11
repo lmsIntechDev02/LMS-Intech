@@ -181,11 +181,12 @@ namespace LeaveON.Services
         List<string> managerids = new List<string>();
 
       //managerids.Add("d7217d94-50fe-4c70-9f7e-6ef2b98cff3d"); //ht
+      managerids.Add("04a6810a-4e58-4d42-ba05-77c24b732fbb"); //ht
 
-      if (managerEmails.Any())
-      {
-        managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
-      }
+      //if (managerEmails.Any())
+      //{
+      //  managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
+      //}
 
 
       managerEmails = GetManagersListById(managerids);
@@ -196,7 +197,8 @@ namespace LeaveON.Services
         {
           var users = GetUserEmailsAndIDs(managerEmail.Id);
 
-          ///users = users.Where(k => k.userId == 1080).ToList();
+         // users = users.Where(k => k.userId == 2299).ToList();
+
           if (users == null || users.Count == 0)
             continue;
           List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users, false);
@@ -774,8 +776,8 @@ namespace LeaveON.Services
           }
           else
           {
-            mail.To.Add(managerDetail.Email);
-           //mail.To.Add("laiba.khan@intechww.com");
+            //mail.To.Add(managerDetail.Email);
+           mail.To.Add("laiba.khan@intechww.com");
           //  mail.To.Add("esswaqas@hotmail.com");
           }
           
@@ -784,7 +786,7 @@ namespace LeaveON.Services
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
         {
-          mail.CC.Add(hrBpEmail);
+          //mail.CC.Add(hrBpEmail);
         }
 
         // BCC
@@ -1350,7 +1352,7 @@ namespace LeaveON.Services
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "Sales" };  //, "Solution Centre" , "Project Monitoring & Control" 
+        var allowedDepartments = new[] { "WELLHEAD & SKIDS" };  //, "Solution Centre" , "Project Monitoring & Control" 
                                                                                             //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
                                                                                             //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
 
