@@ -31,10 +31,368 @@ namespace LeaveON.Controllers
     // GET: Leaves
     public async Task<ActionResult> Index()
     {
-    
-      string LoggedInUserId = User.Identity.GetUserId();
-      var leaves = db.Leaves.Where(x => x.IsQuotaRequest == false && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
-      return View(await leaves.ToListAsync());
+
+      //string LoggedInUserId = User.Identity.GetUserId();
+      //var leaves = db.Leaves.Where(x => x.IsQuotaRequest == false && (x.LineManager1Id == LoggedInUserId || x.LineManager2Id == LoggedInUserId));
+      //return View(await leaves.ToListAsync());
+      return View();
+    }
+
+    [HttpPost]
+    public async Task<JsonResult> GetLeaveApprovalHistory(DataTableRequest request, string status = "all")
+    {
+      string loggedInUserId = User.Identity.GetUserId();
+
+      IQueryable<Leave> query = db.Leaves
+          .Where(x =>
+              x.IsQuotaRequest == false &&
+              (x.LineManager1Id == loggedInUserId ||
+               x.LineManager2Id == loggedInUserId));
+
+      // ---------------------------------------------
+      // Status Filter
+      // ---------------------------------------------
+
+      if (!string.IsNullOrEmpty(status) && status != "all")
+      {
+        if (status == "approved")
+        {
+          query = query.Where(x =>
+              x.IsAccepted1 == 1 &&
+              (x.LineManager2Id == null || x.IsAccepted2 == 1));
+        }
+        else if (status == "pending")
+        {
+          query = query.Where(x =>
+              x.IsAccepted1 == null ||
+              (x.LineManager2Id != null && x.IsAccepted2 == null));
+        }
+        else if (status == "rejected")
+        {
+          query = query.Where(x =>
+              x.IsAccepted1 == 0 ||
+              x.IsAccepted2 == 0);
+        }
+      }
+
+      // ---------------------------------------------
+      // Total records before search
+      // ---------------------------------------------
+
+      int recordsTotal = await query.CountAsync();
+
+      // ---------------------------------------------
+      // Search
+      // ---------------------------------------------
+
+      if (!string.IsNullOrWhiteSpace(request.Search?.Value))
+      {
+        string search = request.Search.Value.Trim();
+
+        query = query.Where(x =>
+            x.AspNetUser.UserName.Contains(search) ||
+            x.LeaveType.Name.Contains(search) ||
+            x.Reason.Contains(search) ||
+            x.Remarks1.Contains(search) ||
+            x.Remarks2.Contains(search));
+      }
+
+      int recordsFiltered = await query.CountAsync();
+
+      // ---------------------------------------------
+      // Ordering
+      // ---------------------------------------------
+
+      string sortColumn = "DateCreated";
+      string sortDirection = "desc";
+
+      if (request.Order != null && request.Order.Count > 0)
+      {
+        sortDirection = request.Order[0].Dir;
+
+        switch (request.Order[0].Column)
+        {
+          case 0:
+            sortColumn = "DateCreated";
+            break;
+
+          case 1:
+            sortColumn = "UserName";
+            break;
+
+          case 2:
+            sortColumn = "JoiningDate";
+            break;
+
+          case 3:
+            sortColumn = "StartDate";
+            break;
+
+          case 4:
+            sortColumn = "EndDate";
+            break;
+
+          case 5:
+            sortColumn = "LeaveType";
+            break;
+
+          case 6:
+            sortColumn = "TotalDays";
+            break;
+
+          case 7:
+            sortColumn = "Reason";
+            break;
+
+          default:
+            sortColumn = "DateCreated";
+            break;
+        }
+      }
+
+      // ---------------------------------------------
+      // Server-side Ordering
+      // ---------------------------------------------
+
+      switch (sortColumn)
+      {
+        case "UserName":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.AspNetUser.UserName)
+              : query.OrderByDescending(x => x.AspNetUser.UserName);
+          break;
+
+        case "JoiningDate":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.AspNetUser.JoiningDate)
+              : query.OrderByDescending(x => x.AspNetUser.JoiningDate);
+          break;
+
+        case "StartDate":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.StartDate)
+              : query.OrderByDescending(x => x.StartDate);
+          break;
+
+        case "EndDate":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.EndDate)
+              : query.OrderByDescending(x => x.EndDate);
+          break;
+
+        case "LeaveType":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.LeaveType.Name)
+              : query.OrderByDescending(x => x.LeaveType.Name);
+          break;
+
+        case "TotalDays":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.TotalDays)
+              : query.OrderByDescending(x => x.TotalDays);
+          break;
+
+        case "Reason":
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.Reason)
+              : query.OrderByDescending(x => x.Reason);
+          break;
+
+        default:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.DateCreated)
+              : query.OrderByDescending(x => x.DateCreated);
+          break;
+      }
+
+      // ---------------------------------------------
+      // Paging
+      // ---------------------------------------------
+
+      int start = request.Start;
+      int length = request.Length;
+
+      if (length <= 0)
+        length = 10;
+
+      var data = await query
+          .Skip(start)
+          .Take(length)
+          .Select(x => new
+          {
+            Id = x.Id,
+            DateCreated = x.DateCreated,
+            UserName = x.AspNetUser.UserName,
+            JoiningDate = x.AspNetUser.JoiningDate,
+            StartDate = x.StartDate,
+            EndDate = x.EndDate,
+            LeaveType = x.LeaveType.Name,
+            TotalDays = x.TotalDays,
+            Reason = x.Reason,
+            IsAccepted1 = x.IsAccepted1,
+            Remarks1 = x.Remarks1,
+            IsAccepted2 = x.IsAccepted2,
+            Remarks2 = x.Remarks2,
+            LineManager1Id = x.LineManager1Id,
+            LineManager2Id = x.LineManager2Id
+          })
+          .ToListAsync();
+
+      // ---------------------------------------------
+      // Current logged-in manager
+      // ---------------------------------------------
+
+      var currentUserId = User.Identity.GetUserId();
+
+      // ---------------------------------------------
+      // Convert data for DataTables
+      // ---------------------------------------------
+
+      var result = data.Select(x =>
+      {
+        string currentStatus = "pending";
+
+        if (x.IsAccepted1 == 1 &&
+            (x.LineManager2Id == null || x.IsAccepted2 == 1))
+        {
+          currentStatus = "approved";
+        }
+        else if (x.IsAccepted1 == null ||
+                 (x.LineManager2Id != null && x.IsAccepted2 == null))
+        {
+          currentStatus = "pending";
+        }
+        else if (x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
+        {
+          currentStatus = "rejected";
+        }
+
+        string manager1Html = "";
+
+        if (x.IsAccepted1 != null && x.IsAccepted1 > 0)
+        {
+          manager1Html =
+              "<p style='color:green'><b>Approved</b></p>" +
+              "<p style='color:green;font-size:80%;'>" +
+              (x.Remarks1 ?? "") +
+              "</p>";
+        }
+        else if (x.IsAccepted1 != null && x.IsAccepted1 == 0)
+        {
+          manager1Html =
+              "<p style='color:red'><b>Rejected</b></p>" +
+              "<p style='color:red;font-size:80%;'>" +
+              (x.Remarks1 ?? "") +
+              "</p>";
+        }
+
+        string manager2Html = "";
+
+        if (x.IsAccepted2 != null && x.IsAccepted2 > 0)
+        {
+          manager2Html =
+              "<p style='color:green'><b>Approved</b></p>" +
+              "<p style='color:green;font-size:80%;'>" +
+              (x.Remarks2 ?? "") +
+              "</p>";
+        }
+        else if (x.IsAccepted2 != null && x.IsAccepted2 == 0)
+        {
+          manager2Html =
+              "<p style='color:red'><b>Rejected</b></p>" +
+              "<p style='color:red;font-size:80%;'>" +
+              (x.Remarks2 ?? "") +
+              "</p>";
+        }
+
+        string actionHtml = "";
+
+        bool isManager1 = currentUserId == x.LineManager1Id;
+        bool isManager2 = currentUserId == x.LineManager2Id;
+
+        if (x.LeaveType != "Annual Leaves")
+        {
+          if (isManager1 && x.IsAccepted1 == null)
+          {
+            actionHtml =
+                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+          }
+          else if (isManager2 &&
+                   x.IsAccepted2 == null &&
+                   x.IsAccepted1 == 1)
+          {
+            actionHtml =
+                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+          }
+          else if (x.IsAccepted1 == null)
+          {
+            actionHtml =
+                "<p style='color:red;font-size:80%;'>" +
+                "Waiting for approval from Line Manager 1</p>";
+          }
+        }
+        else
+        {
+          if (isManager1 && x.IsAccepted1 == null)
+          {
+            actionHtml =
+                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+          }
+          else if (isManager2 &&
+                   x.IsAccepted2 == null &&
+                   x.IsAccepted1 == 1)
+          {
+            actionHtml =
+                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+          }
+          else if (x.IsAccepted1 == null)
+          {
+            actionHtml =
+                "<p style='color:red;font-size:80%;'>" +
+                "Waiting for approval from HR Manager</p>";
+          }
+        }
+
+        return new
+        {
+          x.Id,
+          DateCreated = x.DateCreated.HasValue
+                ? x.DateCreated.Value.ToString("dd/MM/yyyy")
+                : "",
+
+          UserName = x.UserName,
+
+          JoiningDate = x.JoiningDate.HasValue
+                ? x.JoiningDate.Value.ToString("dd/MM/yyyy")
+                : "",
+
+          StartDate = x.StartDate.ToString("dd/MM/yyyy"),
+                 
+                 
+
+          EndDate = x.EndDate.ToString("dd/MM/yyyy"),
+                
+               
+
+          x.LeaveType,
+          x.TotalDays,
+          x.Reason,
+
+          Manager1 = manager1Html,
+          Manager2 = manager2Html,
+          Action = actionHtml,
+
+          Status = currentStatus
+        };
+      });
+
+      return Json(new
+      {
+        draw = request.Draw,
+        recordsTotal = recordsTotal,
+        recordsFiltered = recordsFiltered,
+        data = result
+      }, JsonRequestBehavior.AllowGet);
     }
     public async Task<ActionResult> QuotaResponseHistory()
     {

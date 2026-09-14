@@ -244,12 +244,140 @@ namespace LeaveON.Controllers
       });
     }
     public async Task<ActionResult> QuotaRequestHistory()
+    
     {
       //var leaves = db.Leaves.Include(l => l.LeaveType).Include(l => l.UserLeavePolicy);
-      string LoggedInUserId = User.Identity.GetUserId();
-      IQueryable<Leave> leaves = db.Leaves.Where(x => x.UserId == LoggedInUserId && x.IsQuotaRequest == true).AsQueryable<Leave>();
-      return View(await leaves.ToListAsync());
+      //string LoggedInUserId = User.Identity.GetUserId();
+      //IQueryable<Leave> leaves = db.Leaves.Where(x => x.UserId == LoggedInUserId && x.IsQuotaRequest == true).AsQueryable<Leave>();
+      //return View(await leaves.ToListAsync());
+      return View();
+    }
+    [HttpPost]
+    public async Task<JsonResult> GetQuotaRequestHistory(DataTableRequest request)
+    {
+      string loggedInUserId = User.Identity.GetUserId();
 
+      // Base query
+      var query = db.Leaves
+          .Where(x => x.UserId == loggedInUserId &&
+                      x.IsQuotaRequest == true);
+
+      // Total records before filtering
+      int recordsTotal = await query.CountAsync();
+
+      // Search
+      string searchValue = request.Search?.Value;
+
+      if (!string.IsNullOrWhiteSpace(searchValue))
+      {
+        searchValue = searchValue.Trim();
+
+        query = query.Where(x =>
+            x.Reason.Contains(searchValue) ||
+            x.LeaveType.Name.Contains(searchValue)
+        );
+      }
+
+      // Total records after filtering
+      int recordsFiltered = await query.CountAsync();
+
+      // Sorting
+      int sortColumn = 0;
+      string sortDirection = "desc";
+
+      if (request.Order != null && request.Order.Count > 0)
+      {
+        sortColumn = request.Order[0].Column;
+        sortDirection = request.Order[0].Dir;
+      }
+
+      switch (sortColumn)
+      {
+        case 0:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.DateCreated)
+              : query.OrderByDescending(x => x.DateCreated);
+          break;
+
+        case 1:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.StartDate)
+              : query.OrderByDescending(x => x.StartDate);
+          break;
+
+        case 2:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.EndDate)
+              : query.OrderByDescending(x => x.EndDate);
+          break;
+
+        case 3:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.LeaveType.Name)
+              : query.OrderByDescending(x => x.LeaveType.Name);
+          break;
+
+        case 4:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.TotalDays)
+              : query.OrderByDescending(x => x.TotalDays);
+          break;
+
+        case 5:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.Reason)
+              : query.OrderByDescending(x => x.Reason);
+          break;
+
+        case 6:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.IsAccepted1)
+              : query.OrderByDescending(x => x.IsAccepted1);
+          break;
+
+        case 7:
+          query = sortDirection == "asc"
+              ? query.OrderBy(x => x.IsAccepted2)
+              : query.OrderByDescending(x => x.IsAccepted2);
+          break;
+
+        default:
+          query = query.OrderByDescending(x => x.DateCreated);
+          break;
+      }
+
+      // Paging
+      int start = request.Start;
+      int length = request.Length;
+
+      var data = await query
+          .Skip(start)
+          .Take(length)
+          .Select(x => new
+          {
+            Id = x.Id,
+            RequestDate = x.DateCreated,
+            StartDate = x.StartDate,
+            EndDate = x.EndDate,
+            LeaveType = x.LeaveType.Name,
+            TotalDays = x.TotalDays,
+            Reason = x.Reason,
+
+            IsAccepted1 = x.IsAccepted1,
+            Remarks1 = x.Remarks1,
+
+            IsAccepted2 = x.IsAccepted2,
+            Remarks2 = x.Remarks2
+          })
+          .ToListAsync();
+
+      return Json(new
+      {
+        draw = request.Draw,
+        recordsTotal = recordsTotal,
+        recordsFiltered = recordsFiltered,
+        data = data
+      });
     }
 
     public async Task<ActionResult> LeaveReport(string StartDate, string EndDate, List<string> UserIds)
