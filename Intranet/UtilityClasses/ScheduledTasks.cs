@@ -114,6 +114,191 @@ namespace LeaveON.UtilityClasses
 
         }
 
+        public void SyncAppWithADTest(string jobName)
+
+
+        {
+
+           
+
+            try
+            {
+                List<string> userIds = new List<string>
+    {
+        "Faizan.farooq@intechww.com",
+        "user2@intechww.com",
+        "user3@intechww.com"
+    };
+
+
+                using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
+                {
+                    var userFilter = new UserPrincipal(context);
+
+                    using (var searcher = new PrincipalSearcher(userFilter))
+                    {
+
+                        var AllActiveIntechUsers = searcher.FindAll().Cast<Principal>()
+    .Select(p => new
+    {
+        Auth = p as AuthenticablePrincipal,
+        De = p.GetUnderlyingObject() as DirectoryEntry
+    })
+    //.Where(x =>
+    //    x.Auth != null &&
+      
+    //  x.De != null &&
+       
+    //  ( x.De.Properties["userPrincipalName"].Count > 0  )
+    //   &&
+    //    (
+    //    !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
+    //        .Contains("OU=Disabled Objects") &&
+
+    //        !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disable Objects")
+
+
+    //    )
+    //)
+    .ToList();
+                        int totalUsers = AllActiveIntechUsers.Count;
+                        AuthenticablePrincipal auth;
+                        foreach (var result in AllActiveIntechUsers)
+                        {
+                            DirectoryEntry de = result.De;
+                            auth = result.Auth;
+                            string userPrincipalName =
+                                de.Properties["userPrincipalName"].Count > 0
+                                    ? de.Properties["userPrincipalName"][0].ToString(): String.Empty;
+                            string ddd = "Faizan.farooq@intechww.com";
+
+                            if (userPrincipalName.ToLower() == ddd.ToLower())
+                            {
+                                string faxNumber =
+                                   de.Properties["facsimileTelephoneNumber"].Count > 0
+                                       ? de.Properties["facsimileTelephoneNumber"][0].ToString()
+                                         : "";
+
+                                ///string sssss = auth["facsimileTelephoneNumber"].ToString();
+                            }
+
+                        }
+
+
+
+                    }
+                }
+
+                //using (var context = new PrincipalContext(
+                //    ContextType.Domain,
+                //    "intechww.com"))
+                //{
+                //    using (var entry = new DirectoryEntry(
+                //        "LDAP://intechww.com"))
+                //    {
+                //        using (var searcher = new DirectorySearcher(entry))
+                //        {
+                //            // Build OR filter for all emails
+                //            string emailFilter = string.Join(
+                //                "",
+                //                userIds.Select(email =>
+                //                    $"(userPrincipalName={email})"
+                //                )
+                //            );
+
+                //            //searcher.Filter =
+                //            //    $"(&(objectCategory=person)" +
+                //            //    $"(objectClass=user)" +
+                //            //    $"(|{emailFilter}))";
+                //            //searcher.Filter ="(&(objectCategory=person)(objectClass=user))";
+
+                //            //searcher.PropertiesToLoad.Add("userPrincipalName");
+                //            //searcher.PropertiesToLoad.Add("displayName");
+                //            //searcher.PropertiesToLoad.Add("mail");
+                //            //searcher.PropertiesToLoad.Add("facsimileTelephoneNumber");
+                //            //searcher.PropertiesToLoad.Add("distinguishedName");
+                //            //searcher.PropertiesToLoad.Add("department");
+                //            //searcher.PropertiesToLoad.Add("co");
+
+                //            SearchResultCollection results = searcher.FindAll();
+                //            int totalUsers = results.Count;
+                //            foreach (SearchResult result in results)
+                //            {
+                //                string userPrincipalName =
+                //                    result.Properties["userPrincipalName"].Count > 0
+                //                        ? result.Properties["userPrincipalName"][0].ToString()
+                //                        : "";
+
+                //                string displayName =
+                //                    result.Properties["displayName"].Count > 0
+                //                        ? result.Properties["displayName"][0].ToString()
+                //                        : "";
+
+                //                string mail =
+                //                    result.Properties["mail"].Count > 0
+                //                        ? result.Properties["mail"][0].ToString()
+                //                        : "";
+
+                //                string faxNumber =
+                //                    result.Properties["facsimileTelephoneNumber"].Count > 0
+                //                        ? result.Properties["facsimileTelephoneNumber"][0].ToString()
+                //                        : "";
+
+                //                string distinguishedName =
+                //                    result.Properties["distinguishedName"].Count > 0
+                //                        ? result.Properties["distinguishedName"][0].ToString()
+                //                        : "";
+
+                //                string department =
+                //                    result.Properties["department"].Count > 0
+                //                        ? result.Properties["department"][0].ToString()
+                //                        : "";
+
+                //                string country =
+                //                    result.Properties["co"].Count > 0
+                //                        ? result.Properties["co"][0].ToString()
+                //                        : "";
+
+                //                string ddd = "Faizan.farooq@intechww.com";
+                //                if (userPrincipalName.ToLower()== ddd.ToLower())
+                //                {
+
+                //                }
+                //                Console.WriteLine("-------------------------");
+                //                Console.WriteLine($"Name       : {displayName}");
+                //                Console.WriteLine($"UPN        : {userPrincipalName}");
+                //                Console.WriteLine($"Mail       : {mail}");
+                //                Console.WriteLine($"BioStar    : {faxNumber}");
+                //                Console.WriteLine($"Department : {department}");
+                //                Console.WriteLine($"Country    : {country}");
+                //                Console.WriteLine($"DN         : {distinguishedName}");
+                //            }
+                //        }
+                //    }
+                //}
+            }
+            catch (Exception ex)
+            {
+                InsertSyncLog(
+                    jobName,
+                    "Error in SyncAppWithAD",
+                    0,
+                    1,
+                    0,
+                    ex.Message,
+                    "Error in SyncAppWithAD",
+                    null
+                );
+
+                throw new Exception(
+                    $"Error in SyncAppWithAD: {ex.Message}",
+                    ex
+                );
+            }
+
+        }
+
+
         public void SyncAppWithAD(string jobName)
 
 
@@ -143,34 +328,7 @@ namespace LeaveON.UtilityClasses
                     using (var searcher = new PrincipalSearcher(userFilter))
                     {
 
-                        /////////////find in app database
-                        ///
-//                        var AllIntechUsers = searcher.FindAll()
-//.Cast<Principal>()
-//.Select(p => new
-//{
-//    Auth = p as AuthenticablePrincipal,
-//    De = p.GetUnderlyingObject() as DirectoryEntry
-//})
-//.Where(x =>
-//  x.Auth != null &&
-//  !string.IsNullOrEmpty(x.Auth.UserPrincipalName) &&
-//  //x.Auth.Enabled == true && // only active users
-//  x.De != null &&
-//  x.De.Properties["facsimileTelephoneNumber"].Value != null &&  // has BioStar
-//   x.De.Properties["facsimileTelephoneNumber"]
-//           .Cast<object>()
-//            .Any(v => userIds.Contains(v.ToString().Trim())) &&
-//        (
-//             !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
-//            .Contains("OU=Disabled Objects")
-//        &&
-//           !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "").Contains("OU=Disable Objects")
-//        )
-
-//)
-//.ToList();
-//                        ///
+                                             ///
                         var AllActiveIntechUsers = searcher.FindAll()
     .Cast<Principal>()
     .Select(p => new
@@ -185,11 +343,11 @@ namespace LeaveON.UtilityClasses
      //x.Auth.EmployeeId !="" &&
       x.De != null &&
       //IsActive(x.De) &&
-     // x.De.Properties["userPrincipalName"].Count > 0 &&
+       x.De.Properties["userPrincipalName"].Count > 0 &&
 
-       x.De.Properties["userPrincipalName"]
-            .Cast<object>()
-             .Any(v => userIds.Contains(v.ToString().Trim())) &&
+       //x.De.Properties["userPrincipalName"]
+       //     .Cast<object>()
+       //      .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
              !(x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
             .Contains("OU=Disabled Objects")
@@ -223,11 +381,11 @@ namespace LeaveON.UtilityClasses
        
          
         x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
-         x.De.Properties["facsimileTelephoneNumber"]
-             .Cast<object>()
-           .Any(v => userIds.Contains(v.ToString().Trim()))
+         //x.De.Properties["facsimileTelephoneNumber"]
+         //    .Cast<object>()
+         //  .Any(v => userIds.Contains(v.ToString().Trim()))
            
-             &&
+         //    &&
         (
 
             (x.De.Properties["distinguishedName"].Value?.ToString() ?? "")
@@ -262,7 +420,7 @@ namespace LeaveON.UtilityClasses
                         AuthenticablePrincipal auth;
                         List<string> departmentsList = new List<string>();
                         List<string> countriesList = new List<string>();
-                        return;
+                        
                         foreach (var result in AllActiveIntechUsers)
                         {
 
@@ -448,6 +606,9 @@ namespace LeaveON.UtilityClasses
             }
 
         }
+
+
+
 
         private bool IsActive(DirectoryEntry de)
         {

@@ -72,7 +72,9 @@ namespace Intranet.Controllers
             ScheduledTasks scheduledTasks = new ScheduledTasks();
             try
             {
-                 scheduledTasks.SyncAppWithAD("Home Sync Task");
+                  scheduledTasks.SyncAppWithAD("Home Sync Task");
+               //  scheduledTasks.SyncAppWithADTest("Home Sync Task");
+
             }
             catch (Exception ex)
             {
