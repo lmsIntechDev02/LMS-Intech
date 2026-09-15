@@ -125,7 +125,7 @@ namespace LeaveON.UtilityClasses
             {
                 List<string> userIds = new List<string>
 {
-  "2388"
+  "Faizan.farooq@intechww.com"
 
 
 };
@@ -185,9 +185,9 @@ namespace LeaveON.UtilityClasses
      //x.Auth.EmployeeId !="" &&
       x.De != null &&
       //IsActive(x.De) &&
-      x.De.Properties["facsimileTelephoneNumber"].Count > 0 &&
+     // x.De.Properties["userPrincipalName"].Count > 0 &&
 
-       x.De.Properties["facsimileTelephoneNumber"]
+       x.De.Properties["userPrincipalName"]
             .Cast<object>()
              .Any(v => userIds.Contains(v.ToString().Trim())) &&
         (
@@ -262,7 +262,7 @@ namespace LeaveON.UtilityClasses
                         AuthenticablePrincipal auth;
                         List<string> departmentsList = new List<string>();
                         List<string> countriesList = new List<string>();
-
+                        return;
                         foreach (var result in AllActiveIntechUsers)
                         {
 
