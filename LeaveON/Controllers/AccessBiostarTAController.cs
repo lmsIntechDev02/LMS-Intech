@@ -2012,400 +2012,418 @@ namespace LeaveON.Controllers
     List<int> userIds
    )
     {
-      DateTime startDate = DateTime.ParseExact(
-          formattedStartDate.Trim(),
-          "dd-MM-yyyy",
-          System.Globalization.CultureInfo.InvariantCulture);
-
-      DateTime endDate = DateTime.ParseExact(
-          formattedEndDate.Trim(),
-          "dd-MM-yyyy",
-          System.Globalization.CultureInfo.InvariantCulture);
-
-      // Include the complete end date
-      DateTime endDateExclusive = endDate.Date.AddDays(1);
-
-      // ----------------------------------------------------
-      // Base Attendance Query
-      // ----------------------------------------------------
-
-      var query =
-          from a in dbLeaveOn.AttendanceDatas
-          join u in dbLeaveOn.AspNetUsers
-              on a.BioStarEmpNum equals u.BioStarEmpNum
-          where a.CreatedDate >= startDate.Date
-                && a.CreatedDate < endDateExclusive
-                && userIds.Contains(a.BioStarEmpNum.Value)
-          select new
-          {
-            Attendance = a,
-            UserId = u.Id,
-            UserLeavePolicyId = u.UserLeavePolicyId
-          };
-
-
-      // ----------------------------------------------------
-      // Search
-      // ----------------------------------------------------
-
-      string search = request.Search != null
-          ? request.Search.Value
-          : "";
-
-      if (!string.IsNullOrWhiteSpace(search))
+      try
       {
-        search = search.Trim();
 
-        int employeeNumber;
+        DateTime startDate = DateTime.ParseExact(formattedStartDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        DateTime endDate = DateTime.ParseExact(formattedEndDate.Trim(), "dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        //DateTime startDate = DateTime.ParseExact(
+        //  formattedStartDate.Trim(),
+        //  "dd-MM-yyyy",
+        //  System.Globalization.CultureInfo.InvariantCulture);
 
-        bool isNumber = int.TryParse(search, out employeeNumber);
+        //DateTime endDate = DateTime.ParseExact(
+        //    formattedEndDate.Trim(),
+        //    "dd-MM-yyyy",
+        //    System.Globalization.CultureInfo.InvariantCulture);
 
-        query = query.Where(x =>
-            x.Attendance.UserName.Contains(search) ||
-            x.Attendance.DepartmentName.Contains(search) ||
-            x.Attendance.CountryName.Contains(search) ||
-            (isNumber && x.Attendance.BioStarEmpNum == employeeNumber));
-      }
+        // Include the complete end date
+        DateTime endDateExclusive = endDate.Date.AddDays(1);
 
+        // ----------------------------------------------------
+        // Base Attendance Query
+        // ----------------------------------------------------
 
-      // ----------------------------------------------------
-      // Total Records Before DataTable Filtering
-      // ----------------------------------------------------
-
-      int recordsTotal = await query.CountAsync();
-
-
-      // ----------------------------------------------------
-      // Group By Employee + Date
-      // Same behavior as your existing code
-      // ----------------------------------------------------
-
-      var groupedQuery =
-          query
-          .GroupBy(x => new
-          {
-            x.Attendance.BioStarEmpNum,
-            Date = DbFunctions.TruncateTime(x.Attendance.CreatedDate)
-          })
-          .Select(g => g
-              .OrderBy(x => x.Attendance.CreatedDate)
-              .FirstOrDefault());
+        var query =
+            from a in dbLeaveOn.AttendanceDatas
+            join u in dbLeaveOn.AspNetUsers
+                on a.BioStarEmpNum equals u.BioStarEmpNum
+            where a.CreatedDate >= startDate.Date
+                  && a.CreatedDate < endDateExclusive
+                  && userIds.Contains(a.BioStarEmpNum.Value)
+            select new
+            {
+              Attendance = a,
+              UserId = u.Id,
+              UserLeavePolicyId = u.UserLeavePolicyId
+            };
 
 
-      int recordsFiltered = await groupedQuery.CountAsync();
+        // ----------------------------------------------------
+        // Search
+        // ----------------------------------------------------
 
+        string search = request.Search != null
+            ? request.Search.Value
+            : "";
 
-      // ----------------------------------------------------
-      // Ordering
-      // ----------------------------------------------------
-
-      string sortColumn = "Date";
-      string sortDirection = "asc";
-
-      if (request.Order != null && request.Order.Count > 0)
-      {
-        int columnIndex = request.Order[0].Column;
-
-        if (request.Columns != null &&
-            request.Columns.Count > columnIndex)
+        if (!string.IsNullOrWhiteSpace(search))
         {
-          sortColumn = request.Columns[columnIndex].Data;
-        }
+          search = search.Trim();
 
-        sortDirection = request.Order[0].Dir;
-      }
+          int employeeNumber;
 
+          bool isNumber = int.TryParse(search, out employeeNumber);
 
-      // ----------------------------------------------------
-      // Server-side ordering
-      // ----------------------------------------------------
-
-      switch (sortColumn)
-      {
-        case "EmployeeName":
-
-          groupedQuery = sortDirection == "desc"
-              ? groupedQuery.OrderByDescending(x => x.Attendance.UserName)
-              : groupedQuery.OrderBy(x => x.Attendance.UserName);
-
-          break;
-
-
-        case "EmployeeNumber":
-
-          groupedQuery = sortDirection == "desc"
-              ? groupedQuery.OrderByDescending(x => x.Attendance.BioStarEmpNum)
-              : groupedQuery.OrderBy(x => x.Attendance.BioStarEmpNum);
-
-          break;
-
-
-        case "Department":
-
-          groupedQuery = sortDirection == "desc"
-              ? groupedQuery.OrderByDescending(x => x.Attendance.DepartmentName)
-              : groupedQuery.OrderBy(x => x.Attendance.DepartmentName);
-
-          break;
-
-
-        case "TimeZone":
-
-          groupedQuery = sortDirection == "desc"
-              ? groupedQuery.OrderByDescending(x => x.Attendance.CountryName)
-              : groupedQuery.OrderBy(x => x.Attendance.CountryName);
-
-          break;
-
-
-        case "Date":
-
-        default:
-
-          groupedQuery = sortDirection == "desc"
-              ? groupedQuery.OrderByDescending(x => x.Attendance.CreatedDate)
-              : groupedQuery.OrderBy(x => x.Attendance.CreatedDate);
-
-          break;
-      }
-
-
-      // ----------------------------------------------------
-      // Paging
-      // ----------------------------------------------------
-
-      int start = request.Start < 0 ? 0 : request.Start;
-
-      int length = request.Length;
-
-      if (length <= 0)
-        length = 10;
-
-      var pageData = await groupedQuery
-          .Skip(start)
-          .Take(length)
-          .ToListAsync();
-
-
-      // ----------------------------------------------------
-      // Get required dates for this page
-      // ----------------------------------------------------
-
-      var pageDates = pageData
-          .Where(x => x.Attendance.CreatedDate.HasValue)
-          .Select(x => x.Attendance.CreatedDate.Value.Date)
-          .Distinct()
-          .ToList();
-
-
-      // ----------------------------------------------------
-      // Get policies
-      // ----------------------------------------------------
-
-      var policyIds = pageData
-          .Select(x => x.UserLeavePolicyId)
-          .Where(x => x.HasValue)
-          .Select(x => x.Value)
-          .Distinct()
-          .ToList();
-
-
-      // ----------------------------------------------------
-      // Load Official Off Days once
-      // ----------------------------------------------------
-
-      var offDays = await dbLeaveOn.AnnualOffDays
-          .Where(x =>
-              x.OffDay.HasValue &&
-              x.OffDay.Value >= startDate.Date &&
-              x.OffDay.Value < endDateExclusive &&
-              x.UserLeavePolicyId.HasValue &&
-              policyIds.Contains(x.UserLeavePolicyId.Value))
-          .Select(x => new
-          {
-            Date = DbFunctions.TruncateTime(x.OffDay),
-            x.UserLeavePolicyId,
-            x.Description
-          })
-          .ToListAsync();
-
-
-      // ----------------------------------------------------
-      // User IDs for current page
-      // ----------------------------------------------------
-
-      var currentUserIds = pageData
-          .Select(x => x.UserId)
-          .Distinct()
-          .ToList();
-
-
-      // ----------------------------------------------------
-      // Load accepted leaves once
-      // ----------------------------------------------------
-
-      var leaves = await
-          (from l in dbLeaveOn.Leaves
-           join lt in dbLeaveOn.LeaveTypes
-               on l.LeaveTypeId equals lt.Id
-           where currentUserIds.Contains(l.UserId)
-                 && l.IsAccepted1 == 1
-                 && l.IsAccepted2 == 1
-                 && DbFunctions.TruncateTime(l.StartDate) <= endDate.Date
-                 && DbFunctions.TruncateTime(l.EndDate) >= startDate.Date
-           select new
-           {
-             l.UserId,
-             StartDate = l.StartDate,
-             EndDate = l.EndDate,
-             LeaveType = lt.Name
-           })
-          .ToListAsync();
-
-
-      // ----------------------------------------------------
-      // Map result
-      // ----------------------------------------------------
-
-      var result = new List<TimeData>();
-
-      foreach (var item in pageData)
-      {
-        var record = item.Attendance;
-
-        DateTime currentDate =
-            record.CreatedDate ?? DateTime.MinValue;
-
-        DateTime timeIn =
-            record.FirstPunchIn ?? DateTime.MinValue;
-
-        DateTime timeOut =
-            record.LastPunchOut ??
-            (record.FirstPunchIn ?? DateTime.MinValue);
-
-        TimeSpan totalTime = TimeSpan.Zero;
-
-        if (timeIn != DateTime.MinValue &&
-            timeOut != DateTime.MinValue)
-        {
-          totalTime = timeOut - timeIn;
+          query = query.Where(x =>
+              x.Attendance.UserName.Contains(search) ||
+              x.Attendance.DepartmentName.Contains(search) ||
+              x.Attendance.CountryName.Contains(search) ||
+              (isNumber && x.Attendance.BioStarEmpNum == employeeNumber));
         }
 
 
-        TimeSpan workingHours = TimeSpan.Zero;
+        // ----------------------------------------------------
+        // Total Records Before DataTable Filtering
+        // ----------------------------------------------------
 
-        if (record.TotalWorkHours.HasValue &&
-            record.TotalWorkHours.Value > 0)
+        int recordsTotal = await query.CountAsync();
+
+
+        // ----------------------------------------------------
+        // Group By Employee + Date
+        // Same behavior as your existing code
+        // ----------------------------------------------------
+
+        var groupedQuery =
+            query
+            .GroupBy(x => new
+            {
+              x.Attendance.BioStarEmpNum,
+              Date = DbFunctions.TruncateTime(x.Attendance.CreatedDate)
+            })
+            .Select(g => g
+                .OrderBy(x => x.Attendance.CreatedDate)
+                .FirstOrDefault());
+
+
+        int recordsFiltered = await groupedQuery.CountAsync();
+
+
+        // ----------------------------------------------------
+        // Ordering
+        // ----------------------------------------------------
+
+        string sortColumn = "Date";
+        string sortDirection = "asc";
+
+        if (request.Order != null && request.Order.Count > 0)
         {
-          workingHours =
-              TimeSpan.FromSeconds(
-                  (double)record.TotalWorkHours.Value);
-        }
+          int columnIndex = request.Order[0].Column;
 
-
-        string status = "Absent";
-
-
-        // Weekend
-        if (currentDate.DayOfWeek == DayOfWeek.Saturday ||
-            currentDate.DayOfWeek == DayOfWeek.Sunday)
-        {
-          status = "Weekend";
-        }
-        else
-        {
-          // Official Off Day
-          var officialOffDay = offDays.FirstOrDefault(x =>
-              x.UserLeavePolicyId == item.UserLeavePolicyId &&
-              x.Date.HasValue &&
-              x.Date.Value == currentDate.Date);
-
-          if (officialOffDay != null &&
-              !string.IsNullOrEmpty(officialOffDay.Description))
+          if (request.Columns != null &&
+              request.Columns.Count > columnIndex)
           {
-            status = officialOffDay.Description;
-            workingHours = TimeSpan.Zero;
+            sortColumn = request.Columns[columnIndex].Data;
+          }
+
+          sortDirection = request.Order[0].Dir;
+        }
+
+
+        // ----------------------------------------------------
+        // Server-side ordering
+        // ----------------------------------------------------
+
+        switch (sortColumn)
+        {
+          case "EmployeeName":
+
+            groupedQuery = sortDirection == "desc"
+                ? groupedQuery.OrderByDescending(x => x.Attendance.UserName)
+                : groupedQuery.OrderBy(x => x.Attendance.UserName);
+
+            break;
+
+
+          case "EmployeeNumber":
+
+            groupedQuery = sortDirection == "desc"
+                ? groupedQuery.OrderByDescending(x => x.Attendance.BioStarEmpNum)
+                : groupedQuery.OrderBy(x => x.Attendance.BioStarEmpNum);
+
+            break;
+
+
+          case "Department":
+
+            groupedQuery = sortDirection == "desc"
+                ? groupedQuery.OrderByDescending(x => x.Attendance.DepartmentName)
+                : groupedQuery.OrderBy(x => x.Attendance.DepartmentName);
+
+            break;
+
+
+          case "TimeZone":
+
+            groupedQuery = sortDirection == "desc"
+                ? groupedQuery.OrderByDescending(x => x.Attendance.CountryName)
+                : groupedQuery.OrderBy(x => x.Attendance.CountryName);
+
+            break;
+
+
+          case "Date":
+
+          default:
+
+            groupedQuery = sortDirection == "desc"
+                ? groupedQuery.OrderByDescending(x => x.Attendance.CreatedDate)
+                : groupedQuery.OrderBy(x => x.Attendance.CreatedDate);
+
+            break;
+        }
+
+
+        // ----------------------------------------------------
+        // Paging
+        // ----------------------------------------------------
+
+        int start = request.Start < 0 ? 0 : request.Start;
+
+        int length = request.Length;
+
+        if (length <= 0)
+          length = 10;
+
+        var pageData = await groupedQuery
+            .Skip(start)
+            .Take(length)
+            .ToListAsync();
+
+
+        // ----------------------------------------------------
+        // Get required dates for this page
+        // ----------------------------------------------------
+
+        var pageDates = pageData
+            .Where(x => x.Attendance.CreatedDate.HasValue)
+            .Select(x => x.Attendance.CreatedDate.Value.Date)
+            .Distinct()
+            .ToList();
+
+
+        // ----------------------------------------------------
+        // Get policies
+        // ----------------------------------------------------
+
+        var policyIds = pageData
+            .Select(x => x.UserLeavePolicyId)
+            .Where(x => x.HasValue)
+            .Select(x => x.Value)
+            .Distinct()
+            .ToList();
+
+
+        // ----------------------------------------------------
+        // Load Official Off Days once
+        // ----------------------------------------------------
+
+        var offDays = await dbLeaveOn.AnnualOffDays
+            .Where(x =>
+                x.OffDay.HasValue &&
+                x.OffDay.Value >= startDate.Date &&
+                x.OffDay.Value < endDateExclusive &&
+                x.UserLeavePolicyId.HasValue &&
+                policyIds.Contains(x.UserLeavePolicyId.Value))
+            .Select(x => new
+            {
+              Date = DbFunctions.TruncateTime(x.OffDay),
+              x.UserLeavePolicyId,
+              x.Description
+            })
+            .ToListAsync();
+
+
+        // ----------------------------------------------------
+        // User IDs for current page
+        // ----------------------------------------------------
+
+        var currentUserIds = pageData
+            .Select(x => x.UserId)
+            .Distinct()
+            .ToList();
+
+
+        // ----------------------------------------------------
+        // Load accepted leaves once
+        // ----------------------------------------------------
+
+        var leaves = await
+            (from l in dbLeaveOn.Leaves
+             join lt in dbLeaveOn.LeaveTypes
+                 on l.LeaveTypeId equals lt.Id
+             where currentUserIds.Contains(l.UserId)
+                   && l.IsAccepted1 == 1
+                   && l.IsAccepted2 == 1
+                   && DbFunctions.TruncateTime(l.StartDate) <= endDate.Date
+                   && DbFunctions.TruncateTime(l.EndDate) >= startDate.Date
+             select new
+             {
+               l.UserId,
+               StartDate = l.StartDate,
+               EndDate = l.EndDate,
+               LeaveType = lt.Name
+             })
+            .ToListAsync();
+
+
+        // ----------------------------------------------------
+        // Map result
+        // ----------------------------------------------------
+
+        var result = new List<TimeData>();
+
+        foreach (var item in pageData)
+        {
+          var record = item.Attendance;
+
+          DateTime currentDate =
+              record.CreatedDate ?? DateTime.MinValue;
+
+          DateTime timeIn =
+              record.FirstPunchIn ?? DateTime.MinValue;
+
+          DateTime timeOut =
+              record.LastPunchOut ??
+              (record.FirstPunchIn ?? DateTime.MinValue);
+
+          TimeSpan totalTime = TimeSpan.Zero;
+
+          if (timeIn != DateTime.MinValue &&
+              timeOut != DateTime.MinValue)
+          {
+            totalTime = timeOut - timeIn;
+          }
+
+
+          TimeSpan workingHours = TimeSpan.Zero;
+
+          if (record.TotalWorkHours.HasValue &&
+              record.TotalWorkHours.Value > 0)
+          {
+            workingHours =
+                TimeSpan.FromSeconds(
+                    (double)record.TotalWorkHours.Value);
+          }
+
+
+          string status = "Absent";
+
+
+          // Weekend
+          if (currentDate.DayOfWeek == DayOfWeek.Saturday ||
+              currentDate.DayOfWeek == DayOfWeek.Sunday)
+          {
+            status = "Weekend";
           }
           else
           {
-            // Leave
-            var leave = leaves.FirstOrDefault(x =>
-                x.UserId == item.UserId &&
-                x.StartDate.Date <= currentDate.Date &&
-                x.EndDate.Date >= currentDate.Date);
+            // Official Off Day
+            var officialOffDay = offDays.FirstOrDefault(x =>
+                x.UserLeavePolicyId == item.UserLeavePolicyId &&
+                x.Date.HasValue &&
+                x.Date.Value == currentDate.Date);
 
-            if (leave != null)
+            if (officialOffDay != null &&
+                !string.IsNullOrEmpty(officialOffDay.Description))
             {
-              status = leave.LeaveType;
-            }
-            else if (record.IsAbsent == true)
-            {
-              status = "Absent";
+              status = officialOffDay.Description;
+              workingHours = TimeSpan.Zero;
             }
             else
             {
-              status = null;
+              // Leave
+              var leave = leaves.FirstOrDefault(x =>
+                  x.UserId == item.UserId &&
+                  x.StartDate.Date <= currentDate.Date &&
+                  x.EndDate.Date >= currentDate.Date);
+
+              if (leave != null)
+              {
+                status = leave.LeaveType;
+              }
+              else if (record.IsAbsent == true)
+              {
+                status = "Absent";
+              }
+              else
+              {
+                status = null;
+              }
             }
           }
+
+
+          result.Add(new TimeData
+          {
+            EmployeeName = record.UserName,
+
+            EmployeeNumber =
+                  record.BioStarEmpNum ?? 0,
+
+            Department =
+                  record.DepartmentName,
+
+            TimeZone =
+                  record.CountryName,
+
+            Policy =
+                  record.UserLeavePolicyID,
+
+            Date =
+                  currentDate,
+
+            Day =
+                  currentDate == DateTime.MinValue
+                      ? "N/A"
+                      : currentDate.ToString("dddd"),
+
+            TimeIn =
+                  timeIn,
+
+            TimeOut =
+                  timeOut,
+
+            TotalTime =
+                  totalTime,
+
+            WorkingHours =
+                  workingHours,
+
+            Status =
+                  status
+          });
         }
 
 
-        result.Add(new TimeData
+        // ----------------------------------------------------
+        // Return DataTable response
+        // ----------------------------------------------------
+
+        return Json(new
         {
-          EmployeeName = record.UserName,
+          draw = request.Draw,
+          recordsTotal = recordsTotal,
+          recordsFiltered = recordsFiltered,
+          data = result
+        }, JsonRequestBehavior.AllowGet);
+        //return new
+        //{
+        //  draw = request.Draw,
 
-          EmployeeNumber =
-                record.BioStarEmpNum ?? 0,
+        //  recordsTotal = recordsTotal,
 
-          Department =
-                record.DepartmentName,
+        //  recordsFiltered = recordsFiltered,
 
-          TimeZone =
-                record.CountryName,
-
-          Policy =
-                record.UserLeavePolicyID,
-
-          Date =
-                currentDate,
-
-          Day =
-                currentDate == DateTime.MinValue
-                    ? "N/A"
-                    : currentDate.ToString("dddd"),
-
-          TimeIn =
-                timeIn,
-
-          TimeOut =
-                timeOut,
-
-          TotalTime =
-                totalTime,
-
-          WorkingHours =
-                workingHours,
-
-          Status =
-                status
-        });
+        //  data = result
+        //};
       }
-
-
-      // ----------------------------------------------------
-      // Return DataTable response
-      // ----------------------------------------------------
-
-      return new
+      catch (Exception ex)
       {
-        draw = request.Draw,
-
-        recordsTotal = recordsTotal,
-
-        recordsFiltered = recordsFiltered,
-
-        data = result
-      };
+        throw;
+      }
+      
     }
 
     private Task<List<TimeData>> GetAttendanceSummary(string formattedStartDate, string formattedEndDate, List<int> UserIds)

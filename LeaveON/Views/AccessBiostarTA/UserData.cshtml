@@ -83,104 +83,106 @@
           <div class="card-body">
 
             <div class="row">
+              
+                <div class="col-sm-12">
+                  @*@{ Html.RenderPartial("_UserData", Model); }*@
 
-              @*@{ Html.RenderPartial("_UserData", Model); }*@
+                  <table id="example2"
+                         class="table table-bordered table-hover dataTable dtr-inline"
+                         role="grid"
+                         style="width:100%;">
 
-              <table id="example2"
-                     class="table table-bordered table-hover dataTable dtr-inline"
-                     role="grid"
-                     style="width:100%;">
+                    <thead>
+                      <tr>
+                        <th>
+                          Employee Name
+                        </th>
 
-                <thead>
-                  <tr>
-                    <th>
-                      Employee Name
-                    </th>
+                        <th>
+                          Employee Number
+                        </th>
 
-                    <th>
-                      Employee Number
-                    </th>
+                        <th>
+                          Department
+                        </th>
 
-                    <th>
-                      Department
-                    </th>
+                        <th>
+                          Time Zone
+                        </th>
 
-                    <th>
-                      Time Zone
-                    </th>
+                        <th>
+                          Policy
+                        </th>
 
-                    <th>
-                      Policy
-                    </th>
+                        <th>
+                          Date
+                        </th>
 
-                    <th>
-                      Date
-                    </th>
+                        <th>
+                          Day
+                        </th>
 
-                    <th>
-                      Day
-                    </th>
+                        <th>
+                          Time In
+                        </th>
 
-                    <th>
-                      Time In
-                    </th>
+                        <th>
+                          Time Out
+                        </th>
 
-                    <th>
-                      Time Out
-                    </th>
+                        <th>
+                          Working Hours
+                        </th>
 
-                    <th>
-                      Working Hours
-                    </th>
+                        <th>
+                          Total Time
+                        </th>
 
-                    <th>
-                      Total Time
-                    </th>
+                        <th>
+                          Status
+                        </th>
 
-                    <th>
-                      Status
-                    </th>
+                        <th>
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
 
-                    <th>
-                      Action
-                    </th>
-                  </tr>
-                </thead>
+                    <tbody>
+                    </tbody>
 
-                <tbody>
-                </tbody>
+                    <tfoot>
+                      <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
 
-                <tfoot>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                        <td id="totalWorkingHours"
+                            style="font-weight:bold;">
+                          0 Hours
+                        </td>
 
-                    <td id="totalWorkingHours"
-                        style="font-weight:bold;">
-                      0 Hours
-                    </td>
+                        <td id="totalHours"
+                            style="font-weight:bold;">
+                          0 Hours
+                        </td>
 
-                    <td id="totalHours"
-                        style="font-weight:bold;">
-                      0 Hours
-                    </td>
+                        <td></td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
 
-                    <td></td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-
-              </table>
+                  </table>
+                </div>
+              </div>
+              </div>
             </div>
-          </div>
-        </div>
 
 
       </section>
@@ -422,9 +424,9 @@
 
 $('#load').click(function () {
   debugger
-    $('.loader').show();
-    $('.button-text').hide();
-    $("#wait").show();
+   // $('.loader').show();
+    //$('.button-text').hide();
+    //$("#wait").show();
 
     disableInputs(true);
 
@@ -514,7 +516,7 @@ $('#load').click(function () {
             },
 
             dataSrc: function (json) {
-
+              debugger
                 // Update totals returned from server
                 $('#totalWorkingHours').text(
                     json.totalWorkingHours + ' Hours'
@@ -530,16 +532,11 @@ $('#load').click(function () {
             error: function (xhr) {
 
               debugger
-              console.log("Status:", status);
-              console.log("Error:", error);
+              console.log("Status:", xhr.status );
+          
               console.log("Response:", xhr.responseText);
 
-              alert(
-                "Error: " +
-                xhr.status +
-                "\n\n" +
-                xhr.responseText
-              );
+             
             },
 
             complete: function () {
@@ -690,8 +687,8 @@ $('#load').click(function () {
                 data: "WorkingHours",
                 name: "WorkingHours",
 
-                render: function (data, type, row) {
-
+              render: function (data, type, row) {
+                debugger
                     if (!data)
                         return "-";
 
@@ -712,7 +709,7 @@ $('#load').click(function () {
                 name: "TotalTime",
 
                 render: function (data, type, row) {
-
+                  debugger
                     if (!data)
                         return "-";
 
