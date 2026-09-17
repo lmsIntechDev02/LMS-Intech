@@ -124,11 +124,14 @@ namespace LeaveON.UtilityClasses
             try
             {
                 List<string> userIds = new List<string>
-    {
-        "Faizan.farooq@intechww.com",
-        "user2@intechww.com",
-        "user3@intechww.com"
-    };
+{
+  "Faizan.farooq@intechww.com",
+"Muqaddas.rehman@intechww.com",
+"M.Usama@intechww.com",
+"Haseeb.Mansoor@intechww.com",
+"shah.wali@intechww.com"
+
+};
 
 
                 using (var context = new PrincipalContext(ContextType.Domain, "intechww.com"))// "tenf.loc"))
@@ -172,7 +175,7 @@ namespace LeaveON.UtilityClasses
                                     ? de.Properties["userPrincipalName"][0].ToString(): String.Empty;
                             string ddd = "Faizan.farooq@intechww.com";
 
-                            if (userPrincipalName.ToLower() == ddd.ToLower())
+                            if (userIds.Any(k=>k.ToLower()== userPrincipalName.ToLower()))
                             {
                                 string faxNumber =
                                    de.Properties["facsimileTelephoneNumber"].Count > 0
@@ -310,7 +313,11 @@ namespace LeaveON.UtilityClasses
             {
                 List<string> userIds = new List<string>
 {
-  "Faizan.farooq@intechww.com"
+    "Faizan.farooq@intechww.com",
+"Muqaddas.rehman@intechww.com",
+"M.Usama@intechww.com",
+"Haseeb.Mansoor@intechww.com",
+"shah.wali@intechww.com"
 
 
 };
@@ -446,7 +453,16 @@ namespace LeaveON.UtilityClasses
                                 departmentsList.Add(Convert.ToString(de.Properties["department"].Value));
                                 // countriesList.Add(Convert.ToString(de.Properties["co"].Value));
                                 string countryname = Convert.ToString(de.Properties["co"].Value);
+                                string userPrincipalNameh = Convert.ToString(de.Properties["userPrincipalName"].Value);
+                                if (userIds.Any(k => k.ToLower() == userPrincipalNameh.ToLower()))
+                                {
+                                    string faxNumber =
+                                       de.Properties["facsimileTelephoneNumber"].Count > 0
+                                           ? de.Properties["facsimileTelephoneNumber"][0].ToString()
+                                             : "";
 
+                                    ///string sssss = auth["facsimileTelephoneNumber"].ToString();
+                                }
                                 if (aspNetUser == null && auth.Enabled != false)
                                 {//Insert
 
@@ -455,6 +471,10 @@ namespace LeaveON.UtilityClasses
                                     //if (TimeDifference.TotalDays < 0) continue;
                                     try
                                     {
+
+                                      
+
+                                       
                                         if (!string.IsNullOrEmpty(countryname))
                                         { UpdateCountry(countryname); }
                                         insertedEmp += 1;
