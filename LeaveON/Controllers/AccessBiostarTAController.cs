@@ -2273,7 +2273,8 @@ namespace LeaveON.Controllers
         // ----------------------------------------------------
 
         var result = new List<TimeData>();
-
+        TimeSpan totalWorkingHours = TimeSpan.Zero;
+        TimeSpan totalHours = TimeSpan.Zero;
         foreach (var item in pageData)
         {
           var record = item.Attendance;
@@ -2307,7 +2308,9 @@ namespace LeaveON.Controllers
                     (double)record.TotalWorkHours.Value);
           }
 
-
+          // Accumulate totals
+          totalWorkingHours += workingHours;
+          totalHours += totalTime;
           string status = "Absent";
 
 
@@ -2385,11 +2388,11 @@ namespace LeaveON.Controllers
             TimeOut =
                   timeOut,
 
-            TotalTime =
-                  totalTime,
+            TotalTime = totalTime,
+             
 
-            WorkingHours =
-                  workingHours,
+            WorkingHours = workingHours ,
+             
 
             Status =
                   status
@@ -2401,12 +2404,17 @@ namespace LeaveON.Controllers
         // Return DataTable response
         // ----------------------------------------------------
 
+        string twh = totalWorkingHours.TotalHours.ToString("N2");
+        string th = totalHours.TotalHours.ToString("N2");
         return Json(new
         {
           draw = request.Draw,
           recordsTotal = recordsTotal,
           recordsFiltered = recordsFiltered,
-          data = result
+          data = result,
+          totalWorkingHours = twh,
+
+          totalHours = th,
         }, JsonRequestBehavior.AllowGet);
         //return new
         //{

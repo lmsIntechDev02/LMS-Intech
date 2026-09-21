@@ -518,12 +518,19 @@ $('#load').click(function () {
             dataSrc: function (json) {
               debugger
                 // Update totals returned from server
+
+              var tWHours = json.totalWorkingHours;
+              var tHours = json.totalHours;
+
+              
+ 
+
                 $('#totalWorkingHours').text(
-                    json.totalWorkingHours + ' Hours'
+                  tWHours+ ' Hours'
                 );
 
                 $('#totalHours').text(
-                    json.totalHours + ' Hours'
+                  tHours + ' Hours'
                 );
 
                 return json.data;
@@ -698,7 +705,16 @@ $('#load').click(function () {
                     if (data === "00:00:00")
                         return "-";
 
-                    return data;
+                var hours = data.Hours || 0;
+                var minutes = data.Minutes || 0;
+                var seconds = data.Seconds || 0;
+
+                if (hours === 0 && minutes === 0 && seconds === 0)
+                  return "-";
+
+                return String(hours).padStart(2, '0') + ":" +
+                  String(minutes).padStart(2, '0') + ":" +
+                  String(seconds).padStart(2, '0');
                 }
             },
 
@@ -719,7 +735,16 @@ $('#load').click(function () {
                     if (row.WorkingHours === "00:00:00")
                         return "-";
 
-                    return data;
+                  var hours = data.Hours || 0;
+                  var minutes = data.Minutes || 0;
+                  var seconds = data.Seconds || 0;
+
+                  if (hours === 0 && minutes === 0 && seconds === 0)
+                    return "-";
+
+                  return String(hours).padStart(2, '0') + ":" +
+                    String(minutes).padStart(2, '0') + ":" +
+                    String(seconds).padStart(2, '0');
                 }
             },
 
