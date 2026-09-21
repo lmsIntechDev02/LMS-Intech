@@ -25,28 +25,16 @@ namespace LeaveOnTaskRunner
             DateTime today = DateTime.Today;//.AddDays(-1);  
 
             // testing
-            DateTime startDate = new DateTime(2026, 05, 01);
-            DateTime endDate = new DateTime(2026, 06, 02);
+            DateTime startDate = new DateTime(2026, 07, 22);
+            DateTime endDate = new DateTime(2026, 07, 28);
 
               //DateTime startDate = yesterday;
             // DateTime endDate = today;
 
             List<string> ids = new List<string>
 {
-"2304",
-"3320",
-"2135",
-"1938",
-"2021",
-"2298",
-"3326",
-"2013",
-"2553",
-"2465",
-"3327",
-"1781",
-"3324",
-"2590"
+"1693",
+ 
 };
 
             //Initialize the service
@@ -56,7 +44,7 @@ namespace LeaveOnTaskRunner
             BreakHoursService breakHours = new BreakHoursService();
             string connection = ConfigurationManager.ConnectionStrings["BioStarEntities"].ConnectionString; ;// "Data Source=10.1.10.28;Initial Catalog=BioStarTA;User Id=sa;Password=@Intech#123;"
             var userList = await service.GetUserActiveList();
-            //  userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
+               userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
 
              // userList = userList.Where(k => k.BioStarEmpNum == 2468).ToList();
 
