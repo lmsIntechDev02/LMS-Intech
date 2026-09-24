@@ -128,8 +128,18 @@
           //data: 'ApprovalStatus1'
           data: null,
           render: function (data, type, row) {
+            if (row.ApprovalStatus1 == 'Refused') {
 
 
+              return `
+                            <p style="color:red">
+                                <b>${row.ApprovalStatus1}</b>
+                            </p>
+                            <p style="color:red;font-size:80%;">
+                                ${row.remarks1 || ''}
+                            </p>`;
+            }
+            else {
               return `
                             <p style="color:green">
                                 <b>${row.ApprovalStatus1}</b>
@@ -137,6 +147,9 @@
                             <p style="color:green;font-size:80%;">
                                 ${row.remarks1 || ''}
                             </p>`;
+            }
+
+             
 
 
 
@@ -149,7 +162,19 @@
             data: null,
             render: function (data, type, row) {
 
+              if (row.ApprovalStatus2 == 'Refused') {
 
+              
+              return `
+                            <p style="color:red">
+                                <b>${row.ApprovalStatus2}</b>
+                            </p>
+                            <p style="color:red;font-size:80%;">
+                                ${row.Remarks2 || ''}
+                            </p>`;
+            }
+             else
+             {
               return `
                             <p style="color:green">
                                 <b>${row.ApprovalStatus2}</b>
@@ -157,6 +182,7 @@
                             <p style="color:green;font-size:80%;">
                                 ${row.Remarks2 || ''}
                             </p>`;
+            }
 
 
 

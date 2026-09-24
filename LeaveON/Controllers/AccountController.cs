@@ -242,12 +242,12 @@ namespace LeaveON.Controllers
       }
 
        // bool isValidADUser = false;
-   bool isValidADUser = true;
+  bool isValidADUser = true;
 
       try
       {
          
-      // isValidADUser = ValidateADuser(model);
+       //isValidADUser = ValidateADuser(model);
       }
       catch (Exception ex)
       {
