@@ -65,17 +65,41 @@ namespace Repository.Models
         //public override int SaveChangesAsync()
         public override async Task<int> SaveChangesAsync()
         {
-            int result;
-            List<AuditLog> auditLogs;
-            BindLogs(out result, out auditLogs);
 
-            if (auditLogs.Any())
+            //if (GetScreenName() == "UserLeavePolicies/Edit" || GetScreenName() == "UserLeavePolicies/Create") // Update User leave policy
+            //{
+            //    int result; 
+            //    AuditLog log = new AuditLog();
+
+            //    AuditLogs.Add(new AuditLog
+            //    {
+            //         AuditDate=DateTime.Now,
+            //        TableName = "UserLeavePolicies",
+            //        Action = GetScreenName() == "UserLeavePolicies/Create" ? "Added" : "Updated",
+            //        ScreenName =   GetScreenName(),
+            //        UserId = GetUserId(),
+                     
+            //    });
+
+
+            //    result= base.SaveChanges();
+                
+            //    return result;
+            //}
+            //else
             {
-                AuditLogs.AddRange(auditLogs);
-                base.SaveChanges();
-            }
+                int result;
+                List<AuditLog> auditLogs;
+                BindLogs(out result, out auditLogs);
 
-            return result;
+                if (auditLogs.Any())
+                {
+                    AuditLogs.AddRange(auditLogs);
+                    base.SaveChanges();
+                }
+
+                return result;
+            }
         }
 
         private void BindLogs(out int result, out List<AuditLog> auditLogs)
@@ -91,48 +115,50 @@ namespace Repository.Models
                             .ToList();
 
             var auditData = new List<AuditData>();
-
-            foreach (var entry in entries)
+            if (entries.Count() >0)
             {
-                var propertyValues = new Dictionary<string, (object, object)>();
-
-                if (entry.State == EntityState.Modified)
+                foreach (var entry in entries.Take(5))
                 {
-                    // Pull the TRUE original row from the database, untracked,
-                    // because the in-memory OriginalValues is unreliable for
-                    // disconnected/attached entities.
-                    var dbValues = entry.GetDatabaseValues();
+                    var propertyValues = new Dictionary<string, (object, object)>();
 
-                    if (dbValues != null)
+                    if (entry.State == EntityState.Modified)
                     {
-                        foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                        // Pull the TRUE original row from the database, untracked,
+                        // because the in-memory OriginalValues is unreliable for
+                        // disconnected/attached entities.
+                        var dbValues = entry.GetDatabaseValues();
+
+                        if (dbValues != null)
                         {
-                            object oldValue = dbValues[propertyName];
-                            object newValue = entry.CurrentValues[propertyName];
-                            propertyValues[propertyName] = (oldValue, newValue);
+                            foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                            {
+                                object oldValue = dbValues[propertyName];
+                                object newValue = entry.CurrentValues[propertyName];
+                                propertyValues[propertyName] = (oldValue, newValue);
+                            }
                         }
                     }
-                }
-                else if (entry.State == EntityState.Added)
-                {
-                    foreach (var propertyName in entry.CurrentValues.PropertyNames)
-                        propertyValues[propertyName] = (null, entry.CurrentValues[propertyName]);
-                }
-                else if (entry.State == EntityState.Deleted)
-                {
-                    foreach (var propertyName in entry.OriginalValues.PropertyNames)
-                        propertyValues[propertyName] = (entry.OriginalValues[propertyName], null);
-                }
+                    else if (entry.State == EntityState.Added)
+                    {
+                        foreach (var propertyName in entry.CurrentValues.PropertyNames)
+                            propertyValues[propertyName] = (null, entry.CurrentValues[propertyName]);
+                    }
+                    else if (entry.State == EntityState.Deleted)
+                    {
+                        foreach (var propertyName in entry.OriginalValues.PropertyNames)
+                            propertyValues[propertyName] = (entry.OriginalValues[propertyName], null);
+                    }
 
-                auditData.Add(new AuditData
-                {
-                    Entry = entry,
-                    TableName = GetTableName(entry),
-                    Action = GetAction(entry.State),
-                    ScreenName = GetScreenName(),
-                    UserId = GetUserId(),
-                    PropertyValues = propertyValues
-                });
+                    auditData.Add(new AuditData
+                    {
+                        Entry = entry,
+                        TableName = GetTableName(entry),
+                        Action = GetAction(entry.State),
+                        ScreenName = GetScreenName(),
+                        UserId = GetUserId(),
+                        PropertyValues = propertyValues
+                    });
+                }
             }
 
             result = base.SaveChanges();
@@ -140,7 +166,7 @@ namespace Repository.Models
             auditLogs = new List<AuditLog>();
             foreach (var audit in auditData)
             {
-                string recordId = GetPrimaryKeyValue(audit.Entry);
+                string recordId = string.Empty;//GetPrimaryKeyValue(audit.Entry);
 
                 foreach (var kvp in audit.PropertyValues)
                 {
@@ -174,13 +200,18 @@ namespace Repository.Models
             BindLogs(out result, out auditLogs);
 
             // Save audit records
-            if (auditLogs.Any())
-            {
-                AuditLogs.AddRange(auditLogs);
-
-                // Save audit records
-                base.SaveChanges();
-            }
+             
+                if (auditLogs.Count() <= 5)
+                {
+                    AuditLogs.AddRange(auditLogs);
+                    // Save audit records
+                    base.SaveChanges();
+                }
+                else
+                {
+                    base.SaveChanges();
+                }
+            
 
             return result;
         }
@@ -263,16 +294,23 @@ namespace Repository.Models
             {
                 object value;
 
-                if (entry.State == EntityState.Deleted)
+                try
                 {
-                    value = entry.OriginalValues[keyProperty.Name];
-                }
-                else
-                {
-                    value = entry.CurrentValues[keyProperty.Name];
-                }
+                    if (entry.State == EntityState.Deleted)
+                    {
+                        value = entry.OriginalValues[keyProperty.Name];
+                    }
+                    else
+                    {
+                        value = entry.CurrentValues[keyProperty.Name];
+                    }
 
-                keyValues.Add(ConvertToString(value));
+                    keyValues.Add(ConvertToString(value));
+                }
+                catch(Exception ex)
+                {
+                    return "";
+                }
             }
 
             return string.Join(",", keyValues);

@@ -588,7 +588,9 @@ namespace LeaveON.Controllers
       }
       else
       {
-        hrbpEmail=db.DepartmentNames.FirstOrDefault(j => j.Name == currentUser.DepartmentName && j.tblHRBP != null).tblHRBP.HRBPEmail;
+        var res = db.DepartmentNames.FirstOrDefault(j => j.Name == currentUser.DepartmentName && j.tblHRBP != null);
+        if(res != null)
+        hrbpEmail = res.tblHRBP.HRBPEmail;
       }
 
 
