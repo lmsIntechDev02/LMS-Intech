@@ -637,7 +637,7 @@ $('#load').click(function () {
                 name: "TimeIn",
 
                 render: function (data, type, row) {
-
+                  debugger
                     if (!data)
                         return "-";
 
@@ -645,8 +645,13 @@ $('#load').click(function () {
                         return "-";
 
                     if (row.WorkingHours === "00:00:00")
-                        return "-";
+                      return "-";
 
+                  var hours = row.WorkingHours .Hours || 0;
+                  var minutes = row.WorkingHours .Minutes || 0;
+                  var seconds = row.WorkingHours .Seconds || 0;
+                  if (hours === 0 && minutes === 0 && seconds === 0)
+                    return "-";
                     var date = new Date(
                         parseInt(
                             data
@@ -666,7 +671,7 @@ $('#load').click(function () {
                 name: "TimeOut",
 
                 render: function (data, type, row) {
-
+                  debugger
                     if (!data)
                         return "-";
 
@@ -675,7 +680,11 @@ $('#load').click(function () {
 
                     if (row.WorkingHours === "00:00:00")
                         return "-";
-
+                  var hours = row.WorkingHours .Hours || 0;
+                  var minutes = row.WorkingHours .Minutes || 0;
+                  var seconds = row.WorkingHours .Seconds || 0;
+                  if (hours === 0 && minutes === 0 && seconds === 0)
+                    return "-";
                     var date = new Date(
                         parseInt(
                             data
@@ -695,7 +704,7 @@ $('#load').click(function () {
                 name: "WorkingHours",
 
               render: function (data, type, row) {
-                debugger
+                 
                     if (!data)
                         return "-";
 

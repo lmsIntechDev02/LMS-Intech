@@ -241,13 +241,22 @@ namespace LeaveON.Controllers
         model.Email = string.Concat(model.Email, "@intechww.com");
       }
 
-       // bool isValidADUser = false;
-  bool isValidADUser = true;
+      
+      // bool isValidADUser = HttpContext.Current.Request.IsLocal == true ? true : false; 
+      bool isValidADUser =  false;
+  //bool isValidADUser = true;
 
       try
       {
-         
-       //isValidADUser = ValidateADuser(model);
+
+        if (HttpContext.Request.IsLocal)
+        {
+          isValidADUser = true;
+        }
+        else
+        {
+          isValidADUser = ValidateADuser(model);
+        }
       }
       catch (Exception ex)
       {
