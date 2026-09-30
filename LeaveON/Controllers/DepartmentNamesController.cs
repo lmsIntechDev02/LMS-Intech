@@ -154,7 +154,7 @@ namespace LeaveON.Controllers
 
          //db.DepartmentNames.Add(departmentName);
 
-                db.Entry(departmentName).State = EntityState.Modified;
+                 db.Entry(departmentName).State = EntityState.Modified;
                         await db.SaveChangesAsync();
                         return RedirectToAction("Index");
                     }

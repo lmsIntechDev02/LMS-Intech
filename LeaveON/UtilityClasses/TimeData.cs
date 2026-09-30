@@ -33,6 +33,9 @@ namespace LeaveON.UtilityClasses
     [DisplayName("Working Hours")]
     public TimeSpan WorkingHours { get; set; }
     public TimeSpan TotalTime { get; set; }
+
+    public String StrWorkingHours { get; set; }
+    public String StrTotalTime { get; set; }
     public string Status { get; set; }
     public bool isLateArrival { get; set; }
     public bool isEarlyDeparture { get; set; }

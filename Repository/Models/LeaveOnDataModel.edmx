@@ -137,6 +137,21 @@
           <Property Name="DEVID" Type="nvarchar" MaxLength="128" />
           <Property Name="Devnm" Type="nvarchar" MaxLength="128" />
         </EntityType>
+        <EntityType Name="AuditLogs">
+          <Key>
+            <PropertyRef Name="AuditLogId" />
+          </Key>
+          <Property Name="AuditLogId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TableName" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="RecordId" Type="nvarchar" MaxLength="100" />
+          <Property Name="Action" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ScreenName" Type="nvarchar" MaxLength="200" />
+          <Property Name="ColumnName" Type="nvarchar" MaxLength="200" />
+          <Property Name="OldValue" Type="nvarchar(max)" />
+          <Property Name="NewValue" Type="nvarchar(max)" />
+          <Property Name="UserId" Type="nvarchar" MaxLength="200" />
+          <Property Name="AuditDate" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="BreakHours">
           <Key>
             <PropertyRef Name="BreakHoursID" />
@@ -213,8 +228,8 @@
           <Property Name="Description" Type="nvarchar" MaxLength="500" />
           <Property Name="UserLeavePolicyId" Type="int" />
           <Property Name="HoursTaken" Type="int" />
-          <Property Name="AnnualAmountAjustmesnt" Type="decimal" Precision="18" Scale="0" />
           <Property Name="AnnualAmountAjustmesntModifyDate" Type="datetime" />
+          <Property Name="AnnualAmountAjustmesnt" Type="decimal" Precision="18" Scale="0" />
         </EntityType>
         <EntityType Name="LeaveType">
           <Key>
@@ -272,7 +287,7 @@
           <Property Name="CountryId" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="HR_Monthly_Leaves_Report">
           <Key>
             <PropertyRef Name="UserName" />
@@ -596,6 +611,7 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AttendanceData" EntityType="Self.AttendanceData" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditLogs" EntityType="Self.AuditLogs" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="BreakHours" EntityType="Self.BreakHours" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CountryNames" EntityType="Self.CountryNames" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="DepartmentNames" EntityType="Self.DepartmentNames" Schema="dbo" store:Type="Tables" />
@@ -828,6 +844,7 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
             <End Role="AspNetRole" EntitySet="AspNetRoles" />
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
+          <EntitySet Name="AuditLogs" EntityType="LeaveONModels.AuditLog" />
           </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -1432,6 +1449,21 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
           <End Type="LeaveONModels.AspNetRole" Role="AspNetRole" Multiplicity="*" />
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
         </Association>
+        <EntityType Name="AuditLog">
+          <Key>
+            <PropertyRef Name="AuditLogId" />
+          </Key>
+          <Property Name="AuditLogId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TableName" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="RecordId" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Action" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ScreenName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="ColumnName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="OldValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="NewValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="UserId" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="AuditDate" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1742,6 +1774,22 @@ warning 6002: The table/view 'LeaveON-Test11July26.dbo.HR_Monthly_Leaves_Report'
               <ScalarProperty Name="Id" ColumnName="RoleId" />
             </EndProperty>
           </AssociationSetMapping>
+          <EntitySetMapping Name="AuditLogs">
+            <EntityTypeMapping TypeName="LeaveONModels.AuditLog">
+              <MappingFragment StoreEntitySet="AuditLogs">
+                <ScalarProperty Name="AuditDate" ColumnName="AuditDate" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="NewValue" ColumnName="NewValue" />
+                <ScalarProperty Name="OldValue" ColumnName="OldValue" />
+                <ScalarProperty Name="ColumnName" ColumnName="ColumnName" />
+                <ScalarProperty Name="ScreenName" ColumnName="ScreenName" />
+                <ScalarProperty Name="Action" ColumnName="Action" />
+                <ScalarProperty Name="RecordId" ColumnName="RecordId" />
+                <ScalarProperty Name="TableName" ColumnName="TableName" />
+                <ScalarProperty Name="AuditLogId" ColumnName="AuditLogId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

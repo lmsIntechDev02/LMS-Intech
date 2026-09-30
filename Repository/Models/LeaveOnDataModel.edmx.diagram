@@ -46,6 +46,7 @@
         <AssociationConnector Association="LeaveONModels.FK_LeaveBalance_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_tblHRBP_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.AspNetUserRoles" />
+        <EntityTypeShape EntityType="LeaveONModels.AuditLog" Width="1.5" PointX="0.75" PointY="6.75" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
