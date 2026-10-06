@@ -315,14 +315,14 @@ namespace LeaveON.Controllers
           if (isManager1 && x.IsAccepted1 == null)
           {
             actionHtml =
-                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+                "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
           else if (isManager2 &&
                    x.IsAccepted2 == null &&
                    x.IsAccepted1 == 1)
           {
             actionHtml =
-                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+                "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
           else if (x.IsAccepted1 == null)
           {
@@ -336,14 +336,14 @@ namespace LeaveON.Controllers
           if (isManager1 && x.IsAccepted1 == null)
           {
             actionHtml =
-                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+                "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
           else if (isManager2 &&
                    x.IsAccepted2 == null &&
                    x.IsAccepted1 == 1)
           {
             actionHtml =
-                "<a href='/Leaves/Edit/" + x.Id + "'>Approve</a>";
+                "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
           else if (x.IsAccepted1 == null)
           {

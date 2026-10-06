@@ -769,7 +769,9 @@ namespace LeaveON.Controllers
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
       var shortLeaveMessage = "";
+     var aspNetUsers =  db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
+      UserLeavePolicy policy= aspNetUsers.UserLeavePolicy;
 
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
@@ -881,9 +883,21 @@ namespace LeaveON.Controllers
         AspNetUser admin1 = null;
         if (leave.LeaveType.Id == 2) //2 is for annual leave. if this is selected then send leave request first to umar.nazir
         {
-          int validDaysCount = Enumerable.Range(0, daysCount)
-            .Select(offset => leave.StartDate.AddDays(offset))
-            .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday); //total days excluding weekends
+          // testing new 
+          // string WeeklyOffDays = policy.WeeklyOffDays;
+          //  var annualeaveList = policy.AnnualOffDays.ToList();
+
+          // List<DayOfWeek> WeeklyOffDays = Repository.Common.Common.GetWeekendDays(policy);
+
+
+
+          ///  var userpoliceyDetail = db.UserLeavePolicyDetails.Where(k => k.UserLeavePolicyId == leave.UserLeavePolicyID).ToList();
+          ///  
+          int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+
+          //int validDaysCount = Enumerable.Range(0, daysCount)
+          //  .Select(offset => leave.StartDate.AddDays(offset))
+          //  .Count(date => WeeklyOffDays.Any(l=>l != date.DayOfWeek) && ( annualeaveList.Any(k=>k.OffDay.Value.Date!=date.Date))); //total days excluding weekends
 
           
           if (leave.AspNetUser.CntryName == "Pakistan")
@@ -943,18 +957,41 @@ namespace LeaveON.Controllers
           {
             if (leave.LeaveType.Id == 5) // Marriage Leave
             {
-              int validDaysCount = Enumerable.Range(0, daysCount)
-                  .Select(offset => leave.StartDate.AddDays(offset))
-                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              //int validDaysCount = Enumerable.Range(0, daysCount)
+              //    .Select(offset => leave.StartDate.AddDays(offset))
+              //    .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              int validDaysCount = 0;
+              if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+              }
+              else
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, false);
+              }
+             // int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
               leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
             }
            else if (leave.LeaveType.Id == 1) // Sick Leave
             {
-              int validDaysCount = Enumerable.Range(0, daysCount)
-                  .Select(offset => leave.StartDate.AddDays(offset))
-                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              //int validDaysCount = Enumerable.Range(0, daysCount)
+              //    .Select(offset => leave.StartDate.AddDays(offset))
+              //    .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              int validDaysCount = 0;
+              if (leave.AspNetUser.CntryName == "Pakistan")
+              {
+                validDaysCount= Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+              }
+              else
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, false);
+              }
+              //  int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+
               if (validDaysCount > balanceCheck)
               {
                 TempData["ErrorMessage"] = "Your leave request exceeds the available balance.";

@@ -1,9 +1,77 @@
-﻿using System;
+﻿using Repository.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Repository.Common
 {
     public static class Common
     {
+
+        public static List<DayOfWeek> GetWeekendDays(UserLeavePolicy userLeavePolicy)
+        {
+            string weekendDays = userLeavePolicy.WeeklyOffDays;
+            // Default weekend: Saturday and Sunday
+            if (string.IsNullOrWhiteSpace(weekendDays))
+            {
+                return new List<DayOfWeek>
+        {
+            DayOfWeek.Saturday,
+            DayOfWeek.Sunday
+        };
+            }
+
+            var result = new List<DayOfWeek>();
+
+            var values = weekendDays.Split(',');
+
+            foreach (var value in values)
+            {
+                if (int.TryParse(value.Trim(), out int dayNumber) &&
+                    dayNumber >= 0 &&
+                    dayNumber <= 6)
+                {
+                    result.Add((DayOfWeek)dayNumber);
+                }
+            }
+
+            // If the provided value was invalid, use default weekend
+            if (result.Count == 0)
+            {
+                return new List<DayOfWeek>
+        {
+            DayOfWeek.Saturday,
+            DayOfWeek.Sunday
+        };
+            }
+
+            return result;
+        }
+
+
+        public static int GetLeaveCounByPolicy(UserLeavePolicy userLeavePolicy,int totalSeltecdDays , Leave leave, bool isRemoveAnnualLeaveFromLeave )
+        {
+            List<DayOfWeek> WeeklyOffDays = GetWeekendDays(userLeavePolicy);
+            int dayscount = 0;
+             var annualeaveList = userLeavePolicy.AnnualOffDays.ToList();
+            if (annualeaveList.Count() > 0 && isRemoveAnnualLeaveFromLeave)
+            {
+                dayscount = Enumerable.Range(0, totalSeltecdDays)
+    .Select(offset => leave.StartDate.AddDays(offset))
+    .Count(date =>
+        !WeeklyOffDays.Any(l => l == date.DayOfWeek) &&
+        !annualeaveList.Any(k => k.OffDay.HasValue && k.OffDay.Value.Date == date.Date)
+    );
+            }
+            else
+            {
+                dayscount= Enumerable.Range(0, totalSeltecdDays)
+                .Select(offset => leave.StartDate.AddDays(offset))
+                .Count(date => !WeeklyOffDays.Any(l => l == date.DayOfWeek));
+            }
+            return dayscount;
+        }
+
         public static (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone)
         {
             string shortCountryName = attendacnetimezone.Substring(0, 3);
