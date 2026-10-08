@@ -11,6 +11,7 @@ using Repository.Models;
 using LeaveON.UtilityClasses;
 using System.Globalization;
 using LeaveON.Models;
+using LeaveON.Models.DatatableVmModel;
 
 namespace LeaveON.Controllers
 {
@@ -21,10 +22,159 @@ namespace LeaveON.Controllers
     private LeaveONEntities db = new LeaveONEntities();
 
     // GET: AspNetUsers
-    public async Task<ActionResult> Index()
+    public ActionResult Index()
     {
-      var aspNetUsers = db.AspNetUsers.Where(k => k.IsDeleted != true && k.BioStarEmpNum > 0);//.Include(a => a.Department);
-      return View(await aspNetUsers.ToListAsync());
+      return View();
+    }
+
+    [HttpPost]
+    public async Task<JsonResult> GetUsers(DataTableRequest request)
+    {
+      var query = db.AspNetUsers
+          .Where(x => x.IsDeleted != true &&
+                      x.BioStarEmpNum > 0);
+
+      // Total records
+      var recordsTotal = await query.CountAsync();
+
+      // Search
+      if (request.Search != null &&
+          !string.IsNullOrWhiteSpace(request.Search.Value))
+      {
+        var search = request.Search.Value.Trim();
+
+        query = query.Where(x =>
+            x.UserName.Contains(search) ||
+            x.ManagerID.Contains(search) ||
+            x.ManagerName.Contains(search) ||
+            x.Manager2Name.Contains(search) ||
+            x.DepartmentName.Contains(search) ||
+            x.CntryName.Contains(search) ||
+            x.CntryNameTemp.Contains(search) ||
+            x.Remarks.Contains(search)
+        );
+      }
+
+      // Filtered records
+      var recordsFiltered = await query.CountAsync();
+
+      // Sorting
+      if (request.Order != null && request.Order.Count > 0)
+      {
+        var order = request.Order[0];
+
+        switch (order.Column)
+        {
+          case 0:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.BioStarEmpNum)
+                : query.OrderBy(x => x.BioStarEmpNum);
+            break;
+
+          case 1:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.UserName)
+                : query.OrderBy(x => x.UserName);
+            break;
+
+          case 2:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.ManagerName)
+                : query.OrderBy(x => x.ManagerName);
+            break;
+
+          case 3:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.ManagerName)
+                : query.OrderBy(x => x.ManagerName);
+            break;
+
+          case 4:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.Manager2Name)
+                : query.OrderBy(x => x.Manager2Name);
+            break;
+
+          case 5:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.DepartmentName)
+                : query.OrderBy(x => x.DepartmentName);
+            break;
+
+          case 6:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.CntryName)
+                : query.OrderBy(x => x.CntryName);
+            break;
+
+          case 7:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.CntryNameTemp)
+                : query.OrderBy(x => x.CntryNameTemp);
+            break;
+
+          case 8:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.DateCreated)
+                : query.OrderBy(x => x.DateCreated);
+            break;
+
+          case 9:
+            query = order.Dir == "desc"
+                ? query.OrderByDescending(x => x.DateModified)
+                : query.OrderBy(x => x.DateModified);
+            break;
+
+          default:
+            query = query.OrderBy(x => x.UserName);
+            break;
+        }
+      }
+      else
+      {
+        query = query.OrderBy(x => x.UserName);
+      }
+
+      // Paging
+      var users = await query
+          .Skip(request.Start)
+          .Take(request.Length)
+          .Select(x => new UserDataTableModel
+          {
+            Id = x.Id,
+            BioStarEmpNum = x.BioStarEmpNum,
+            UserName = x.UserName,
+            ManagerID = x.ManagerID,
+            ManagerName = x.ManagerName,
+            Manager2Name = x.Manager2Name,
+            DepartmentName = x.DepartmentName,
+            CntryName = x.CntryName,
+            CntryNameTemp = x.CntryNameTemp,
+
+            LeavePolicy = x.UserLeavePolicy != null
+                  ? x.UserLeavePolicy.Description
+                  : "",
+
+            DateCreated = x.DateCreated,
+            DateModified = x.DateModified,
+            Remarks = x.Remarks
+          })
+          .ToListAsync();
+      //return Json(new
+      //{
+      //  draw = request.Draw,
+      //  recordsTotal = recordsTotal,
+      //  recordsFiltered = recordsFiltered,
+      //  data = users
+      //}, JsonRequestBehavior.AllowGet);
+
+      return Json(new DataTableResponse<UserDataTableModel>
+      {
+        draw = request.Draw,
+        recordsTotal = recordsTotal,
+        recordsFiltered = recordsFiltered,
+        data = users
+      });
     }
 
     // GET: AspNetUsers/Details/5

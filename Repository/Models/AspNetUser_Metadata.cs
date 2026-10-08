@@ -16,9 +16,6 @@ namespace Repository.Models
         [DisplayName("Date Modified")]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:dd/MM/yyyy}")]
         Nullable<System.DateTime> DateModified { get; set; }
-
-
-
     }
 
     [MetadataType(typeof(IAspNetUser_MetadataType))]

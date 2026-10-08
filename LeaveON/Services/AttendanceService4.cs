@@ -11,7 +11,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Diagnostics;
- 
+using System.Configuration;
 
 namespace LeaveON.Services
 {
@@ -840,14 +840,20 @@ ORDER BY devdt", con);
                 status = leaveobject.Name; // Leave type ID if on leave
                 isAbsent = false;
               }
-            string lastAttendacneCountry = countryName;
-            string lastAttendacnetimezone = timeZone;
+            string  attendanceCountry = countryName;
+            string attendancetimezone = timeZone;
             if (status == "Absent")
             {
               TimeData lastAttendacnelcoationEnd = LstTimeData.FirstOrDefault(x => x.Date.Date == (currentDay.Date.Date.AddDays(-1)).Date && x.EmployeeNumber == UserId);
-                lastAttendacneCountry = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.CountryName : countryName;
-                lastAttendacnetimezone = lastAttendacnelcoationEnd != null ? lastAttendacnelcoationEnd.TimeZone : timeZone;
+             if(lastAttendacnelcoationEnd != null)
+              {
+                attendanceCountry  = countryName != lastAttendacnelcoationEnd.CountryName ? lastAttendacnelcoationEnd.CountryName : countryName;
+                attendancetimezone = timeZone != lastAttendacnelcoationEnd.TimeZone? lastAttendacnelcoationEnd.TimeZone : timeZone;
+              InsertSyncLog("Sync User Atendance", "", 0,
+                        1, 0, "Attandnce Absent__"+ currentDay, "last Attandnce location="+ attendanceCountry+","+ attendancetimezone+" - person location = "+ countryName+","+ timeZone, UserId);
+              }
             }
+             
             // isAbsent = true;
             //string status = annualOffDay != null ? annualOffDay.Description : "Absent"; // Use holiday description if it's a holiday, else mark as Absent
             depName = dbLeaveOn.AspNetUsers.FirstOrDefault(x => x.BioStarEmpNum == UserId)?.DepartmentName ?? depName; // Safeguard against null
@@ -856,8 +862,8 @@ ORDER BY devdt", con);
               {
                 EmployeeName = UserName,
                 EmployeeNumber = UserId,
-                TimeZone = timeZone != lastAttendacnetimezone ? lastAttendacnetimezone : timeZone,
-                CountryName = countryName != lastAttendacneCountry ? lastAttendacneCountry : countryName, 
+                TimeZone = attendancetimezone,
+                CountryName = attendanceCountry,
                 Policy = userLeavePolicyDescription,
                 Department = depName,
                 Date = annualOffDay?.OffDay ?? currentDay,
@@ -1297,6 +1303,42 @@ ORDER BY devdt", con);
         startDate = startDate.AddDays(1);
       }
       return weekEndDates;
+    }
+    public static void InsertSyncLog(string jobName, string status, int totalRecords,
+                        int inserted, int updated, string errorMessage, string taskType, int? bioStarValue)
+    {
+      string connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+
+
+
+      using (SqlConnection con = new SqlConnection(connectionString))
+      {
+        string query = @"
+            INSERT INTO SyncJobLogs
+            (JobName, StartTime, EndTime, Status, TotalRecords,
+             InsertedRecords, UpdatedRecords, ErrorMessage,TaskType,EmployeeID)
+            VALUES
+            (@JobName, @StartTime, @EndTime, @Status, @TotalRecords,
+             @InsertedRecords, @UpdatedRecords, @ErrorMessage,@TaskType,@EmployeeID)";
+
+        using (SqlCommand cmd = new SqlCommand(query, con))
+        {
+          cmd.Parameters.AddWithValue("@JobName", jobName);
+          cmd.Parameters.AddWithValue("@StartTime", DateTime.Now);
+          cmd.Parameters.AddWithValue("@EndTime", DBNull.Value);
+          cmd.Parameters.AddWithValue("@Status", status);
+          cmd.Parameters.AddWithValue("@TotalRecords", totalRecords);
+          cmd.Parameters.AddWithValue("@InsertedRecords", inserted);
+          cmd.Parameters.AddWithValue("@UpdatedRecords", updated);
+          cmd.Parameters.AddWithValue("@TaskType", taskType);
+          cmd.Parameters.AddWithValue("@EmployeeID", bioStarValue);
+          cmd.Parameters.AddWithValue("@ErrorMessage",
+              string.IsNullOrEmpty(errorMessage) ? (object)DBNull.Value : errorMessage);
+
+          con.Open();
+          cmd.ExecuteNonQuery();
+        }
+      }
     }
     protected (string CountryName, string TimeZone) GetAttendacneTimeZone(string attendacnetimezone, string attendacneshortCountryName, AspNetUser aspNetUser)
     {

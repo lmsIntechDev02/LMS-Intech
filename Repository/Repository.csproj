@@ -45,6 +45,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -78,6 +79,9 @@
     </Compile>
     <Compile Include="Models\AspNetUser_Metadata.cs" />
     <Compile Include="Models\AttendanceData.cs">
+      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AuditLog.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\BreakHour.cs">
