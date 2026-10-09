@@ -154,7 +154,7 @@ namespace LeaveON.Controllers
             LeavePolicy = x.UserLeavePolicy != null
                   ? x.UserLeavePolicy.Description
                   : "",
-
+            UserLeavePolicyId=x.UserLeavePolicyId,
             DateCreated = x.DateCreated,
             DateModified = x.DateModified,
             Remarks = x.Remarks

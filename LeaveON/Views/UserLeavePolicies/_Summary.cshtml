@@ -2,57 +2,60 @@
 
 <!-- general form elements -->
 <div id="EditPage" class="card card-warning">
-  <div class="card-header">
 
-    <h3 class="card-title">User Leave Policy</h3>
-
-  </div>
-  <!-- /.card-header -->
-  <!-- form start -->
-
-
-  @using (Html.BeginForm())
+  @if (ViewBag.IsUserDetail != true)
   {
-    @Html.AntiForgeryToken()
+    <div class="card-header">
 
-    <div class="card-body">
+      <h3 class="card-title">User Leave Policy</h3>
 
-      @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    </div>}
+    <!-- /.card-header -->
+    <!-- form start -->
 
-      <section class="content">
-        <div class="row">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Total Leaves Allowed</h3>
-                <br />
-                @*<hr />*@
 
-                <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
-                  <div class="row">
-                    <div class="col-sm-12 col-md-6">
-                    </div>
-                    <div class="col-sm-12 col-md-6"></div>
-                  </div>
-                  <div class="row">
-                    <div class="col-sm-12">
-                      <div>
+    @using (Html.BeginForm())
+    {
+      @Html.AntiForgeryToken()
 
+      <div class="card-body">
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <section class="content">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Total Leaves Allowed</h3>
+                  <br />
+                  @*<hr />*@
+
+                  <div d="example2_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                    <div class="row">
+                      <div class="col-sm-12 col-md-6">
                       </div>
-                      <table id="allowedLeaves" class="table table-bordered table-hover dataTable dtr-inline" role="grid">
-                        <thead>
-                          <tr>
+                      <div class="col-sm-12 col-md-6"></div>
+                    </div>
+                    <div class="row">
+                      <div class="col-sm-12">
+                        <div>
 
-                            <th style="width:49%;">Leave Type</th>
-                            <th style="width:17%;">Allowed</th>
-                            <th style="width:17%;">Taken</th>
-                            <th style="width:17%;">Balance</th>
+                        </div>
+                        <table id="allowedLeaves" class="table table-bordered table-hover dataTable dtr-inline" role="grid">
+                          <thead>
+                            <tr>
+
+                              <th style="width:49%;">Leave Type</th>
+                              <th style="width:17%;">Allowed</th>
+                              <th style="width:17%;">Taken</th>
+                              <th style="width:17%;">Balance</th>
 
 
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @{
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @{
                               if (Model.userLeavePolicyDetail.Count() > 0)
                               {
                                 Repository.Models.LeaveBalance leaveBalance;
@@ -78,169 +81,167 @@
                                     Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
                                     if (item.LeaveTypeId == 2 && leaveBalance != null && leaveBalance.AnnualAmountAjustmesnt.HasValue) //annual leave
                                     {
-                                      allow = (item.Allowed +  Convert.ToInt32(leaveBalance.AnnualAmountAjustmesnt)).ToString();
+                                      allow = (item.Allowed + Convert.ToInt32(leaveBalance.AnnualAmountAjustmesnt)).ToString();
                                     }
                                     else
                                     {
                                       allow = item.Allowed.ToString();
                                     }
 
+                                    <tr>
+                                      <td style="display:none;"><input type="hidden" name="UserLeavePolicyDetail.Index" value="@sNo" /></td>
+                                      <td>
+                                        @Html.DropDownList("UserLeavePolicyDetail[" + sNo + "].LeaveTypeId", new SelectList(ViewBag.LeaveTypes, "Value", "Text", item.LeaveTypeId), null, new
+                                        {
+                                          @class = "form-control"@*, style = "width: 300px;"*@})
+                                      </td>
+                                      <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(allow)" class="form-control" placeholder="Allowed"> </td>
+                                      <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(leaveBalance != null ? leaveBalance.Taken.ToString() : "")" class="form-control" placeholder="Taken"> </td>
+                                      <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(leaveBalance != null ? leaveBalance.Balance.ToString() : (item.Allowed != null ? item.Allowed.ToString() : ""))" class="form-control" placeholder="Balance"></td>
+
+                                    </tr>
+                                    sNo += 1;
+                                    //if (sNo == 2) { break; };
+                                  }
+                                }
+                                if (ViewBag.Caller == "Leave")
+                                {
+
+                                  leaveBalance = (Repository.Models.LeaveBalance)ViewBag.CompensatoryLeaveBalance;/*Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == CurrentLoginUserId);*/
+                                  Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
+                                  Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
+                                  string Allowed = string.Empty;
+                                  Allowed = Balance;
+
+                                  if (!(string.IsNullOrEmpty(Taken) && string.IsNullOrEmpty(Balance)))
+                                  {
+                                    decimal cBalance = (decimal.Parse(Balance) - decimal.Parse(Taken));
+
+                                    if (cBalance < 0)
+                                    {
+                                      cBalance = -1 * cBalance;
+                                    }
+                                    Balance = (cBalance).ToString();
+                                  }
                                   <tr>
-                                    <td style="display:none;"><input type="hidden" name="UserLeavePolicyDetail.Index" value="@sNo" /></td>
+                                    <td style="display:none;"><input type="hidden" name="UserLeavePolicyDetail.Index" value="" /></td>
                                     <td>
-                                      @Html.DropDownList("UserLeavePolicyDetail[" + sNo + "].LeaveTypeId", new SelectList(ViewBag.LeaveTypes, "Value", "Text", item.LeaveTypeId), null, new
-                                      {
-                                        @class = "form-control"@*, style = "width: 300px;"*@})
+                                      @Html.DropDownList("UserLeavePolicyDetail[" + sNo + "].LeaveTypeId",
+                                         new SelectList(new[]
+                                         {
+                                             new SelectListItem { Value = "0", Text = "Compensatory Leave" }
+                                         }, "Value", "Text"),
+                                         null,
+                                         new { @class = "form-control" })
                                     </td>
-                                    <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(allow)" class="form-control" placeholder="Allowed"> </td>
+                                    <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(Allowed)" class="form-control" placeholder="Allowed"> </td>
                                     <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(leaveBalance != null ? leaveBalance.Taken.ToString() : "")" class="form-control" placeholder="Taken"> </td>
-                                    <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(leaveBalance != null ? leaveBalance.Balance.ToString() : (item.Allowed != null ? item.Allowed.ToString() : ""))" class="form-control" placeholder="Balance"></td>
+                                    <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(Balance)" class="form-control" placeholder="Balance"> </td>
 
                                   </tr>
-                                  sNo += 1;
-                                  //if (sNo == 2) { break; };
                                 }
-                              }
-                              if (ViewBag.Caller == "Leave")
-                              {
-
-                                leaveBalance = (Repository.Models.LeaveBalance)ViewBag.CompensatoryLeaveBalance;/*Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == CurrentLoginUserId);*/
-                                Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
-                                Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
-                                string Allowed = string.Empty;
-                                Allowed = Balance;
-
-                                if (!(string.IsNullOrEmpty(Taken) && string.IsNullOrEmpty(Balance)))
-                                {
-                                  decimal cBalance = (decimal.Parse(Balance) - decimal.Parse(Taken));
-
-                                  if (cBalance < 0)
-                                  {
-                                    cBalance = -1 * cBalance;
-                                  }
-                                  Balance = (cBalance).ToString();
-                                }
-                                <tr>
-                                  <td style="display:none;"><input type="hidden" name="UserLeavePolicyDetail.Index" value="" /></td>
-                                  <td>
-                                    @Html.DropDownList("UserLeavePolicyDetail[" + sNo + "].LeaveTypeId",
-                                       new SelectList(new[]
-                                       {
-                                           new SelectListItem { Value = "0", Text = "Compensatory Leave" }
-                                       }, "Value", "Text"),
-                                       null,
-                                       new { @class = "form-control" })
-                                  </td>
-                                  <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(Allowed)" class="form-control" placeholder="Allowed"> </td>
-                                  <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(leaveBalance != null ? leaveBalance.Taken.ToString() : "")" class="form-control" placeholder="Taken"> </td>
-                                  <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(Balance)" class="form-control" placeholder="Balance"> </td>
-
-                                </tr>
                               }
                             }
-                          }
-                        </tbody>
-                        @*<tfoot>
-                            <tr>
-                              <td></td>
-                              <td>1</td>
-                              <td>1</td>
-                              <td>1</td>
-                              <td>1</td>
-                              <td>1</td>
-                              <td>1</td>
-                            </tr>
-                          </tfoot>*@
+                          </tbody>
+                          @*<tfoot>
+                              <tr>
+                                <td></td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>1</td>
+                              </tr>
+                            </tfoot>*@
 
-                      </table>
+                        </table>
 
 
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Annual Off Days</h3>
+          @if (ViewBag.IsUserDetail != true)
+          {
+            <div class="row">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Annual Off Days</h3>
 
-                <div id="NewData">
-                  @{
-                    if (Model.annualOffDays != null)
-                    {
-                      ViewBag.ShowXButton = false;
-                      Html.RenderPartial("_DisplayAnnualLeaves", Model.annualOffDays);
-                    }
-                  }
+                    <div id="NewData">
+                      @{
+                        if (Model.annualOffDays != null)
+                        {
+                          ViewBag.ShowXButton = false;
+                          Html.RenderPartial("_DisplayAnnualLeaves", Model.annualOffDays);
+                        }
+                      }
+                    </div>
+                    <table id="customFields" class="table table-bordered table-hover  " role="grid">
+                    </table>
+                  </div>
                 </div>
-                <table id="customFields" class="table table-bordered table-hover  " role="grid">
-                </table>
               </div>
             </div>
-          </div>
-        </div>
+          }
 
-
-      </section>
-
+        </section>
 
 
 
+        @if (ViewBag.IsUserDetail != true)
+        {
 
-      <div>
-
-        @*<div class="form-group">
-            @Html.LabelFor(model => model.userLeavePolicy.FiscalYearPeriod, "Fiscal Year Period", htmlAttributes: new { @class = " " })
-
-            @Html.EditorFor(model => model.userLeavePolicy.FiscalYearPeriod, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.userLeavePolicy.FiscalYearPeriod, "", new { @class = "text-danger" })
-
-          </div>*@
-
-        <div class="form-group">
-          @Html.LabelFor(model => model.userLeavePolicy.WeeklyOffDays, "Weekly Off Days", htmlAttributes: new { @class = " " })
-          @Html.HiddenFor(model => model.userLeavePolicy.WeeklyOffDays, new { htmlAttributes = new { @class = "form-control" } })
-          <br>
-          @*@Html.DropDownList("multiSelectOffDays", new MultiSelectList(ViewBag.WeeklyOffDays, "Value", "Text", ViewBag.DaysSelected), htmlAttributes: new { @class = "select2", @id = "multiSelectOffDays", })*@
-
-          @Html.ListBox(
-    "multiSelectOffDays",
-    new MultiSelectList(ViewBag.WeeklyOffDays, "Value", "Text", ViewBag.DaysSelected),
-    new { @class = "select2", @id = "multiSelectOffDays", multiple = "multiple" }
-)
+          <div>
 
 
-          @Html.ValidationMessageFor(model => model.userLeavePolicy.WeeklyOffDays, "", new { @class = "text-danger" })
 
-        </div>
+            <div class="form-group">
+              @Html.LabelFor(model => model.userLeavePolicy.WeeklyOffDays, "Weekly Off Days", htmlAttributes: new { @class = " " })
+              @Html.HiddenFor(model => model.userLeavePolicy.WeeklyOffDays, new { htmlAttributes = new { @class = "form-control" } })
+              <br>
+              @*@Html.DropDownList("multiSelectOffDays", new MultiSelectList(ViewBag.WeeklyOffDays, "Value", "Text", ViewBag.DaysSelected), htmlAttributes: new { @class = "select2", @id = "multiSelectOffDays", })*@
 
-        <div>
+              @Html.ListBox(
+         "multiSelectOffDays",
+         new MultiSelectList(ViewBag.WeeklyOffDays, "Value", "Text", ViewBag.DaysSelected),
+         new { @class = "select2", @id = "multiSelectOffDays", multiple = "multiple" }
+       )
 
-          <div class="form-group">
-            @Html.LabelFor(model => model.userLeavePolicy.Remarks, htmlAttributes: new { @class = "control-label" })
-            <div class="col-md-10">
-              @Html.TextAreaFor(model => model.userLeavePolicy.Remarks, new { @class = "form-control", @rows = "4", @cols = "4", @placeholder = "Remarks..." })
-              @Html.ValidationMessageFor(model => model.userLeavePolicy.Remarks, "", new { @class = "text-danger" })
+
+              @Html.ValidationMessageFor(model => model.userLeavePolicy.WeeklyOffDays, "", new { @class = "text-danger" })
+
             </div>
+
+            <div>
+
+              <div class="form-group">
+                @Html.LabelFor(model => model.userLeavePolicy.Remarks, htmlAttributes: new { @class = "control-label" })
+                <div class="col-md-10">
+                  @Html.TextAreaFor(model => model.userLeavePolicy.Remarks, new { @class = "form-control", @rows = "4", @cols = "4", @placeholder = "Remarks..." })
+                  @Html.ValidationMessageFor(model => model.userLeavePolicy.Remarks, "", new { @class = "text-danger" })
+                </div>
+              </div>
+
+
+            </div>
+
+
+
+            <br />
+
           </div>
-
-
-        </div>
-
-
-
-        <br />
-
+        }
       </div>
-    </div>
 
-  }
+    }
 
-</div>
+  </div>
 
 <script>
   $("#EditPage *").prop('disabled', true);

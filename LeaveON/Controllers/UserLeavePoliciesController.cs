@@ -193,7 +193,7 @@ namespace LeaveON.Controllers
 
     // GET: UserLeavePolicies/Edit/5
     [Authorize(Roles = "Admin,Manager,User")]
-    public async Task<ActionResult> Edit(decimal id, string Caller, string leaveUserId = "UserLeavePolicy")
+    public async Task<ActionResult> Edit(decimal id, string Caller, string leaveUserId = "UserLeavePolicy", bool? IsUserDetail=false)
     {
       try
       {
@@ -444,6 +444,7 @@ namespace LeaveON.Controllers
           ViewBag.CompensatoryLeaveBalance = db.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == LMS.Constants.Consts.CompensatoryLeaveTypeId && x.UserId == leaveUserId  && x.UserLeavePolicyId==id);
 
           ViewBag.Caller = "Leave";
+          ViewBag.IsUserDetail = IsUserDetail;
 
           return PartialView("_Summary", userLeavePolicyViewModel);
         }

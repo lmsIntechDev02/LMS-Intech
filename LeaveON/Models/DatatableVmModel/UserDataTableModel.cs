@@ -25,6 +25,7 @@ namespace LeaveON.Models.DatatableVmModel
     public string CntryNameTemp { get; set; }
 
     public string LeavePolicy { get; set; }
+    public int? UserLeavePolicyId { get; set; }
 
     public DateTime? DateCreated { get; set; }
 
