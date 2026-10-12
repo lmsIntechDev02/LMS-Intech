@@ -48,18 +48,23 @@ namespace LeaveON
         AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
         LoginPath = new PathString("/Account/Login"),
 
-        ExpireTimeSpan = TimeSpan.FromMinutes(40),
-       // ExpireTimeSpan = TimeSpan.FromDays(30),
-        SlidingExpiration = true,
+       /// ExpireTimeSpan = TimeSpan.FromMinutes(2),
+           ExpireTimeSpan = TimeSpan.FromDays(7),
+        CookieSecure = CookieSecureOption.Always,
+           SlidingExpiration = true,
+      //  CookieHttpOnly = true,
+        /// CookieSecure = CookieSecureOption.SameAsRequest,
 
         Provider = new CookieAuthenticationProvider
         {
           OnValidateIdentity =
-            SecurityStampValidator.OnValidateIdentity<ApplicationUserManager, ApplicationUser>(
-                validateInterval: TimeSpan.FromMinutes(5),
-                regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+            SecurityStampValidator.OnValidateIdentity
+                <ApplicationUserManager, ApplicationUser>(
+                    validateInterval: TimeSpan.FromMinutes(5),
+                    regenerateIdentity: (manager, user) =>
+                        user.GenerateUserIdentityAsync(manager))
         }
-      });;
+      });
       // Use a cookie to temporarily store information about a user logging in with a third party login provider
       app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 

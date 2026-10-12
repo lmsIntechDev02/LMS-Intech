@@ -13,6 +13,7 @@ using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
 using System;
 using System.Collections;
+using LeaveON.Helper;
 
 namespace LeaveON.Controllers
 {
@@ -160,6 +161,7 @@ namespace LeaveON.Controllers
     // the ADUser param from AuthLogin redirect, no Windows challenge needed.
     [AllowAnonymous]
     public ActionResult Login(string returnUrl)
+    
     {
       if (User.Identity.IsAuthenticated)
       {
@@ -309,22 +311,46 @@ namespace LeaveON.Controllers
       AuthenticationManager.SignOut(
           DefaultAuthenticationTypes.ApplicationCookie);
 
-      AuthenticationManager.SignIn(
-          new AuthenticationProperties
-          {
-            IsPersistent = model.RememberMe,
-            ExpiresUtc = model.RememberMe
-                  ? DateTimeOffset.UtcNow.AddDays(7)
-                  : (DateTimeOffset?)null,
-            AllowRefresh = true
-          },
-          identity);
+      var properties = new AuthenticationProperties
+      {
+        IsPersistent = model.RememberMe,
+        IssuedUtc = DateTimeOffset.UtcNow,
+        AllowRefresh = true
+      };
+
+      if (model.RememberMe)
+      {
+        properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7);
+      }
+
+      AuthenticationManager.SignIn(properties, identity);
+
+      //AuthenticationManager.SignIn(
+      //    new AuthenticationProperties
+      //    {
+      //      IsPersistent = model.RememberMe,
+      //      IssuedUtc = DateTimeOffset.UtcNow,
+
+      //      ExpiresUtc = model.RememberMe
+      //            ? DateTimeOffset.UtcNow.AddDays(7)
+      //            : (DateTimeOffset?)null,
+      //      AllowRefresh = true
+      //    },
+      //    identity);
 
       if (!string.IsNullOrWhiteSpace(returnUrl) &&
           Url.IsLocalUrl(returnUrl))
       {
         return Redirect(returnUrl);
       }
+
+      Session[InactivityTimeoutAttribute.LastActivityKey]
+            = DateTime.UtcNow;
+
+      Session[InactivityTimeoutAttribute.RememberMeKey]
+           = model.RememberMe;
+
+
 
       return RedirectToAction("Index", "Dashboard");
     }
@@ -348,7 +374,7 @@ namespace LeaveON.Controllers
               IdentityType.SamAccountName,
               aDusername);
 
-           isActiveADUser = true;
+          isActiveADUser = true;
           if (user != null && user.Enabled == true)
           {
             DirectoryEntry de =
@@ -382,6 +408,41 @@ namespace LeaveON.Controllers
       {
         return true;
       }
+    }
+
+    [AllowAnonymous]
+    public ActionResult Resume(string returnUrl)
+    {
+      // If the cookie has expired, require a normal login.
+      if (User?.Identity?.IsAuthenticated != true)
+      {
+        var loginUrl = Url.Action(
+            "Login",
+            "Account",
+            new
+            {
+              reason = "timeout",
+              returnUrl = Url.IsLocalUrl(returnUrl)
+                    ? returnUrl
+                    : Url.Action("Index", "Home")
+            });
+
+        return Redirect(loginUrl);
+      }
+
+      // Start a fresh inactivity window.
+      Session[InactivityTimeoutAttribute.LastActivityKey]
+          = DateTime.UtcNow;
+
+      Session[InactivityTimeoutAttribute.RememberMeKey] = true;
+
+      // Return to the screen the user originally requested.
+      if (Url.IsLocalUrl(returnUrl))
+      {
+        return Redirect(returnUrl);
+      }
+
+      return RedirectToAction("Index", "Home");
     }
     public void GetLog()
     {

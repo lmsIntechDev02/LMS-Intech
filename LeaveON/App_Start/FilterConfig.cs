@@ -1,3 +1,4 @@
+using LeaveON.Helper;
 using LeaveON.UtilityClasses;
 using System.Web;
 using System.Web.Mvc;
@@ -10,6 +11,9 @@ namespace LeaveON
     {
 
       filters.Add(new HandleErrorAttribute());
+      filters.Add(new InactivityTimeoutAttribute());
+
+  
       //filters.Add(new LoginFilter());
     }
   }
