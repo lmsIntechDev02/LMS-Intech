@@ -252,13 +252,21 @@ namespace LeaveON.Controllers
         //userLeavePolicy.LeaveBalances.Add(new LeaveBalance { Taken = Utility.GetCasualLeaveCountFromShortLeave(leaveUserId), UserId = leaveUserId, LeaveTypeId = Consts.CasualShortLeaveTypeId });
 
         userLeavePolicyViewModel.userLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.AsQueryable<UserLeavePolicyDetail>();
-        string userId = User.Identity.GetUserId();
+
+        string userId = string.Empty;
+        if(IsUserDetail==true)
+        {
+          userId = leaveUserId;
+        }
+        else
+        {
+          userId = User.Identity.GetUserId();
+        }
+          
         AspNetUser currentUser = await db.AspNetUsers.FindAsync(userId);
+
         var userPolicy = db.UserLeavePolicies.FirstOrDefault(x => x.Id == userLeavePolicy.Id);
         var joiningDate = currentUser.JoiningDate;
-
-        // 
-
           if (joiningDate.HasValue && joiningDate > userPolicy.FiscalYearStart && Caller != "UserLeavePolicy")
           {
             int joiningYear = joiningDate.Value.Year;
