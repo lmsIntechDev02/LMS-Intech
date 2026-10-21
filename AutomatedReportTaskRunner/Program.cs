@@ -23,7 +23,8 @@ namespace AutomatedReportTaskRunner
             // Stop execution immediately (out ho jaay)
             //return;
             DateTime today = DateTime.Today;
-            DateTime previousMonthDate = today.AddMonths(-1);
+            DateTime previousMonthDate = today.AddMonths(-3);
+
             int month = previousMonthDate.Month;
             int year = previousMonthDate.Year;
             //int month = today.Month;

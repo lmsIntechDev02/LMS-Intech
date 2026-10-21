@@ -181,12 +181,12 @@ namespace LeaveON.Services
         List<string> managerids = new List<string>();
 
       //managerids.Add("d7217d94-50fe-4c70-9f7e-6ef2b98cff3d"); //ht
-      // managerids.Add("04a6810a-4e58-4d42-ba05-77c24b732fbb"); //ht
+       managerids.Add("708ada81-4409-48a0-905b-769b7b0da6b0"); //ht
 
-      if (managerEmails.Any())
-      {
-        managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
-      }
+      //if (managerEmails.Any())
+      //{
+      //  managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
+      //}
 
 
       managerEmails = GetManagersListById(managerids);
@@ -772,12 +772,13 @@ namespace LeaveON.Services
         {
           if (isHOD)
           {
-            mail.To.Add(managerDetail.Email);
+            //mail.To.Add(managerDetail.Email);
+            mail.To.Add("laiba.khan@intechww.com");
           }
           else
           {
-           mail.To.Add(managerDetail.Email);
-           //mail.To.Add("laiba.khan@intechww.com");
+           //mail.To.Add(managerDetail.Email);
+           mail.To.Add("laiba.khan@intechww.com");
           //mail.To.Add("esswaqas@hotmail.com");
           }
           
@@ -1352,10 +1353,35 @@ namespace LeaveON.Services
         // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
         //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
         // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        var allowedDepartments = new[] { "Solution Centre", "Marketing", "Human Resource" }; 
+        //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "FINANCE & ACCOUNTS", "PROJECT QA/QC", "SUPPLY CHAIN" }; 
         //, "Solution Centre" , "Project Monitoring & Control" 
-                                                                                            //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-                                                                                            //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
+        //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
+        //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
+        var allowedDepartments = new[]
+        {
+    "AUTOMATION SOLUTIONS",
+    "FINANCE & ACCOUNTS",
+    "PROJECT QA/QC",
+    "SUPPLY CHAIN",
+    "iCSG",
+    "IIS",
+    "Factory",
+    "ELECTRICAL SOLUTIONS",
+    "Digital Solutions",
+    "WELLHEAD & SKIDS",
+    "IS&T",
+    "G&A",
+    "Solution Centre",
+    "Marketing",
+    "Human Resource",
+    "Cybersecurity",
+    "O&M",
+    "Project Monitoring & Control",
+    "Sales","Solution Centre"
+
+
+};
+
 
         var managersIDs = from u in context.AspNetUsers
                           join m in context.AspNetUsers on u.ManagerID equals m.Id
