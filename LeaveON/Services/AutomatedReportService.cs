@@ -175,18 +175,19 @@ namespace LeaveON.Services
     {
       string monthName = GetMonthName(month);
       List<DepartmentName> departmentList = GetDepartmentList();
+     // List<tblHRBP>  hRBPsList = GetHRBPUserList()
       var legitimacyCheckers = GetLegitemacyChckers();
         List<ManagerDto> managerEmails = new List<ManagerDto>();
          managerEmails = GetManagersIDs();
         List<string> managerids = new List<string>();
 
       //managerids.Add("d7217d94-50fe-4c70-9f7e-6ef2b98cff3d"); //ht
-       managerids.Add("708ada81-4409-48a0-905b-769b7b0da6b0"); //ht
+      //  managerids.Add("04a6810a-4e58-4d42-ba05-77c24b732fbb"); 
 
-      //if (managerEmails.Any())
-      //{
-      //  managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
-      //}
+      if (managerEmails.Any())
+      {
+        managerids = managerEmails.GroupBy(k => k.Id).Select(k => k.FirstOrDefault().Id).ToList();
+      }
 
 
       managerEmails = GetManagersListById(managerids);
@@ -772,22 +773,22 @@ namespace LeaveON.Services
         {
           if (isHOD)
           {
-            //mail.To.Add(managerDetail.Email);
-            mail.To.Add("laiba.khan@intechww.com");
+            mail.To.Add(managerDetail.Email);
+            //mail.To.Add("laiba.khan@intechww.com");
           }
           else
           {
-           //mail.To.Add(managerDetail.Email);
-           mail.To.Add("laiba.khan@intechww.com");
-          //mail.To.Add("esswaqas@hotmail.com");
+           mail.To.Add(managerDetail.Email);
+           //mail.To.Add("laiba.khan@intechww.com");
+         //mail.To.Add("esswaqas@hotmail.com");
           }
           
-         //  mail.To.Add("esswaqas@hotmail.com");
+           
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
         {
-          //mail.CC.Add(hrBpEmail);
+          mail.CC.Add(hrBpEmail);
         }
 
         // BCC
@@ -1322,6 +1323,13 @@ namespace LeaveON.Services
         return context.DepartmentNames.ToList();
       }
     }
+    private List<tblHRBP> GetHRBPUserList()
+    {
+      using (var context = new LeaveONEntities())
+      {
+        return context.tblHRBPs.ToList();
+      }
+    }
     private List<ManagerDto> GetManagersListById(List<string> list)
     {
       using (var context = new LeaveONEntities())
@@ -1349,14 +1357,7 @@ namespace LeaveON.Services
       // using (var context = new LeaveONEntitiesTarget())
 
       {
-        //"WELLHEAD & SKIDS", "PROJECT QA/QC", "PROJECT MONITORING & CONTROL", "iCSG", "G&A"
-        // var allowedDepartments = new[] { "IS&T" , "Automation Solution", "Electricall solution","digital solution","cybersecurity"};
-        //var allowedDepartments = new[] { "G&A", "ICSG", "Solution Centre", "sales", "Marketing", "ht"., "Human Resource" , "FINANCE & ACCOUNTS" ,"Project Monitoring & Control" };
-        // "AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "FINANCE & ACCOUNTS", "PROJECT QA/QC", "SUPPLY CHAIN" }; 
-        //, "Solution Centre" , "Project Monitoring & Control" 
-        //done  "Sales", "iCSG","G&A" ,"WELLHEAD & SKIDS","AUTOMATION SOLUTIONS","ELECTRICAL SOLUTIONS"
-        //var allowedDepartments = new[] { "AUTOMATION SOLUTIONS", "Sales", "Solution Centre", "WELLHEAD & SKIDSa", "Central Engineering Department" };
+        
         var allowedDepartments = new[]
         {
     "AUTOMATION SOLUTIONS",

@@ -18,7 +18,7 @@ namespace LeaveON.Services
   public class AttendanceService4
   {
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
-                                                543734917, 538205733, 538205730 };
+                                                543734917, 538205733, 538205730,543622856 };
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
     //LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
@@ -29,7 +29,7 @@ namespace LeaveON.Services
 
     public async Task<List<AspNetUser>> GetUserActiveList()
     {
-      return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true && x.BioStarEmpNum > 0).ToList();
+      return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true && x.BioStarEmpNum > 0 && !string.IsNullOrEmpty(x.CntryName) &&  x.CntryName.Trim()== "Angola").ToList();
     }
 
     public async Task<bool> SaveAttendance(List<TimeData> LstTimeData, string leaveConnectionString)

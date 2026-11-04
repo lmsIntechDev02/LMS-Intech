@@ -46,7 +46,7 @@ namespace LeaveOnTaskRunner
             var userList = await service.GetUserActiveList();
              //  userList = userList.Where(k => ids.Any(j=> j.ToString()==k.BioStarEmpNum.ToString())).ToList();
 
-              userList = userList.Where(k => k.BioStarEmpNum == 3332).ToList();
+             // userList = userList.Where(k => k.BioStarEmpNum == 3332).ToList();
 
             SqlConnection con = new SqlConnection(connection);
             con.Open();
