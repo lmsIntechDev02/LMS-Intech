@@ -16,6 +16,7 @@ namespace LeaveON.UtilityClasses
     [DisplayName("Emp.No.")]
     public int EmployeeNumber { get; set; }
     public string TimeZone { get; set; }
+    public string AttedanceTimeZone { get; set; }
     public string CountryName { get; set; }
     public string Policy { get; set; }
     public string Department { get; set; }
@@ -24,11 +25,13 @@ namespace LeaveON.UtilityClasses
     public string Day { get; set; }
 
     [DisplayName("Time In")]
-    [DisplayFormat(DataFormatString = "{0:hh:mm:ss tt}")]
+    //[DisplayFormat(DataFormatString = "{0:hh:mm:ss tt}")]
     public DateTime TimeIn { get; set; }
+    public string AttedanceTimeIn { get; set; }
 
     [DisplayName("Time Out")]
-    [DisplayFormat(DataFormatString = "{0:hh:mm:ss tt}")]
+    ///[DisplayFormat(DataFormatString = "{0:hh:mm:ss tt}")]
+    public string AttedanceTimeOut { get; set; }
     public DateTime TimeOut { get; set; }
     [DisplayName("Working Hours")]
     public TimeSpan WorkingHours { get; set; }

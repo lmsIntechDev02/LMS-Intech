@@ -85,13 +85,19 @@
                     </td>
                     @{ TimeSpan offDayTime = TimeSpan.Parse("00.00:00");
 
-                      if (item.WorkingHours != offDayTime && item.Status != "Absent")
-                      {
+                        if (item.WorkingHours != offDayTime && item.Status != "Absent")
+                        {
                         <td>
-                          @Html.DisplayFor(modelItem => item.TimeIn)
+                          @{ 
+                              string timein = LeaveON.UtilityClasses.Utility.TimeZoneFormateTime(item.TimeIn, item.AttedanceTimeZone);
+                            }
+                          @timein
                         </td>
                         <td>
-                          @Html.DisplayFor(modelItem => item.TimeOut)
+                          @{ string timeout = LeaveON.UtilityClasses.Utility.TimeZoneFormateTime(item.TimeOut, item.AttedanceTimeZone);
+                                }
+                          @timeout
+                          @*@Html.DisplayFor(modelItem => item.TimeOut)*@
                         </td>
                         <td>
                           @Html.DisplayFor(modelItem => item.WorkingHours)

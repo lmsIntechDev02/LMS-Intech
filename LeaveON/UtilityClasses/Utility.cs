@@ -179,18 +179,46 @@ namespace LeaveON.UtilityClasses
     }
 
 
+    public static string TimeZoneFormateTime(DateTime dateTime, string timeZone)
+    {
+      //TimeZoneInfo customTimeZone =
+      //    TimeZoneInfo.FindSystemTimeZoneById(timeZone);
 
+      //DateTime convertedDateTime =
+      //    TimeZoneInfo.ConvertTimeFromUtc(dateTime, customTimeZone);
 
+      //return convertedDateTime.ToString("HH:mm:ss");
 
-    //public static List<AspNetUser> ConvertEmailsToNames()
-    //{
-    //  AspNetUserNames = db.AspNetUsers.ToList();
-    //  foreach (AspNetUser aspNetUser in AspNetUserNames)
-    //  {
-    //    aspNetUser.UserName = aspNetUser.UserName.Substring(0, aspNetUser.UserName.IndexOf('@')).Replace(".", " ");
-    //  }
-    //  return AspNetUserNames;
-    //}
+      TimeZoneInfo customTimeZone =
+    TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+
+      DateTime convertedDateTime = dateTime;
+       //   TimeZoneInfo.ConvertTimeFromUtc(dateTime, customTimeZone);
+
+      return convertedDateTime.ToString("hh:mm:ss tt");
+    }
+    public static string TimeZoneFormateTime(
+           DateTime date,
+           DateTime time,
+           string timeZone)
+    {
+      DateTime mergedDateTime = date.Date.Add(time.TimeOfDay);
+
+      // Specify UTC if the merged datetime represents UTC
+      mergedDateTime = DateTime.SpecifyKind(
+          mergedDateTime, DateTimeKind.Utc);
+
+      TimeZoneInfo customTimeZone =
+          TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+
+      DateTime convertedDateTime = mergedDateTime;
+          //TimeZoneInfo.ConvertTimeFromUtc(
+          //    mergedDateTime, customTimeZone);
+      string rtime = convertedDateTime.ToString("hh:mm:ss tt");
+       
+      return rtime;
+    }
+
 
 
   }

@@ -631,71 +631,81 @@ $('#load').click(function () {
             },
 
 
-            // Time In
-            {
-                data: "TimeIn",
-                name: "TimeIn",
+            //// Time In
+          // Day
+          {
+            data: "AttedanceTimeIn",
+            name: "AttedanceTimeIn"
+          },
+           //// Time out
+          {
+            data: "AttedanceTimeOut",
+            name: "DAttedanceTimeOutay"
+          },
+            //{
+            //    data: "TimeIn",
+            //    name: "TimeIn",
 
-                render: function (data, type, row) {
-                  debugger
-                    if (!data)
-                        return "-";
+            //    render: function (data, type, row) {
+            //      debugger
+            //        if (!data)
+            //            return "-";
 
-                    if (row.Status === "Absent")
-                        return "-";
+            //        if (row.Status === "Absent")
+            //            return "-";
 
-                    if (row.WorkingHours === "00:00:00")
-                      return "-";
+            //        if (row.WorkingHours === "00:00:00")
+            //          return "-";
 
-                  var hours = row.WorkingHours .Hours || 0;
-                  var minutes = row.WorkingHours .Minutes || 0;
-                  var seconds = row.WorkingHours .Seconds || 0;
-                  if (hours === 0 && minutes === 0 && seconds === 0)
-                    return "-";
-                    var date = new Date(
-                        parseInt(
-                            data
-                                .replace("/Date(", "")
-                                .replace(")/", "")
-                        )
-                    );
+            //      var hours = row.WorkingHours .Hours || 0;
+            //      var minutes = row.WorkingHours .Minutes || 0;
+            //      var seconds = row.WorkingHours .Seconds || 0;
+            //      if (hours === 0 && minutes === 0 && seconds === 0)
+            //        return "-";
+            //        var date = new Date(
+            //            parseInt(
+            //                data
+            //                    .replace("/Date(", "")
+            //                    .replace(")/", "")
+            //            )
+            //        );
 
-                    return date.toLocaleTimeString();
-                }
-            },
+            //        return date.toLocaleTimeString();
+            //    }
+            //},
 
 
-            // Time Out
-            {
-                data: "TimeOut",
-                name: "TimeOut",
+            //// Time Out
+            //{
+            //    data: "TimeOut",
+            //    name: "TimeOut",
 
-                render: function (data, type, row) {
-                  debugger
-                    if (!data)
-                        return "-";
+            //    render: function (data, type, row) {
+            //      debugger
+            //        if (!data)
+            //            return "-";
 
-                    if (row.Status === "Absent")
-                        return "-";
+            //        if (row.Status === "Absent")
+            //            return "-";
 
-                    if (row.WorkingHours === "00:00:00")
-                        return "-";
-                  var hours = row.WorkingHours .Hours || 0;
-                  var minutes = row.WorkingHours .Minutes || 0;
-                  var seconds = row.WorkingHours .Seconds || 0;
-                  if (hours === 0 && minutes === 0 && seconds === 0)
-                    return "-";
-                    var date = new Date(
-                        parseInt(
-                            data
-                                .replace("/Date(", "")
-                                .replace(")/", "")
-                        )
-                    );
+            //        if (row.WorkingHours === "00:00:00")
+            //            return "-";
+            //      var hours = row.WorkingHours .Hours || 0;
+            //      var minutes = row.WorkingHours .Minutes || 0;
+            //      var seconds = row.WorkingHours .Seconds || 0;
+            //      if (hours === 0 && minutes === 0 && seconds === 0)
+            //        return "-";
+            //        var date = new Date(
+            //            parseInt(
+            //                data
+            //                    .replace("/Date(", "")
+            //                    .replace(")/", "")
+            //            )
+            //        );
 
-                    return date.toLocaleTimeString();
-                }
-            },
+            //        return date.toLocaleTimeString();
+            //    }
+            //},
 
 
             // Working Hours

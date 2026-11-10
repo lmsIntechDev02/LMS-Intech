@@ -19,6 +19,8 @@ namespace LeaveON.Services
   {
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
                                                 543734917, 538205733, 538205730,543622856 };
+
+    String closedDeviceID = "540097524";
     private BioStarEntities dbBioStar = new BioStarEntities();
     LeaveONEntities dbLeaveOn = new LeaveONEntities();
     //LeaveONEntitiesTarget dbLeaveOnTarget = new LeaveONEntitiesTarget();
@@ -29,7 +31,7 @@ namespace LeaveON.Services
 
     public async Task<List<AspNetUser>> GetUserActiveList()
     {
-      return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true && x.BioStarEmpNum > 0 && !string.IsNullOrEmpty(x.CntryName) &&  x.CntryName.Trim()== "Angola").ToList();
+      return dbLeaveOn.AspNetUsers.Where(x => x.IsActive == true && x.IsDeleted != true && x.BioStarEmpNum > 0).ToList();
     }
 
     public async Task<bool> SaveAttendance(List<TimeData> LstTimeData, string leaveConnectionString)
@@ -374,17 +376,21 @@ namespace LeaveON.Services
       //cmd.Parameters.AddWithValue("@UserId", UserId);
       //cmd.Parameters.AddWithValue("@StartDate", startDate);
       //cmd.Parameters.AddWithValue("@EndDate", endDate);
+      //string closedDeviceID = "540097524";
+
       cmd = new SqlCommand(@"
-SELECT user_id, devdt, bsevtdt, DEVID, devnm 
-FROM punchlog 
-WHERE USER_ID = @UserId 
-AND  convert(date,devdt) >= @StartDate 
-AND convert(date,devdt) <=   @EndDate
-ORDER BY devdt", con);
+    SELECT user_id, devdt, bsevtdt, DEVID, devnm 
+    FROM punchlog 
+    WHERE USER_ID = @UserId 
+      AND CONVERT(date, devdt) >= @StartDate 
+      AND CONVERT(date, devdt) <= @EndDate
+      AND DEVID NOT IN (@ClosedDeviceID)
+    ORDER BY devdt", con);
 
       cmd.Parameters.AddWithValue("@UserId", UserId);
       cmd.Parameters.AddWithValue("@StartDate", startDate);
       cmd.Parameters.AddWithValue("@EndDate", endDate);
+      cmd.Parameters.AddWithValue("@ClosedDeviceID", closedDeviceID);
 
       dr = cmd.ExecuteReader();//SqlCommand and SqlDataReader (cmd, dr) are initialized.
 

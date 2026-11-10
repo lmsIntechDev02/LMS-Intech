@@ -30,31 +30,47 @@ namespace LeaveON.Controllers
         TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
         return RedirectToAction("General", "Error");
       }
+      var  res = getProratedLeaves(curr_user, policyId);
+      // int proratedLeaves =
+      //   int half = proratedLeaves / 2;
+      int casualLeave = 0;
+      int annualLeave = 0; int proratedLeaves = 0;
 
-      int proratedLeaves = getProratedLeaves(curr_user, policyId);
-      int half = proratedLeaves / 2;
-      int casualLeave = half + (proratedLeaves % 2 != 0 ? 1 : 0);
-      int annualLeave = half;
+
+      if (res.isproratd)
+      {
+          proratedLeaves = res.proratedLeave;
+        int half = proratedLeaves / 2;
+        casualLeave = half + (proratedLeaves % 2 != 0 ? 1 : 0);
+        annualLeave = half;
+      }
+      else
+      {
+        casualLeave = res.sickCasualLeave;
+        annualLeave = res.annualLeave;
+        proratedLeaves = casualLeave + annualLeave;
+      }
 
       List<UserLeavePolicyDetail> LstUserLeavePolicyDetail = userLeavePolicy.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId && (x.LeaveTypeId == Consts.SickCasualLeaveId || x.LeaveTypeId == Consts.AnnualLeaveId || x.LeaveTypeId == Consts.CompensatoryLeaveTypeId) ).ToList();
 
 
       List<LeaveBalance> LstLeaveBalance = db.LeaveBalances.Where(x => x.UserLeavePolicyId == policyId && x.UserId== userId).ToList();
       dashboard.MyTakenLeaves = LstLeaveBalance.Sum(x => x.Taken).Value;
+      
       int adjustLeaveBalance = Convert.ToInt32(LstLeaveBalance.Where(k => k.LeaveTypeId == Consts.AnnualLeaveId).Sum(k => k.AnnualAmountAjustmesnt.HasValue ? k.AnnualAmountAjustmesnt : 0));
       dashboard.MyAllowedLeaves = proratedLeaves + adjustLeaveBalance;
 
 
       dashboard.MyBalanceLeaves = (decimal)(dashboard.MyAllowedLeaves - LstLeaveBalance.Where(y => y.LeaveTypeId == Consts.SickCasualLeaveId || y.LeaveTypeId == Consts.AnnualLeaveId || y.LeaveTypeId == Consts.CompensatoryLeaveTypeId).Sum(y => y.Taken));
 
-      List<Leave> LstLeaveAprovalRejected = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId && x.IsAccepted1==0).ToList();
-      dashboard.MyLeavesRefused = LstLeaveAprovalRejected.Count;
+      List<Leave> LstLeaveAprovalRejected = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId &&  (x.IsAccepted1==0 || x.IsAccepted2 == 0)).ToList();
+      dashboard.MyLeavesRefused = (int)LstLeaveAprovalRejected.Sum(x => x.TotalDays ?? 0);//.Count;
 
-      List<Leave> LstLeaveAprovalPending = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId &&  x.IsAccepted1 ==null ).ToList();
-      dashboard.MyLeavesPending = LstLeaveAprovalPending.Count;
+      List<Leave> LstLeaveAprovalPending = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId && ( x.IsAccepted1 ==null || x.IsAccepted2 == null) ).ToList();
+      dashboard.MyLeavesPending = (int)LstLeaveAprovalPending.Sum(x => x.TotalDays ?? 0);//.Count;
 
-      List<Leave> LstLeaveAprovalApproved = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId && x.IsAccepted1 > 0 ).ToList();
-      dashboard.MyLeavesApproved = LstLeaveAprovalApproved.Count;
+      List<Leave> LstLeaveAprovalApproved = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId && x.IsAccepted1 > 0 && x.IsAccepted2 > 0).ToList();
+      dashboard.MyLeavesApproved = (int)LstLeaveAprovalApproved.Sum(x => x.TotalDays ?? 0);//.Count;
 
       List<UserLeavePolicyDetail> TotalAnnualLeaves = userLeavePolicy.UserLeavePolicyDetails.Where(x => x.UserLeavePolicyId == policyId &&  x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
       //  dashboard.TotalAnnualLeaves = TotalAnnualLeaves.Count;
@@ -62,7 +78,7 @@ namespace LeaveON.Controllers
       dashboard.TotalAnnualLeaves = annualLeave + adjustLeaveBalance;
 
 
-      List<Leave> BalanceAnnualLeaves = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId && x.IsAccepted1 > 0 && x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
+      List<Leave> BalanceAnnualLeaves = db.Leaves.Where(x => x.UserId == userId && x.UserLeavePolicyID == policyId && (x.IsAccepted1 > 0 && x.IsAccepted2 > 0) && x.LeaveTypeId == Consts.AnnualLeaveId).ToList();
       int approvedAnnaulLeaves = (int)BalanceAnnualLeaves.Sum(x => x.TotalDays ?? 0);
       dashboard.BalanceAnnualLeaves = dashboard.TotalAnnualLeaves - approvedAnnaulLeaves;
 
@@ -77,7 +93,7 @@ namespace LeaveON.Controllers
 
     }
 
-    private int getProratedLeaves(AspNetUser currentUser, int policyId)
+    private (int sickCasualLeave , int annualLeave, bool isproratd,int  proratedLeave) getProratedLeaves(AspNetUser currentUser, int policyId)
     {
       // Prorated Leaves
       DateTime today = DateTime.Today;
@@ -93,46 +109,53 @@ namespace LeaveON.Controllers
       DateTime fiscalEnd = (DateTime)userPolicy.FiscalYearEnd;
 
       // If joining date not exists then used ficalStart
-      DateTime joiningDate = currentUser.JoiningDate ?? fiscalStart;
+      DateTime? joiningDate = currentUser.JoiningDate;//?? fiscalStart;
+      List<UserLeavePolicyDetail> leavepolicy = policyId != null
+                    ? db.UserLeavePolicyDetails
+                        .Where(lb => lb.UserLeavePolicyId == policyId &&
+                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2)).ToList() : new List<UserLeavePolicyDetail>();
+                        
 
-      if (joiningDate > fiscalEnd)
+      if (joiningDate.HasValue && joiningDate > fiscalEnd)
+      //{
+      //  workedMonths = 0;
+      //}
+      //else
       {
-        workedMonths = 0;
-      }
-      else
-      {
-        DateTime effectiveStart = (joiningDate > fiscalStart) ? joiningDate : fiscalStart;
+        DateTime effectiveStart = (joiningDate.Value > fiscalStart) ? joiningDate.Value : fiscalStart;
 
         // Total months
         workedMonths = ((fiscalEnd.Year - effectiveStart.Year) * 12 + fiscalEnd.Month - effectiveStart.Month + 1);
-      }
 
-  
-      int? assignedLeaveQuota = policyId != null
-                    ? db.UserLeavePolicyDetails
-                        .Where(lb => lb.UserLeavePolicyId == policyId &&
-                                     (lb.LeaveTypeId == 1 || lb.LeaveTypeId == 2))
-                        .Select(lb => (int?)lb.Allowed)
-                        .Sum() ?? 0
-                    : 0;
-      // Prorated Leave Calculation
-      double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
-      int proratedLeave;
+        int? assignedLeaveQuota = leavepolicy.Select(lb => (int?)lb.Allowed).Sum() ?? 0;
+                   
 
 
-      // Round to nearest whole number or keep decimal
-      //proratedLeaves = Math.Round(proratedLeaves, 2); 
-      // Custom rounding logic
-      if (proratedLeaves % 1 >= 0.5)
-      {
-        proratedLeave = (int)Math.Ceiling(proratedLeaves);
+        // Prorated Leave Calculation
+        double proratedLeaves = (workedMonths / 12.0) * (assignedLeaveQuota ?? 0);
+        int proratedLeave;
+
+
+        // Round to nearest whole number or keep decimal
+        //proratedLeaves = Math.Round(proratedLeaves, 2); 
+        // Custom rounding logic
+        if (proratedLeaves % 1 >= 0.5)
+        {
+          proratedLeave = (int)Math.Ceiling(proratedLeaves);
+        }
+        else
+        {
+          proratedLeave = (int)Math.Floor(proratedLeaves);
+        }
+        return (0, 0, true, proratedLeave);
+         
       }
       else
       {
-        proratedLeave = (int)Math.Floor(proratedLeaves);
+        int scikcaual = leavepolicy.Where(k => k.LeaveTypeId == 1 && k.Allowed.HasValue).Select(lb => (int?)lb.Allowed).Sum() ?? 0;
+      int annaul = leavepolicy.Where(k => k.LeaveTypeId == 2 && k.Allowed.HasValue).Select(lb => (int?)lb.Allowed).Sum() ?? 0;
+        return (scikcaual, annaul, false, 0);
       }
-      return proratedLeave;
-
     }
   }
 }

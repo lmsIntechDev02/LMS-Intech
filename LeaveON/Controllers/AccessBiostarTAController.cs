@@ -34,7 +34,8 @@ namespace LeaveON.Controllers
     //enum ReadersIn {538600343, 38677, 538595648, 35816,540093375,540093369,540093374 , 547241993  ,540133115 , 538848767 }
 
     List<int> LstCardReadersIn = new List<int> { 540099805, 543726490, 38677, 538595648, 35816, 540093375, 540093369, 540093374, 547241993, 540133115, 538848767, 540095692, 540130033, 540130042,
-                                                 543734917, 538205733, 538205730 };
+                                                 543734917, 538205733, 538205730,543622856 };
+    String closedDeviceID = "540097524";
 
     private Task<List<TimeData>> ConnectToDBandReturnAbsentees(string startDate, string endDate, List<int> UserIds)
     {
@@ -1534,11 +1535,23 @@ namespace LeaveON.Controllers
       {
         int UserId = Id;//Assigns the current UserId for processing.
 
-        cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
+        //cmd = new SqlCommand("SELECT user_id, devdt, bsevtdt, DEVID, devnm FROM punchlog WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate ORDER BY devdt", con);
+        //cmd.Parameters.AddWithValue("@UserId", UserId);
+        //cmd.Parameters.AddWithValue("@StartDate", startDate);
+        //cmd.Parameters.AddWithValue("@EndDate", endDate);
+        cmd = new SqlCommand(@"
+    SELECT user_id, devdt, bsevtdt, DEVID, devnm 
+    FROM punchlog 
+    WHERE USER_ID = @UserId AND devdt BETWEEN @StartDate AND @EndDate AND DEVID NOT IN (@ClosedDeviceID)
+    ORDER BY devdt", con);
+
         cmd.Parameters.AddWithValue("@UserId", UserId);
         cmd.Parameters.AddWithValue("@StartDate", startDate);
         cmd.Parameters.AddWithValue("@EndDate", endDate);
-     
+        cmd.Parameters.AddWithValue("@ClosedDeviceID", closedDeviceID);
+
+        
+
         dr = cmd.ExecuteReader();//SqlCommand and SqlDataReader (cmd, dr) are initialized.
 
         DataTable dt = new DataTable();//A new DataTable dt is created for storing data related to the current user.
@@ -1788,6 +1801,7 @@ namespace LeaveON.Controllers
               EmployeeName = UserName,
               EmployeeNumber = UserId,
               TimeZone = countryName,
+              AttedanceTimeZone = timeZone,
               Policy = userLeavePolicyDescription,
               Department = depName,
               Date = firsTimeIn.Date,
@@ -2284,12 +2298,16 @@ namespace LeaveON.Controllers
 
           DateTime timeIn =
               record.FirstPunchIn ?? DateTime.MinValue;
+          string  attTimein= LeaveON.UtilityClasses.Utility.TimeZoneFormateTime(currentDate, timeIn, record.TimeZone);
 
           DateTime timeOut =
               record.LastPunchOut ??
               (record.FirstPunchIn ?? DateTime.MinValue);
+          string attTimeOut = LeaveON.UtilityClasses.Utility.TimeZoneFormateTime(currentDate, timeOut, record.TimeZone);
 
           TimeSpan totalTime = TimeSpan.Zero;
+
+
 
           if (timeIn != DateTime.MinValue &&
               timeOut != DateTime.MinValue)
@@ -2382,11 +2400,9 @@ namespace LeaveON.Controllers
                       ? "N/A"
                       : currentDate.ToString("dddd"),
 
-            TimeIn =
-                  timeIn,
+            AttedanceTimeIn = attTimein,
 
-            TimeOut =
-                  timeOut,
+            AttedanceTimeOut = attTimeOut,
 
             TotalTime = totalTime,
              

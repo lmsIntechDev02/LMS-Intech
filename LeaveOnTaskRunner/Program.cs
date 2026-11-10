@@ -21,15 +21,15 @@ namespace LeaveOnTaskRunner
 
         {
             //// Calculate 'yesterday'
-           // DateTime yesterday = DateTime.Today.AddDays(-2);
-           // DateTime today = DateTime.Today;//.AddDays(-1);  
+           DateTime yesterday = DateTime.Today.AddDays(-2);
+            DateTime today = DateTime.Today;//.AddDays(-1);  
 
            // testing
-            DateTime startDate = new DateTime(2026, 07, 01);
-            DateTime endDate = new DateTime(2026, 10, 20);
+           // DateTime startDate = new DateTime(2026, 07, 01);
+           // DateTime endDate = new DateTime(2026, 10, 20);
 
-            //  DateTime startDate = yesterday;
-            // DateTime endDate = today;
+               DateTime startDate = yesterday;
+             DateTime endDate = today;
 
             List<string> ids = new List<string>
 {
