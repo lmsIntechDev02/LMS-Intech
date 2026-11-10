@@ -74,15 +74,9 @@
 
           <div class="form-group">
             @Html.LabelFor(model => model.Reason, htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-
             <br>
-
-
             @Html.TextAreaFor(model => model.Reason, new { @class = "form-control", rows = "3", placeholder = "Give Reason ...", required = "required" })
-
-
             @Html.ValidationMessageFor(model => model.Reason, "", new { @class = "text-danger" })
-
           </div>
 
 
@@ -330,7 +324,7 @@
 
 
       $("#LineManager1Id").change(function () {
-        //$('#LineManager2Id').val($('#LineManager1Id').val());
+        
         $("#LineManager2Id")
           .val($(this).val())
           .trigger("change.select2");
@@ -339,7 +333,7 @@
       var message = "@ViewBag.PolicyAlert";
       if (message != "") {
         $("#Create :input").prop("disabled", true);
-        alert(message);
+        //alert(message);
       }
       else {
       }

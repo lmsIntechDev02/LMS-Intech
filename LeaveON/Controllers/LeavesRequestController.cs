@@ -769,7 +769,9 @@ namespace LeaveON.Controllers
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
       var shortLeaveMessage = "";
+     var aspNetUsers =  db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
+      UserLeavePolicy policy= aspNetUsers.UserLeavePolicy;
 
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
@@ -881,19 +883,21 @@ namespace LeaveON.Controllers
         AspNetUser admin1 = null;
         if (leave.LeaveType.Id == 2) //2 is for annual leave. if this is selected then send leave request first to umar.nazir
         {
-          int validDaysCount = Enumerable.Range(0, daysCount)
-            .Select(offset => leave.StartDate.AddDays(offset))
-            .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday); //total days excluding weekends
-
           
-          if (leave.AspNetUser.CntryName == "Pakistan")
+          
+          if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
           {
-            daysForFinalCompare = validDaysCount;
+            daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, true); 
             leave.TotalDays = daysForFinalCompare;
+          }
+          else if (leave.AspNetUser.CntryName == "United Arab Emirates" || leave.AspNetUser.CntryName == "Iraq" || leave.AspNetUser.CntryName == "Saudi Arabia")
+          {
+            daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, false);
           }
           else
           {
-            daysForFinalCompare = daysCount;
+            daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy
+              (policy, daysCount, leave, null); //daysCount;
             leave.TotalDays = daysForFinalCompare;
           }
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
@@ -941,20 +945,54 @@ namespace LeaveON.Controllers
         {
           if (leave.LeaveType.Id != 10 && leave.LeaveType.Id != 9 && leave.LeaveType.Id != 7 && leave.LeaveType.Id != 8) // Casual Short Day, Official Short Day, Official Full Day, and Work From Home
           {
-            if (leave.LeaveType.Id == 5) // Marriage Leave
+            if (leave.LeaveType.Id == 5) // Marriage GetLeaveCountByPolicy
             {
-              int validDaysCount = Enumerable.Range(0, daysCount)
-                  .Select(offset => leave.StartDate.AddDays(offset))
-                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              //int validDaysCount = Enumerable.Range(0, daysCount)
+              //    .Select(offset => leave.StartDate.AddDays(offset))
+              //    .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              int validDaysCount = 0;
+              if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
+              //  if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, true);
+              }
+              else if(leave.AspNetUser.CntryName == "United Arab Emirates"|| leave.AspNetUser.CntryName =="Iraq" || leave.AspNetUser.CntryName=="Saudi Arabia")
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, false);
+              }
+              else
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, null);
+              }
+             // int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
               leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
             }
            else if (leave.LeaveType.Id == 1) // Sick Leave
             {
-              int validDaysCount = Enumerable.Range(0, daysCount)
-                  .Select(offset => leave.StartDate.AddDays(offset))
-                  .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              //int validDaysCount = Enumerable.Range(0, daysCount)
+              //    .Select(offset => leave.StartDate.AddDays(offset))
+              //    .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
+              int validDaysCount = 0;
+              if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
+              //  if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, true);
+              }
+              else if (leave.AspNetUser.CntryName == "United Arab Emirates" || leave.AspNetUser.CntryName == "Iraq" || leave.AspNetUser.CntryName == "Saudi Arabia")
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, false);
+              }
+              else
+              {
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, null);
+              }
+               
+              //  int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
+
               admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+
               if (validDaysCount > balanceCheck)
               {
                 TempData["ErrorMessage"] = "Your leave request exceeds the available balance.";
