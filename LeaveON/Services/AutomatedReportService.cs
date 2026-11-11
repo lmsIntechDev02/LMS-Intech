@@ -273,7 +273,7 @@ namespace LeaveON.Services
       }
       else
       {
-        policyIds = users.Where(u => u.userLeavePolicyID.HasValue)
+        policyIds = users.Where(u => u.userLeavePolicyID.HasValue )
                            .Select(u => u.userLeavePolicyID.Value)
                           .Distinct()
                            .ToList();
@@ -331,6 +331,7 @@ namespace LeaveON.Services
           fiscalStart = policy.FiscalYearStart.Value;
           fiscalEnd = policy.FiscalYearEnd.Value;
         }
+
         else
         {
           policy = leavePolicies.First(p => p.Id == user.userLeavePolicyID.Value);
@@ -345,6 +346,8 @@ namespace LeaveON.Services
 
         //for missing get date list
         List<DateTime> workingMonthDateList = GetWorkingDayByMonth(year, month, user.userLeavePolicyID);
+
+      
         DateTime currentDate = (DateTime.Now).AddDays(-1);
         workingMonthDateList = workingMonthDateList.Where(k => k.Date < currentDate.Date).ToList();
         List<DateTime> missedMonthAttendanceDateList = new List<DateTime>();
@@ -354,7 +357,7 @@ namespace LeaveON.Services
 
         {
 
-          var list = workingMonthDateList.Where(date => date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+          var list = workingMonthDateList.Where(date => (user.JoiningDate.HasValue && date.Date > user.JoiningDate.Value) && date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
 
 
           var monthyLeaves = leaves
@@ -366,7 +369,7 @@ namespace LeaveON.Services
                        && l.EndDate <= endOfMonth)
               .ToList();
 
-          list = list.Where(k => !monthyLeaves.Any(g => g.DateCreated.Value.Date == k.Date.Date)).ToList();
+          list = list.Where(k => !monthyLeaves.Any(g => g.DateCreated.Value.Date == k.Date.Date )).ToList();
           missedMonthAttendanceDateList.AddRange(list);
         }
 
@@ -773,8 +776,9 @@ namespace LeaveON.Services
         {
           if (isHOD)
           {
-            mail.To.Add(managerDetail.Email);
-            //mail.To.Add("laiba.khan@intechww.com");
+            //mail.To.Add(managerDetail.Email);
+            //  mail.To.Add("laiba.khan@intechww.com");
+            mail.To.Add("esswaqas@hotmail.com");
           }
           else
           {
@@ -788,7 +792,10 @@ namespace LeaveON.Services
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
         {
-          mail.CC.Add(hrBpEmail);
+          if (!isHOD)
+          {
+            mail.CC.Add(hrBpEmail);
+          }
         }
 
         // BCC
@@ -1518,12 +1525,16 @@ namespace LeaveON.Services
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
       managerEmails = GetHoDPerson();
-
+    
+      // managerEmails= managerEmails.Where(l => (l.DepartmentName == "IS&T"  || l.DepartmentName == "IIS")).ToList();
+      managerEmails = managerEmails.Where(k  => k.Id == "7baffeb6-7cad-46ad-9418-493d86e1da75").ToList();
       foreach (var managerEmail in managerEmails)
       {
         using (var context = new LeaveONEntities())
         {
           var users = GetUserDepartmentWise(managerEmail.DepartmentName).Where(k => k.UserID != managerEmail.Id).ToList();
+
+           //users = users.Where(k => k.userId == 3445).ToList();
 
           if (users == null || users.Count == 0)
             continue;

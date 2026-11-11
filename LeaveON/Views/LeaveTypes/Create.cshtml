@@ -33,18 +33,24 @@
       @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
 
     </div>
+    <div class="form-group">
+      @Html.LabelFor(model => model.CountryIDs, "Country", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+      @Html.DropDownListFor(model => model.CountryIDs, (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select Country", new { @class = "form-control select2", required = "required" })
+      @Html.ValidationMessageFor(model => model.CountryIDs, "", new { @class = "text-danger" })
+    </div>
+    <div class="form-group">
+      @Html.LabelFor(model => model.HrBPID, "Hrbp", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-    @*<div class="form-group">
-      @Html.LabelFor(model => model.CountryId, "Country", htmlAttributes: new { @class = "control-label col-md-2" })
+      @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
 
-      @Html.EditorFor(model => model.CountryId, new { htmlAttributes = new { @class = "form-control" } })
-      @Html.ValidationMessageFor(model => model.CountryId, "", new { @class = "text-danger" })
+      @Html.ValidationMessageFor(model => model.CountryIDs, "", new { @class = "text-danger" })
+    </div>
 
-    </div>*@
+
 
     <div class="form-group">
       <div class="class=" card-footer">
-        <input type="submit" value="Save" class="btn btn-primary" style = "width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%"/>
+        <input type="submit" value="Save" class="btn btn-primary" style="width: 180px; margin-left:auto;margin-right:auto;display:block;margin-top:auto;margin-bottom:0%" />
       </div>
     </div>
   </div>
