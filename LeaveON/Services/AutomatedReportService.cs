@@ -363,8 +363,8 @@ namespace LeaveON.Services
 
         {
 
-          var list = workingMonthDateList.Where(date => date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
-
+          //var list = workingMonthDateList.Where(date => date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
+          var list = workingMonthDateList.Where(date => (user.JoiningDate.HasValue && date.Date > user.JoiningDate.Value) && date.Date < currentDate.Date && !userAttendanceMonth.Any(j => j.CreatedDate.Value.Date == date.Date)).ToList();
 
           var monthyLeaves = leaves
               .Where(l => l.UserId == user.UserID
@@ -782,9 +782,9 @@ namespace LeaveON.Services
         {
           if (isHOD)
           {
-            mail.To.Add("esswaqas@hotmail.com");
-            //mail.To.Add(managerDetail.Email);
-            //mail.To.Add("laiba.khan@intechww.com");
+            //mail.To.Add("esswaqas@hotmail.com");
+            mail.To.Add(managerDetail.Email);
+           // mail.To.Add("laiba.khan@intechww.com");
           }
           else
           {
@@ -792,16 +792,13 @@ namespace LeaveON.Services
            //mail.To.Add("laiba.khan@intechww.com");
          //mail.To.Add("esswaqas@hotmail.com");
           }
-          
-           
         }
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
         {
-          if (!isHOD)
-          {
+        
             mail.CC.Add(hrBpEmail);
-          }
+          
         }
 
         // BCC
@@ -1507,7 +1504,7 @@ namespace LeaveON.Services
          on m.BioStarEmpNum equals d.HODID
      where m.BioStarEmpNum > 0
            && m.IsActive == true
-           && m.IsDeleted != true  &&  (m.BioStarEmpNum==1179)
+           && m.IsDeleted != true   
      orderby m.DepartmentName
      select new
      {
@@ -1517,7 +1514,9 @@ namespace LeaveON.Services
        m.Email,
        m.PhoneNumber,
        m.ManagerName,
-       m.DepartmentName
+       m.DepartmentName,
+            
+
      })
     .Distinct()
     .ToList()
@@ -1526,6 +1525,7 @@ namespace LeaveON.Services
       Id = m.Id,
       UserName = m.UserName,
       Email = m.Email,
+     
       PhoneNumber = m.PhoneNumber,
       ManagerName = m.ManagerName,
 
@@ -1560,8 +1560,8 @@ namespace LeaveON.Services
     public Task GetHODDeparmentReport(int month, int year)
     {
       string monthName = GetMonthName(month);
-      // List<DepartmentName> departmentList = GetDepartmentList();
-
+        List<tblHRBP> HRBPList = GetHRBPUserList();
+      List<DepartmentName> departmentList = GetDepartmentList();
       List<ManagerDto> managerEmails = new List<ManagerDto>();
 
       managerEmails = GetHoDPerson();
@@ -1570,15 +1570,34 @@ namespace LeaveON.Services
       {
         using (var context = new LeaveONEntities())
         {
-          var users = GetUserDepartmentWise(managerEmail.DepartmentName.Split(',').ToList()).Where(k => k.UserID != managerEmail.Id).ToList();
+          List<String> deparmentList = managerEmail.DepartmentName.Split(',').ToList();
+          var users = GetUserDepartmentWise(deparmentList).Where(k => k.UserID != managerEmail.Id).ToList();
 
           if (users == null || users.Count == 0)
             continue;
           List<EmployeeReportData> reportList = BindUserMonthReportData(month, year, managerEmail, context, users,false);
           string hRBPEmail = String.Empty;
-          if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
+          //if (managerEmail != null && !string.IsNullOrEmpty(managerEmail.DepartmentName))
+          //{
+          //  hRBPEmail = "";// departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+          //}
+
+          if (managerEmail != null && deparmentList.Count>0)
           {
-            hRBPEmail = "";// departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+            // commment for now but it will use in 
+
+            string departmentNamess = deparmentList.FirstOrDefault();
+
+
+            var hrbpID = departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == departmentNamess.ToLower()).HRBPID ;
+            if(hrbpID!=null){
+              hRBPEmail = HRBPList.FirstOrDefault(k => k.ID == hrbpID) != null ? HRBPList.FirstOrDefault(k => k.ID == hrbpID).HRBPEmail : String.Empty;
+            }
+
+            //else
+            //{
+            //  hRBPEmail = departmentList.FirstOrDefault(k => !string.IsNullOrEmpty(k.Name) && k.Name.ToLower() == managerEmail.DepartmentName.ToLower()).HRBPEmail;
+            //}
           }
 
           GeneratePDFManager1(
