@@ -89,31 +89,40 @@ namespace LeaveON.Services
 
     }
 
-    public List<EmailAndIDs> GetUserDepartmentWise(string deparmentName)
+    public List<EmailAndIDs> GetUserDepartmentWise(List<string> deparmentName)
     {
       using (var context = new LeaveONEntities())
       {
-        //  var users = context.AspNetUsers.Where(y => y.CntryName != "Pakistan" && (y.ManagerID.ToLower() == managerEmail.ToLower() || y.Manager2ID.ToLower() == managerEmail.ToLower()))
-        // users = users.Where(k => k.UserID == "2840417a-7247-44bf-bf71-0e98ae6bb956").ToList();
-        //test
-        // var users = context.AspNetUsers.Where(y => y.ManagerID.ToLower() == managerEmail.ToLower() && y.IsActive == true && (y.Id == "32044600-a0de-47c8-910e-d859c71ea97b"))
-        //live
-        var users = context.AspNetUsers.Where(y => y.BioStarEmpNum.HasValue && y.BioStarEmpNum.Value > 0 && !String.IsNullOrEmpty(y.DepartmentName) && y.DepartmentName.Trim().ToLower() == deparmentName.ToLower() && y.IsActive == true && y.IsDeleted != true)
-        .Select(x => new EmailAndIDs
-        {
-          userId = x.BioStarEmpNum.Value,
-          email = x.Email,
-          userLeavePolicyID = x.UserLeavePolicyId,
-          UserID = x.Id,
-          JoiningDate = x.JoiningDate,
-          EmployeeName = x.EmpolyeeName,
-          DepartmentName = x.DepartmentName
-        })
-        .ToList();
+        var departments = deparmentName?
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => k.Trim().ToLower())
+            .ToList();
+
+        if (departments == null || !departments.Any())
+          return new List<EmailAndIDs>();
+
+        var users = context.AspNetUsers
+            .Where(y =>
+                y.BioStarEmpNum.HasValue &&
+                y.BioStarEmpNum.Value > 0 &&
+                y.DepartmentName != null &&
+                departments.Contains(y.DepartmentName.Trim().ToLower()) &&
+                y.IsActive == true &&
+                y.IsDeleted != true)
+            .Select(x => new EmailAndIDs
+            {
+              userId = x.BioStarEmpNum.Value,
+              email = x.Email,
+              userLeavePolicyID = x.UserLeavePolicyId,
+              UserID = x.Id,
+              JoiningDate = x.JoiningDate,
+              EmployeeName = x.EmpolyeeName,
+              DepartmentName = x.DepartmentName
+            })
+            .ToList();
 
         return users;
       }
-
     }
 
     public List<EmailAndIDs> GetUsersWithLeavePolicyByManager(string managerEmail)
@@ -773,7 +782,8 @@ namespace LeaveON.Services
         {
           if (isHOD)
           {
-            mail.To.Add(managerDetail.Email);
+            mail.To.Add("esswaqas@hotmail.com");
+            //mail.To.Add(managerDetail.Email);
             //mail.To.Add("laiba.khan@intechww.com");
           }
           else
@@ -788,7 +798,10 @@ namespace LeaveON.Services
         // CC
         if (!String.IsNullOrEmpty(hrBpEmail))
         {
-          mail.CC.Add(hrBpEmail);
+          if (!isHOD)
+          {
+            mail.CC.Add(hrBpEmail);
+          }
         }
 
         // BCC
@@ -1486,28 +1499,62 @@ namespace LeaveON.Services
       {
 
         // var allowedDepartments = new[] { "WELLHEAD & SKIDS", "IIS", "Digital Solutions" };
-        var hODDeparments = context.DepartmentNames.Where(k => k.HODID.HasValue).Select(k => k.HODID).ToList();
+        //var hODDeparments = context.DepartmentNames.Where(k => k.HODID.HasValue).Select(k => k.asp).ToList();
+
+        var managersIDs =
+    (from m in context.AspNetUsers
+     join d in context.DepartmentNames
+         on m.BioStarEmpNum equals d.HODID
+     where m.BioStarEmpNum > 0
+           && m.IsActive == true
+           && m.IsDeleted != true  &&  (m.BioStarEmpNum==1179)
+     orderby m.DepartmentName
+     select new
+     {
+       m.Id,
+       m.BioStarEmpNum,
+       m.UserName,
+       m.Email,
+       m.PhoneNumber,
+       m.ManagerName,
+       m.DepartmentName
+     })
+    .Distinct()
+    .ToList()
+    .Select(m => new ManagerDto
+    {
+      Id = m.Id,
+      UserName = m.UserName,
+      Email = m.Email,
+      PhoneNumber = m.PhoneNumber,
+      ManagerName = m.ManagerName,
+
+      DepartmentName = string.Join(", ",
+            context.DepartmentNames
+                .Where(d => d.HODID == m.BioStarEmpNum)
+                .Select(d => d.Name)
+                .ToList())
+    })
+    .ToList();
+        //var managersIDs = from m in context.AspNetUsers
+
+        //                  where m.BioStarEmpNum > 0 && hODDeparments.Contains(m.BioStarEmpNum)
+        //                       && m.IsActive == true
+        //                       && m.IsDeleted != true
+
+        //                  orderby m.DepartmentName
+        //                  select new ManagerDto
+        //                  {
+        //                    Id = m.Id,
+        //                    UserName = m.UserName,
+        //                    Email = m.Email,
+        //                    PhoneNumber = m.PhoneNumber,
+        //                    ManagerName = m.ManagerName,
+        //                    DepartmentName = m.DepartmentName
+        //                  };
 
 
-        var managersIDs = from m in context.AspNetUsers
-
-                          where m.BioStarEmpNum > 0 && hODDeparments.Contains(m.BioStarEmpNum)
-                               && m.IsActive == true
-                               && m.IsDeleted != true
-
-                          orderby m.DepartmentName
-                          select new ManagerDto
-                          {
-                            Id = m.Id,
-                            UserName = m.UserName,
-                            Email = m.Email,
-                            PhoneNumber = m.PhoneNumber,
-                            ManagerName = m.ManagerName,
-                            DepartmentName = m.DepartmentName
-                          };
-
-
-        return managersIDs.Distinct().ToList();
+        return managersIDs;//.Distinct().ToList();
       }
     }
     public Task GetHODDeparmentReport(int month, int year)
@@ -1523,7 +1570,7 @@ namespace LeaveON.Services
       {
         using (var context = new LeaveONEntities())
         {
-          var users = GetUserDepartmentWise(managerEmail.DepartmentName).Where(k => k.UserID != managerEmail.Id).ToList();
+          var users = GetUserDepartmentWise(managerEmail.DepartmentName.Split(',').ToList()).Where(k => k.UserID != managerEmail.Id).ToList();
 
           if (users == null || users.Count == 0)
             continue;
