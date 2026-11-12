@@ -2363,10 +2363,12 @@ namespace LeaveON.Controllers
               if (leave != null)
               {
                 status = leave.LeaveType;
+                
               }
               else if (record.IsAbsent == true)
               {
                 status = "Absent";
+                
               }
               else
               {
@@ -2374,7 +2376,11 @@ namespace LeaveON.Controllers
               }
             }
           }
-
+          if (workingHours.Hours==0 && workingHours.Minutes == 0)
+          {
+            attTimein = "-";
+            attTimeOut = "-";
+          }
 
           result.Add(new TimeData
           {
