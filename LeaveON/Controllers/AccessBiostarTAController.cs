@@ -3214,7 +3214,8 @@ namespace LeaveON.Controllers
                           && u.BioStarEmpNum.HasValue
                           && u.BioStarEmpNum.Value > 0
                           && u.IsActive == true
-                          && u.IsDeleted != true
+                          && u.IsDeleted != true 
+                         // && u.BioStarEmpNum == 3050
                     group u by u.BioStarEmpNum into g
                     select g.FirstOrDefault())
                .ToList()   // Execute SQL here
