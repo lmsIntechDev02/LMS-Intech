@@ -39,7 +39,6 @@ namespace Repository.Models
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AnnualOffDay> AnnualOffDays { get; set; }
-        public virtual CountryName CountryName { get; set; }
         public virtual UserLeavePolicy UserLeavePolicy1 { get; set; }
         public virtual UserLeavePolicy UserLeavePolicy2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -48,5 +47,6 @@ namespace Repository.Models
         public virtual ICollection<LeaveBalance> LeaveBalances { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
+        public virtual CountryName CountryName { get; set; }
     }
 }

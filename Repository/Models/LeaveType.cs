@@ -17,21 +17,25 @@ namespace Repository.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public LeaveType()
         {
-            this.Leaves = new HashSet<Leave>();
-            this.UserLeavePolicyDetails = new HashSet<UserLeavePolicyDetail>();
             this.LeaveBalances = new HashSet<LeaveBalance>();
+            this.tblLeaveTypeCountries = new HashSet<tblLeaveTypeCountry>();
+            this.UserLeavePolicyDetails = new HashSet<UserLeavePolicyDetail>();
+            this.Leaves = new HashSet<Leave>();
         }
     
         public int Id { get; set; }
         public string Name { get; set; }
-        public string CountryIDs { get; set; }
-        public int HrBPID { get; set; }
+        public Nullable<int> HrBPID { get; set; }
+        public Nullable<bool> IsCalenderDays { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Leave> Leaves { get; set; }
+        public virtual ICollection<LeaveBalance> LeaveBalances { get; set; }
+        public virtual tblHRBP tblHRBP { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<tblLeaveTypeCountry> tblLeaveTypeCountries { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<LeaveBalance> LeaveBalances { get; set; }
+        public virtual ICollection<Leave> Leaves { get; set; }
     }
 }

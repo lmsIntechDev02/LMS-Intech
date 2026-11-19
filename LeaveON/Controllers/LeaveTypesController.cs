@@ -9,6 +9,7 @@ using System.Web;
 using System.Web.Mvc;
 using Repository.Models;
 using Microsoft.AspNet.Identity;
+using LeaveON.Models;
 
 namespace LeaveON.Controllers
 {
@@ -41,10 +42,29 @@ namespace LeaveON.Controllers
     }
 
     // GET: LeaveTypes/Create
-    public ActionResult Create()
+    public ActionResult Create(int? id)
     {
-      ViewBag.CountryId = new SelectList(db.CountryNames, "Id", "Name");
-      return View();
+      LeaveTypeModel model = new LeaveTypeModel();
+      if (id.HasValue)
+      {
+        // Get previously selected countries
+        LeaveType leaveType =   db.LeaveTypes.FirstOrDefault(k => k.Id == id.Value);
+        if (leaveType != null)
+        {
+          model.CountryIDs = leaveType.tblLeaveTypeCountries.Where(k => k.LeaveTypeID == id).Select(k => k.CountryID.HasValue ? k.CountryID.Value : 0).ToList();
+          model.Name = leaveType.Name;
+          model.Id = leaveType.Id;
+          model.HrBPID = leaveType.HrBPID;
+          model.IsCalenderDays = Convert.ToBoolean(leaveType.IsCalenderDays);
+        }
+      }
+      List<CountryName> countryList = new List<CountryName>();
+      List<tblHRBP> hrbpList = new List<tblHRBP>();
+      countryList = db.CountryNames.OrderBy(k=>k.Name).ToList();
+      hrbpList = db.tblHRBPs.OrderBy(k=>k.HRBPName).ToList();
+      ViewBag.CountryList =   new SelectList(countryList, "Id", "Name");
+      ViewBag.HrBPList = new SelectList(hrbpList, "ID", "HRBPName", null);
+      return View(model);
     }
 
     // POST: LeaveTypes/Create
@@ -52,18 +72,84 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Create([Bind(Include = "Id,Name,CountryId")] LeaveType leaveType)
+    public async Task<ActionResult> Create(LeaveTypeModel model)
     {
-      string LoggedInUserId = User.Identity.GetUserId();
-      
-      if (ModelState.IsValid)
-      {
-        db.LeaveTypes.Add(leaveType);
-        await db.SaveChangesAsync();
-        return RedirectToAction("Index");
-      }
+       
+        string LoggedInUserId = User.Identity.GetUserId();
 
-      return View(leaveType);
+        
+          try
+          {
+            LeaveType leaveType;
+
+            if (model.Id > 0)
+            {
+              // EDIT
+              leaveType = await db.LeaveTypes
+                  .FirstOrDefaultAsync(k => k.Id == model.Id);
+
+              if (leaveType == null)
+              {
+                return HttpNotFound();
+              }
+
+              leaveType.Name = model.Name;
+              leaveType.HrBPID = model.HrBPID;
+              leaveType.IsCalenderDays = model.IsCalenderDays;
+
+              // Remove old country relationships
+              var oldCountries = await db.tblLeaveTypeCountries
+                  .Where(k => k.LeaveTypeID == model.Id)
+                  .ToListAsync();
+
+              db.tblLeaveTypeCountries.RemoveRange(oldCountries);
+            }
+            else
+            {
+              // CREATE
+              leaveType = new LeaveType
+              {
+                Name = model.Name,
+                HrBPID = model.HrBPID ,IsCalenderDays = model.IsCalenderDays
+        };
+
+              db.LeaveTypes.Add(leaveType);
+
+              // Save first to generate LeaveType ID
+              await db.SaveChangesAsync();
+            }
+
+            // Insert selected countries
+            if (model.CountryIDs != null && model.CountryIDs.Any())
+            {
+              var countryList = model.CountryIDs
+                  .Distinct()
+                  .Select(countryId => new tblLeaveTypeCountry
+                  {
+                    LeaveTypeID = leaveType.Id,
+                    CountryID = countryId
+                  })
+                  .ToList();
+
+              db.tblLeaveTypeCountries.AddRange(countryList);
+            }
+
+            await db.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+          }
+          catch (Exception ex)
+          {
+            ModelState.AddModelError("", ex.Message);
+          }
+        
+
+        
+
+      
+      
+
+      return RedirectToAction("Create");
     }
 
     // GET: LeaveTypes/Edit/5

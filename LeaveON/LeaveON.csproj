@@ -366,6 +366,7 @@
     <Compile Include="Models\DepartmentModel1.cs" />
     <Compile Include="Models\ErrorViewModel.cs" />
     <Compile Include="Models\HRBPModel.cs" />
+    <Compile Include="Models\LeaveTypeModel.cs" />
     <Compile Include="Models\Procedures\LeaveAbsentModel.cs" />
     <Compile Include="Models\RightsViewModel.cs" />
     <Compile Include="Models\UserLeavePolicyViewModel.cs" />

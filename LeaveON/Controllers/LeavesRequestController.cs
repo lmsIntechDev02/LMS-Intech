@@ -492,13 +492,8 @@ namespace LeaveON.Controllers
       var currentUser = db.AspNetUsers.FirstOrDefault(u => u.Id == userId);
       int policyId = currentUser.UserLeavePolicyId.GetValueOrDefault();
 
-   ;
-
       var filtereLeaves = new SelectList(Utility.FilteredLeavesTaken(userId, policyId), "Id", "Name", "1");
-
-
       ViewBag.LeaveTypeIdd = filtereLeaves;
-    
 
       if (policyId > 0)
       {
@@ -509,11 +504,7 @@ namespace LeaveON.Controllers
         TempData["ErrorMessage"] = "It looks like this policy hasn't been assigned to your profile. Please get in touch with our support team for help.";
         return RedirectToAction("General", "Error");
       }
-
-      
-
       ViewBag.UserName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(User.Identity.Name.Substring(0, User.Identity.Name.IndexOf('@')).Replace(".", " "));//"LoggedIn User";
-      
    // ViewBag.JoiningDate = currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
       ViewBag.JoiningDate = currentUser.JoiningDate.HasValue
              ? currentUser.JoiningDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
@@ -772,6 +763,11 @@ namespace LeaveON.Controllers
      var aspNetUsers =  db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       UserLeavePolicy policy= aspNetUsers.UserLeavePolicy;
+      var tblhrbp = leave.LeaveType.tblHRBP;
+      if (tblhrbp != null)
+      {
+        leave.HRBPManager = tblhrbp.UserID;
+      }
 
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
@@ -885,53 +881,54 @@ namespace LeaveON.Controllers
         {
           
           
-          if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
-          {
-            daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, true); 
-            leave.TotalDays = daysForFinalCompare;
-          }
-          else if (leave.AspNetUser.CntryName == "United Arab Emirates" || leave.AspNetUser.CntryName == "Iraq" || leave.AspNetUser.CntryName == "Saudi Arabia")
-          {
-            daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, false);
-          }
-          else
-          {
+          //if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
+          //{
+          //  daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays); 
+          //  leave.TotalDays = daysForFinalCompare;
+          //}
+          //else if (leave.AspNetUser.CntryName == "United Arab Emirates" || leave.AspNetUser.CntryName == "Iraq" || leave.AspNetUser.CntryName == "Saudi Arabia")
+          //{
+          //  daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+          //}
+          //else
+          //{
             daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy
-              (policy, daysCount, leave, null); //daysCount;
+              (policy, daysCount, leave, leave.LeaveType.IsCalenderDays); //daysCount;
             leave.TotalDays = daysForFinalCompare;
-          }
+         // }
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
-          { 
+          {
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
 
-            var userDepartment = leave.AspNetUser.DepartmentName;
+            admin1 = leave.HRBPManager != null ? db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager) : db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+            //var userDepartment = leave.AspNetUser.DepartmentName;
 
-            var department = db.DepartmentNames.FirstOrDefault(d => d.Name == userDepartment);
+            /// var department = db.DepartmentNames.FirstOrDefault(d => d.Name == userDepartment);
 
-            if (department != null && !string.IsNullOrEmpty(department.HRBPEmail))
-            {
-              // HRBP Email found, get user with that email
-              admin1 = db.AspNetUsers.FirstOrDefault(u => u.Email == department.HRBPEmail);
+            //if (department != null && !string.IsNullOrEmpty(department.HRBPEmail))
+            //{
+            //  // HRBP Email found, get user with that email
+            //  admin1 = db.AspNetUsers.FirstOrDefault(u => u.Email == department.HRBPEmail);
 
-              if (admin1 != null)
-              {
-                leave.LineManager1Id = admin1.Id;
-              }
-              else
-              {
-                // fallback to annual leave manager if HRBPEmail not matching any user
-                admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
-                    db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-                leave.LineManager1Id = admin1?.Id;
-              }
-            }
-            else
-            {
-              // fallback if no HRBPEmail
-              admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
-                  db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
-              leave.LineManager1Id = admin1?.Id;
-            }
+            //  if (admin1 != null)
+            //  {
+            //    leave.LineManager1Id = admin1.Id;
+            //  }
+            //  else
+            //  {
+            //    // fallback to annual leave manager if HRBPEmail not matching any user
+            //    admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+            //        db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+            //    leave.LineManager1Id = admin1?.Id;
+            //  }
+            //}
+            //else
+            //{
+            //  // fallback if no HRBPEmail
+            //  admin1 = db.AspNetUsers.FirstOrDefault(user => user.BioStarEmpNum ==
+            //      db.AnnualLeaveManagers.FirstOrDefault().BioStarEmpNum);
+            //  leave.LineManager1Id = admin1?.Id;
+            //}
 
 
           }
@@ -951,22 +948,23 @@ namespace LeaveON.Controllers
               //    .Select(offset => leave.StartDate.AddDays(offset))
               //    .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
               int validDaysCount = 0;
-              if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
-              //  if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
-              {
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, true);
-              }
-              else if(leave.AspNetUser.CntryName == "United Arab Emirates"|| leave.AspNetUser.CntryName =="Iraq" || leave.AspNetUser.CntryName=="Saudi Arabia")
-              {
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, false);
-              }
-              else
-              {
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, null);
-              }
+              //if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
+              ////  if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
+              //{
+              //  validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+              //}
+              //else if(leave.AspNetUser.CntryName == "United Arab Emirates"|| leave.AspNetUser.CntryName =="Iraq" || leave.AspNetUser.CntryName=="Saudi Arabia")
+              //{
+              //  validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+              //}
+              //else
+              //{
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+              //}
              // int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
 
-              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              //admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              admin1 = leave.HRBPManager != null ? db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager) : db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
               leave.TotalDays = validDaysCount; // Set TotalDays for marriage leave
             }
            else if (leave.LeaveType.Id == 1) // Sick Leave
@@ -975,23 +973,24 @@ namespace LeaveON.Controllers
               //    .Select(offset => leave.StartDate.AddDays(offset))
               //    .Count(date => date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday);
               int validDaysCount = 0;
-              if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
-              //  if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
-              {
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, true);
-              }
-              else if (leave.AspNetUser.CntryName == "United Arab Emirates" || leave.AspNetUser.CntryName == "Iraq" || leave.AspNetUser.CntryName == "Saudi Arabia")
-              {
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, false);
-              }
-              else
-              {
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, null);
-              }
+              //if (leave.AspNetUser.CntryName == "Pakistan" || leave.AspNetUser.CntryName == "Nigeria")
+              ////  if (leave.AspNetUser.CntryName == "Pakistan" )  //negirea
+              //{
+              //  validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+              //}
+              //else if (leave.AspNetUser.CntryName == "United Arab Emirates" || leave.AspNetUser.CntryName == "Iraq" || leave.AspNetUser.CntryName == "Saudi Arabia")
+              //{
+              //  validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+              //}
+              //else
+              //{
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+              //}
                
               //  int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
 
-              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              //admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              admin1 = leave.HRBPManager != null ? db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager) : db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
 
               if (validDaysCount > balanceCheck)
               {
@@ -1005,7 +1004,8 @@ namespace LeaveON.Controllers
             }
             else if (daysCount <= balanceCheck)
             {
-              admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              //admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              admin1 = leave.HRBPManager != null ? db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager) : db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
               leave.TotalDays = daysCount;
             }
             else
@@ -1016,7 +1016,7 @@ namespace LeaveON.Controllers
           }
           else
           {
-            admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+            admin1 = leave.HRBPManager != null ? db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager) : db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id); 
             leave.TotalDays = daysCount;
           }
         }
@@ -1037,6 +1037,7 @@ namespace LeaveON.Controllers
         //if (admin1.UserName != admin2.UserName) SendEmail.SendEmailUsingLeavON(leave, SendEmail.LeavON_Email, SendEmail.LeavON_Password, leave.AspNetUser, admin2, "LeaveRequest");
         return RedirectToAction("Index");
       }
+      //leave.LeaveType.
 
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       //ViewBag.UserLeavePolicyId = new SelectList(db.UserLeavePolicies, "Id", "UserId", leave.UserLeavePolicyId);

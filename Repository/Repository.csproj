@@ -131,6 +131,9 @@
     <Compile Include="Models\tblHRBP.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\tblLeaveTypeCountry.cs">
+      <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\UserLeavePolicy.cs">
       <DependentUpon>LeaveOnDataModel.tt</DependentUpon>
     </Compile>

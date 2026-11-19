@@ -19,6 +19,7 @@ namespace Repository.Models
         {
             this.DepartmentNames = new HashSet<DepartmentName>();
             this.AspNetUsers = new HashSet<AspNetUser>();
+            this.LeaveTypes = new HashSet<LeaveType>();
         }
     
         public int ID { get; set; }
@@ -32,5 +33,7 @@ namespace Repository.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AspNetUser> AspNetUsers { get; set; }
         public virtual AspNetUser AspNetUser { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<LeaveType> LeaveTypes { get; set; }
     }
 }

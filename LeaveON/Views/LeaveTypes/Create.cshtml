@@ -1,4 +1,4 @@
-@model Repository.Models.LeaveType
+@model LeaveON.Models.LeaveTypeModel
 
 @{
   ViewBag.Title = "Create";
@@ -18,12 +18,15 @@
     <!-- /.card-header -->
     <!-- form start -->
 
-    @using (Html.BeginForm())
+
+    @using (Html.BeginForm("Create", "LeaveTypes", FormMethod.Post, new { role = "form" }))
     {
+
       @Html.AntiForgeryToken()
 
   <div class="card-body">
 
+    @Html.HiddenFor(k => k.Id)
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     <div class="form-group">
@@ -33,17 +36,41 @@
       @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
 
     </div>
+
     <div class="form-group">
-      @Html.LabelFor(model => model.CountryIDs, "Country", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
-      @Html.DropDownListFor(model => model.CountryIDs, (IEnumerable<SelectListItem>)ViewBag.LineManagers, "Please select Country", new { @class = "form-control select2", required = "required" })
-      @Html.ValidationMessageFor(model => model.CountryIDs, "", new { @class = "text-danger" })
+      @Html.LabelFor(model => model.CountryIDs, "Country")
+      <b style="color:red">*</b>
+
+      @Html.ListBoxFor(
+          model => model.CountryIDs,
+          (MultiSelectList)ViewBag.CountryList,
+          new
+          {
+              @class = "form-control selectpicker",
+              @id = "listCountries",
+              multiple = "multiple",
+              data_live_search = "true",
+              data_actions_box = "true",
+              data_done_button = "true"
+          }
+      )
     </div>
+
     <div class="form-group">
-      @Html.LabelFor(model => model.HrBPID, "Hrbp", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
 
-      @Html.DropDownList("LeaveTypeId", (IEnumerable<SelectListItem>)ViewBag.LeaveTypeIdd, null, new { @class = "form-control" })
+      @Html.LabelFor(model => model.HrBPID, "HRBP", htmlAttributes: new { @class = " " })<b style="color:red">*</b>
+      @Html.DropDownListFor(
+    model => model.HrBPID,
+    (IEnumerable<SelectListItem>)ViewBag.HrBPList,
+    "Please select",
+    new { @class = "form-control" }
+)
 
-      @Html.ValidationMessageFor(model => model.CountryIDs, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+      @Html.CheckBoxFor(m => m.IsCalenderDays)
+      @Html.LabelFor(m => m.IsCalenderDays, "Calender Days")
     </div>
 
 
@@ -54,7 +81,7 @@
       </div>
     </div>
   </div>
-    
+
     }
 
     <div>
@@ -62,7 +89,7 @@
     </div>
 
     @*@section Scripts {
-          @Scripts.Render("~/bundles/jqueryval")
-      }*@
+        @Scripts.Render("~/bundles/jqueryval")
+    }*@
   </div>
 </div>

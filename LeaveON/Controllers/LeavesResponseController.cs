@@ -731,28 +731,35 @@ namespace LeaveON.Controllers
       {
         return HttpNotFound();
       }
-      if (User.Identity.GetUserId() == leave.LineManager1Id || User.Identity.GetUserId() == leave.LineManager2Id)
-      { 
-        
-      }
-      else
+      if (!(User.Identity.GetUserId() == leave.LineManager1Id || User.Identity.GetUserId() == leave.LineManager2Id || User.Identity.GetUserId() == leave.HRBPManager))
       {
         return RedirectToAction("Index");
       }
+      
 
       //ViewBag.LineManager1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id).UserName;
       //ViewBag.LineManager2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id).UserName;
       List<AspNetUser> Seniors = GetSeniorStaff();
      var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       bool IsLineManager1 = false;
-      if (User.Identity.GetUserId() == leave.LineManager1Id)
+      bool isHRBPManager = false;
+
+      if (User.Identity.GetUserId() == leave.HRBPManager && leave.IsHRBPAccept!= true)
       {
-        IsLineManager1 = true;
+        isHRBPManager = true;
       }
       else
       {
-        IsLineManager1 = false;
+        if (User.Identity.GetUserId() == leave.LineManager1Id)
+        {
+          IsLineManager1 = true;
+        }
+        else
+        {
+          IsLineManager1 = false;
+        }
       }
+ 
       ViewBag.IsLineManager1 = IsLineManager1;
 
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");

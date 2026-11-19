@@ -167,7 +167,7 @@
           <Key>
             <PropertyRef Name="Name" />
           </Key>
-          <Property Name="Id" Type="decimal" Precision="10" Scale="0" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="TimeZone" Type="nvarchar" MaxLength="500" />
         </EntityType>
@@ -215,6 +215,8 @@
           <Property Name="CreatedDate" Type="datetime2" Precision="3" />
           <Property Name="ModifiedBy" Type="nvarchar" MaxLength="128" />
           <Property Name="ModifiedDate" Type="datetime2" Precision="3" />
+          <Property Name="HRBPManager" Type="nvarchar" MaxLength="128" />
+          <Property Name="IsHRBPAccept" Type="bit" />
         </EntityType>
         <EntityType Name="LeaveBalance">
           <Key>
@@ -237,6 +239,8 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="256" />
+          <Property Name="HrBPID" Type="int" />
+          <Property Name="IsCalenderDays" Type="bit" />
         </EntityType>
         <EntityType Name="sysdiagrams">
           <Key>
@@ -257,6 +261,14 @@
           <Property Name="HRBPEmail" Type="nvarchar" MaxLength="255" />
           <Property Name="HRBPName" Type="nvarchar" MaxLength="200" />
           <Property Name="IsActive" Type="bit" />
+        </EntityType>
+        <EntityType Name="tblLeaveTypeCountry">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="LeaveTypeID" Type="int" />
+          <Property Name="CountryID" Type="int" />
         </EntityType>
         <EntityType Name="UserLeavePolicy">
           <Key>
@@ -287,7 +299,7 @@
           <Property Name="CountryId" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'LeaveON_05Nov2026.dbo.HR_Monthly_Leaves_Report' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="HR_Monthly_Leaves_Report">
           <Key>
             <PropertyRef Name="UserName" />
@@ -537,6 +549,18 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_LeaveType_tblHRBP">
+          <End Role="tblHRBP" Type="Self.tblHRBP" Multiplicity="0..1" />
+          <End Role="LeaveType" Type="Self.LeaveType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tblHRBP">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="LeaveType">
+              <PropertyRef Name="HrBPID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_tblHRBP_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
           <End Role="tblHRBP" Type="Self.tblHRBP" Multiplicity="*" />
@@ -546,6 +570,18 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             </Principal>
             <Dependent Role="tblHRBP">
               <PropertyRef Name="UserID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tblLeaveTypeCountry_tblLeaveTypeCountry">
+          <End Role="LeaveType" Type="Self.LeaveType" Multiplicity="0..1" />
+          <End Role="tblLeaveTypeCountry" Type="Self.tblLeaveTypeCountry" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LeaveType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="tblLeaveTypeCountry">
+              <PropertyRef Name="LeaveTypeID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -620,6 +656,7 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <EntitySet Name="LeaveType" EntityType="Self.LeaveType" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="tblHRBP" EntityType="Self.tblHRBP" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="tblLeaveTypeCountry" EntityType="Self.tblLeaveTypeCountry" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicy" EntityType="Self.UserLeavePolicy" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserLeavePolicyDetail" EntityType="Self.UserLeavePolicyDetail" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="HR_Monthly_Leaves_Report" EntityType="Self.HR_Monthly_Leaves_Report" store:Type="Views" store:Schema="dbo">
@@ -711,9 +748,17 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicy" />
             <End Role="LeaveBalance" EntitySet="LeaveBalance" />
           </AssociationSet>
+          <AssociationSet Name="FK_LeaveType_tblHRBP" Association="Self.FK_LeaveType_tblHRBP">
+            <End Role="tblHRBP" EntitySet="tblHRBP" />
+            <End Role="LeaveType" EntitySet="LeaveType" />
+          </AssociationSet>
           <AssociationSet Name="FK_tblHRBP_AspNetUsers" Association="Self.FK_tblHRBP_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="tblHRBP" EntitySet="tblHRBP" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tblLeaveTypeCountry_tblLeaveTypeCountry" Association="Self.FK_tblLeaveTypeCountry_tblLeaveTypeCountry">
+            <End Role="LeaveType" EntitySet="LeaveType" />
+            <End Role="tblLeaveTypeCountry" EntitySet="tblLeaveTypeCountry" />
           </AssociationSet>
           <AssociationSet Name="FK_UserLeavePolicy_CountryNames" Association="Self.FK_UserLeavePolicy_CountryNames">
             <End Role="CountryNames" EntitySet="CountryNames" />
@@ -741,36 +786,17 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <EntitySet Name="AnnualOffDays" EntityType="LeaveONModels.AnnualOffDay" />
           <EntitySet Name="AspNetUserClaims" EntityType="LeaveONModels.AspNetUserClaim" />
           <EntitySet Name="AspNetUserLogins" EntityType="LeaveONModels.AspNetUserLogin" />
-          <EntitySet Name="CountryNames" EntityType="LeaveONModels.CountryName" />
-          <EntitySet Name="Leaves" EntityType="LeaveONModels.Leave" />
-          <EntitySet Name="LeaveTypes" EntityType="LeaveONModels.LeaveType" />
           <EntitySet Name="UserLeavePolicyDetails" EntityType="LeaveONModels.UserLeavePolicyDetail" />
-          <AssociationSet Name="FK_Leave_LeaveType" Association="LeaveONModels.FK_Leave_LeaveType">
-            <End Role="LeaveType" EntitySet="LeaveTypes" />
-            <End Role="Leave" EntitySet="Leaves" />
-          </AssociationSet>
-          <AssociationSet Name="FK_UserLeavePolicyDetail_LeaveType" Association="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType">
-            <End Role="LeaveType" EntitySet="LeaveTypes" />
-            <End Role="UserLeavePolicyDetail" EntitySet="UserLeavePolicyDetails" />
-          </AssociationSet>
           <EntitySet Name="C__MigrationHistory" EntityType="LeaveONModels.C__MigrationHistory" />
           <EntitySet Name="sysdiagrams" EntityType="LeaveONModels.sysdiagram" />
           <EntitySet Name="AttendanceDatas" EntityType="LeaveONModels.AttendanceData" />
           <EntitySet Name="BreakHours" EntityType="LeaveONModels.BreakHour" />
           <EntitySet Name="HR_Monthly_Leaves_Report" EntityType="LeaveONModels.HR_Monthly_Leaves_Report" />
           <EntitySet Name="AspNetRoles" EntityType="LeaveONModels.AspNetRole" />
-          <AssociationSet Name="FK_CountryNames_CountryNames" Association="LeaveONModels.FK_CountryNames_CountryNames">
-            <End Role="CountryName" EntitySet="CountryNames" />
-            <End Role="CountryName1" EntitySet="CountryNames" />
-          </AssociationSet>
           <EntitySet Name="UserLeavePolicies" EntityType="LeaveONModels.UserLeavePolicy" />
           <AssociationSet Name="FK_AnnualOffDays_UserLeavePolicy" Association="LeaveONModels.FK_AnnualOffDays_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
             <End Role="AnnualOffDay" EntitySet="AnnualOffDays" />
-          </AssociationSet>
-          <AssociationSet Name="FK_UserLeavePolicy_CountryNames" Association="LeaveONModels.FK_UserLeavePolicy_CountryNames">
-            <End Role="CountryName" EntitySet="CountryNames" />
-            <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
           </AssociationSet>
           <AssociationSet Name="FK_UserLeavePolicy_UserLeavePolicy" Association="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
@@ -781,10 +807,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             <End Role="UserLeavePolicyDetail" EntitySet="UserLeavePolicyDetails" />
           </AssociationSet>
           <EntitySet Name="LeaveBalances" EntityType="LeaveONModels.LeaveBalance" />
-          <AssociationSet Name="FK_LeaveBalance_LeaveType" Association="LeaveONModels.FK_LeaveBalance_LeaveType">
-            <End Role="LeaveType" EntitySet="LeaveTypes" />
-            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
-          </AssociationSet>
           <AssociationSet Name="FK_LeaveBalance_UserLeavePolicy" Association="LeaveONModels.FK_LeaveBalance_UserLeavePolicy">
             <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
             <End Role="LeaveBalance" EntitySet="LeaveBalances" />
@@ -804,10 +826,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="AspNetUserLogin" EntitySet="AspNetUserLogins" />
           </AssociationSet>
-          <AssociationSet Name="FK_AspNetUsers_CountryNames" Association="LeaveONModels.FK_AspNetUsers_CountryNames">
-            <End Role="CountryName" EntitySet="CountryNames" />
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-          </AssociationSet>
           <AssociationSet Name="FK_AspNetUsers_tblHRBP" Association="LeaveONModels.FK_AspNetUsers_tblHRBP">
             <End Role="tblHRBP" EntitySet="tblHRBPs" />
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
@@ -819,18 +837,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <AssociationSet Name="FK_BreakHours_User" Association="LeaveONModels.FK_BreakHours_User">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
             <End Role="BreakHour" EntitySet="BreakHours" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Leave_AspNetUsers" Association="LeaveONModels.FK_Leave_AspNetUsers">
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-            <End Role="Leave" EntitySet="Leaves" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Leave_CreatedBy_AspNetUsers" Association="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers">
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-            <End Role="Leave" EntitySet="Leaves" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Leave_ModifiedBy_AspNetUsers" Association="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers">
-            <End Role="AspNetUser" EntitySet="AspNetUsers" />
-            <End Role="Leave" EntitySet="Leaves" />
           </AssociationSet>
           <AssociationSet Name="FK_LeaveBalance_AspNetUsers" Association="LeaveONModels.FK_LeaveBalance_AspNetUsers">
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
@@ -845,6 +851,50 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             <End Role="AspNetUser" EntitySet="AspNetUsers" />
           </AssociationSet>
           <EntitySet Name="AuditLogs" EntityType="LeaveONModels.AuditLog" />
+          <EntitySet Name="CountryNames" EntityType="LeaveONModels.CountryName" />
+          <EntitySet Name="tblLeaveTypeCountries" EntityType="LeaveONModels.tblLeaveTypeCountry" />
+          <AssociationSet Name="FK_AspNetUsers_CountryNames" Association="LeaveONModels.FK_AspNetUsers_CountryNames">
+            <End Role="CountryName" EntitySet="CountryNames" />
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserLeavePolicy_CountryNames" Association="LeaveONModels.FK_UserLeavePolicy_CountryNames">
+            <End Role="CountryName" EntitySet="CountryNames" />
+            <End Role="UserLeavePolicy" EntitySet="UserLeavePolicies" />
+          </AssociationSet>
+          <EntitySet Name="LeaveTypes" EntityType="LeaveONModels.LeaveType" />
+          <AssociationSet Name="FK_LeaveBalance_LeaveType" Association="LeaveONModels.FK_LeaveBalance_LeaveType">
+            <End Role="LeaveType" EntitySet="LeaveTypes" />
+            <End Role="LeaveBalance" EntitySet="LeaveBalances" />
+          </AssociationSet>
+          <AssociationSet Name="FK_LeaveType_tblHRBP" Association="LeaveONModels.FK_LeaveType_tblHRBP">
+            <End Role="tblHRBP" EntitySet="tblHRBPs" />
+            <End Role="LeaveType" EntitySet="LeaveTypes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_tblLeaveTypeCountry_tblLeaveTypeCountry" Association="LeaveONModels.FK_tblLeaveTypeCountry_tblLeaveTypeCountry">
+            <End Role="LeaveType" EntitySet="LeaveTypes" />
+            <End Role="tblLeaveTypeCountry" EntitySet="tblLeaveTypeCountries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserLeavePolicyDetail_LeaveType" Association="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType">
+            <End Role="LeaveType" EntitySet="LeaveTypes" />
+            <End Role="UserLeavePolicyDetail" EntitySet="UserLeavePolicyDetails" />
+          </AssociationSet>
+          <EntitySet Name="Leaves" EntityType="LeaveONModels.Leave" />
+          <AssociationSet Name="FK_Leave_AspNetUsers" Association="LeaveONModels.FK_Leave_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="Leave" EntitySet="Leaves" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Leave_CreatedBy_AspNetUsers" Association="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="Leave" EntitySet="Leaves" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Leave_ModifiedBy_AspNetUsers" Association="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers">
+            <End Role="AspNetUser" EntitySet="AspNetUsers" />
+            <End Role="Leave" EntitySet="Leaves" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Leave_LeaveType" Association="LeaveONModels.FK_Leave_LeaveType">
+            <End Role="LeaveType" EntitySet="LeaveTypes" />
+            <End Role="Leave" EntitySet="Leaves" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="AnnualLeaveManager">
           <Key>
@@ -885,66 +935,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUserLogin" ToRole="AspNetUser" />
         </EntityType>
-        <EntityType Name="CountryName">
-          <Key>
-            <PropertyRef Name="Name" />
-          </Key>
-          <Property Name="Id" Type="Decimal" Nullable="false" Precision="10" Scale="0" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="TimeZone" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="CountryNames1" Relationship="LeaveONModels.FK_CountryNames_CountryNames" FromRole="CountryName" ToRole="CountryName1" />
-          <NavigationProperty Name="CountryName1" Relationship="LeaveONModels.FK_CountryNames_CountryNames" FromRole="CountryName1" ToRole="CountryName" />
-          <NavigationProperty Name="UserLeavePolicies" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="CountryName" ToRole="UserLeavePolicy" />
-          <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_CountryNames" FromRole="CountryName" ToRole="AspNetUser" />
-        </EntityType>
-        <EntityType Name="Leave">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Decimal" Nullable="false" Precision="18" Scale="0" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="LeaveTypeId" Type="Int32" Nullable="false" />
-          <Property Name="Reason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="EndDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="IsShortLeave" Type="Boolean" />
-          <Property Name="TotalDays" Type="Decimal" Precision="6" Scale="1" />
-          <Property Name="EmergencyContact" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="IsQuotaRequest" Type="Boolean" />
-          <Property Name="ResponseDateHr" Type="DateTime" Precision="3" />
-          <Property Name="ResponseDate1" Type="DateTime" Precision="3" />
-          <Property Name="ResponseDate2" Type="DateTime" Precision="3" />
-          <Property Name="IsAcceptedHr" Type="Int32" />
-          <Property Name="IsAccepted1" Type="Int32" />
-          <Property Name="IsAccepted2" Type="Int32" />
-          <Property Name="LineManagerHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="LineManager1Id" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="LineManager2Id" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="RemarksHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="Remarks1" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="Remarks2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="DateCreated" Type="DateTime" Precision="3" />
-          <Property Name="DateModified" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="Leave" ToRole="LeaveType" />
-          <Property Name="UserLeavePolicyID" Type="Int32" />
-          <Property Name="CreatedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
-          <Property Name="ModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="ModifiedDate" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
-          <NavigationProperty Name="AspNetUser1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
-          <NavigationProperty Name="AspNetUser2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
-          </EntityType>
-        <EntityType Name="LeaveType">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Name" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="LeaveType" ToRole="Leave" />
-          <NavigationProperty Name="UserLeavePolicyDetails" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" FromRole="LeaveType" ToRole="UserLeavePolicyDetail" />
-          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveType" ToRole="LeaveBalance" />
-        </EntityType>
         <EntityType Name="UserLeavePolicyDetail">
           <Key>
             <PropertyRef Name="Id" />
@@ -954,37 +944,9 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="LeaveTypeId" Type="Int32" />
           <Property Name="Allowed" Type="Int32" />
           <Property Name="CountryId" Type="Int32" />
-          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" FromRole="UserLeavePolicyDetail" ToRole="LeaveType" />
           <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" FromRole="UserLeavePolicyDetail" ToRole="UserLeavePolicy" />
+          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" FromRole="UserLeavePolicyDetail" ToRole="LeaveType" />
         </EntityType>
-        <Association Name="FK_Leave_LeaveType">
-          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="LeaveType">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Leave">
-              <PropertyRef Name="LeaveTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_UserLeavePolicyDetail_LeaveType">
-          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="LeaveONModels.UserLeavePolicyDetail" Role="UserLeavePolicyDetail" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="LeaveType">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="UserLeavePolicyDetail">
-              <PropertyRef Name="LeaveTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="C__MigrationHistory">
           <Key>
             <PropertyRef Name="MigrationId" />
@@ -1083,18 +1045,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetRole" ToRole="AspNetUser" />
         </EntityType>
-        <Association Name="FK_CountryNames_CountryNames">
-          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="1" />
-          <End Type="LeaveONModels.CountryName" Role="CountryName1" Multiplicity="0..1" />
-          <ReferentialConstraint>
-            <Principal Role="CountryName">
-              <PropertyRef Name="Name" />
-            </Principal>
-            <Dependent Role="CountryName1">
-              <PropertyRef Name="Name" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="UserLeavePolicy">
           <Key>
             <PropertyRef Name="Id" />
@@ -1113,12 +1063,12 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="Remarks" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
           <Property Name="CntryName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="AnnualOffDays" Relationship="LeaveONModels.FK_AnnualOffDays_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="AnnualOffDay" />
-          <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="UserLeavePolicy" ToRole="CountryName" />
           <NavigationProperty Name="UserLeavePolicy1" Relationship="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="UserLeavePolicy1" />
           <NavigationProperty Name="UserLeavePolicy2" Relationship="LeaveONModels.FK_UserLeavePolicy_UserLeavePolicy" FromRole="UserLeavePolicy1" ToRole="UserLeavePolicy" />
           <NavigationProperty Name="UserLeavePolicyDetails" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="UserLeavePolicyDetail" />
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="LeaveBalance" />
           <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_UserLeavePolicy" FromRole="UserLeavePolicy" ToRole="AspNetUser" />
+          <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="UserLeavePolicy" ToRole="CountryName" />
         </EntityType>
         <Association Name="FK_AnnualOffDays_UserLeavePolicy">
           <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="0..1">
@@ -1131,18 +1081,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             </Principal>
             <Dependent Role="AnnualOffDay">
               <PropertyRef Name="UserLeavePolicyId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_UserLeavePolicy_CountryNames">
-          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="0..1" />
-          <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CountryName">
-              <PropertyRef Name="Name" />
-            </Principal>
-            <Dependent Role="UserLeavePolicy">
-              <PropertyRef Name="CntryName" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1186,24 +1124,10 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="HoursTaken" Type="Int32" />
           <Property Name="AnnualAmountAjustmesnt" Type="Decimal" Precision="18" Scale="0" />
           <Property Name="AnnualAmountAjustmesntModifyDate" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveBalance" ToRole="LeaveType" />
           <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_LeaveBalance_UserLeavePolicy" FromRole="LeaveBalance" ToRole="UserLeavePolicy" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="LeaveBalance" ToRole="AspNetUser" />
+          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveBalance" ToRole="LeaveType" />
         </EntityType>
-        <Association Name="FK_LeaveBalance_LeaveType">
-          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="LeaveType">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="LeaveBalance">
-              <PropertyRef Name="LeaveTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_LeaveBalance_UserLeavePolicy">
           <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="0..1" />
           <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
@@ -1228,6 +1152,7 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <NavigationProperty Name="DepartmentNames" Relationship="LeaveONModels.FK_DepartmentNames_tblHRBP" FromRole="tblHRBP" ToRole="DepartmentName" />
           <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_tblHRBP" FromRole="tblHRBP" ToRole="AspNetUser" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_tblHRBP_AspNetUsers" FromRole="tblHRBP" ToRole="AspNetUser" />
+          <NavigationProperty Name="LeaveTypes" Relationship="LeaveONModels.FK_LeaveType_tblHRBP" FromRole="tblHRBP" ToRole="LeaveType" />
         </EntityType>
         <EntityType Name="DepartmentName">
           <Key>
@@ -1294,16 +1219,16 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="HRBPID" Type="Int32" />
           <NavigationProperty Name="AspNetUserClaims" Relationship="LeaveONModels.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUser" ToRole="AspNetUserClaim" />
           <NavigationProperty Name="AspNetUserLogins" Relationship="LeaveONModels.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUser" ToRole="AspNetUserLogin" />
-          <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_AspNetUsers_CountryNames" FromRole="AspNetUser" ToRole="CountryName" />
           <NavigationProperty Name="tblHRBP" Relationship="LeaveONModels.FK_AspNetUsers_tblHRBP" FromRole="AspNetUser" ToRole="tblHRBP" />
           <NavigationProperty Name="UserLeavePolicy" Relationship="LeaveONModels.FK_AspNetUsers_UserLeavePolicy" FromRole="AspNetUser" ToRole="UserLeavePolicy" />
           <NavigationProperty Name="BreakHours" Relationship="LeaveONModels.FK_BreakHours_User" FromRole="AspNetUser" ToRole="BreakHour" />
-          <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
-          <NavigationProperty Name="Leaves1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
-          <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_AspNetUsers" FromRole="AspNetUser" ToRole="LeaveBalance" />
           <NavigationProperty Name="tblHRBPs" Relationship="LeaveONModels.FK_tblHRBP_AspNetUsers" FromRole="AspNetUser" ToRole="tblHRBP" />
           <NavigationProperty Name="AspNetRoles" Relationship="LeaveONModels.AspNetUserRoles" FromRole="AspNetUser" ToRole="AspNetRole" />
+          <NavigationProperty Name="CountryName" Relationship="LeaveONModels.FK_AspNetUsers_CountryNames" FromRole="AspNetUser" ToRole="CountryName" />
+          <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
+          <NavigationProperty Name="Leaves1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
+          <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
         </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="1">
@@ -1330,18 +1255,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             </Principal>
             <Dependent Role="AspNetUserLogin">
               <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_AspNetUsers_CountryNames">
-          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="0..1" />
-          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="CountryName">
-              <PropertyRef Name="Name" />
-            </Principal>
-            <Dependent Role="AspNetUser">
-              <PropertyRef Name="CntryName" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1378,44 +1291,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
             </Principal>
             <Dependent Role="BreakHour">
               <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Leave_AspNetUsers">
-          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUser">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Leave">
-              <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Leave_CreatedBy_AspNetUsers">
-          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
-          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUser">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Leave">
-              <PropertyRef Name="CreatedBy" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Leave_ModifiedBy_AspNetUsers">
-          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
-          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="AspNetUser">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Leave">
-              <PropertyRef Name="ModifiedBy" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1464,6 +1339,207 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
           <Property Name="UserId" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="AuditDate" Type="DateTime" Nullable="false" Precision="3" />
         </EntityType>
+        <EntityType Name="CountryName">
+          <Key>
+            <PropertyRef Name="Name" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TimeZone" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AspNetUsers" Relationship="LeaveONModels.FK_AspNetUsers_CountryNames" FromRole="CountryName" ToRole="AspNetUser" />
+          <NavigationProperty Name="UserLeavePolicies" Relationship="LeaveONModels.FK_UserLeavePolicy_CountryNames" FromRole="CountryName" ToRole="UserLeavePolicy" />
+        </EntityType>
+        <EntityType Name="tblLeaveTypeCountry">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LeaveTypeID" Type="Int32" />
+          <Property Name="CountryID" Type="Int32" />
+          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_tblLeaveTypeCountry_tblLeaveTypeCountry" FromRole="tblLeaveTypeCountry" ToRole="LeaveType" />
+        </EntityType>
+        <Association Name="FK_AspNetUsers_CountryNames">
+          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="0..1" />
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CountryName">
+              <PropertyRef Name="Name" />
+            </Principal>
+            <Dependent Role="AspNetUser">
+              <PropertyRef Name="CntryName" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserLeavePolicy_CountryNames">
+          <End Type="LeaveONModels.CountryName" Role="CountryName" Multiplicity="0..1" />
+          <End Type="LeaveONModels.UserLeavePolicy" Role="UserLeavePolicy" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CountryName">
+              <PropertyRef Name="Name" />
+            </Principal>
+            <Dependent Role="UserLeavePolicy">
+              <PropertyRef Name="CntryName" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="LeaveType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="HrBPID" Type="Int32" />
+          <Property Name="IsCalenderDays" Type="Boolean" />
+          <NavigationProperty Name="LeaveBalances" Relationship="LeaveONModels.FK_LeaveBalance_LeaveType" FromRole="LeaveType" ToRole="LeaveBalance" />
+          <NavigationProperty Name="tblHRBP" Relationship="LeaveONModels.FK_LeaveType_tblHRBP" FromRole="LeaveType" ToRole="tblHRBP" />
+          <NavigationProperty Name="tblLeaveTypeCountries" Relationship="LeaveONModels.FK_tblLeaveTypeCountry_tblLeaveTypeCountry" FromRole="LeaveType" ToRole="tblLeaveTypeCountry" />
+          <NavigationProperty Name="UserLeavePolicyDetails" Relationship="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" FromRole="LeaveType" ToRole="UserLeavePolicyDetail" />
+          <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="LeaveType" ToRole="Leave" />
+        </EntityType>
+        <Association Name="FK_LeaveBalance_LeaveType">
+          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="LeaveONModels.LeaveBalance" Role="LeaveBalance" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LeaveType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="LeaveBalance">
+              <PropertyRef Name="LeaveTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_LeaveType_tblHRBP">
+          <End Type="LeaveONModels.tblHRBP" Role="tblHRBP" Multiplicity="0..1" />
+          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tblHRBP">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="LeaveType">
+              <PropertyRef Name="HrBPID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tblLeaveTypeCountry_tblLeaveTypeCountry">
+          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1" />
+          <End Type="LeaveONModels.tblLeaveTypeCountry" Role="tblLeaveTypeCountry" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LeaveType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="tblLeaveTypeCountry">
+              <PropertyRef Name="LeaveTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserLeavePolicyDetail_LeaveType">
+          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="LeaveONModels.UserLeavePolicyDetail" Role="UserLeavePolicyDetail" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LeaveType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UserLeavePolicyDetail">
+              <PropertyRef Name="LeaveTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Leave">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Decimal" Nullable="false" Precision="18" Scale="0" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LeaveTypeId" Type="Int32" Nullable="false" />
+          <Property Name="Reason" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="EndDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="TotalDays" Type="Decimal" Precision="6" Scale="1" />
+          <Property Name="EmergencyContact" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="IsQuotaRequest" Type="Boolean" />
+          <Property Name="ResponseDateHr" Type="DateTime" Precision="3" />
+          <Property Name="ResponseDate1" Type="DateTime" Precision="3" />
+          <Property Name="ResponseDate2" Type="DateTime" Precision="3" />
+          <Property Name="IsAcceptedHr" Type="Int32" />
+          <Property Name="IsAccepted1" Type="Int32" />
+          <Property Name="IsAccepted2" Type="Int32" />
+          <Property Name="LineManagerHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LineManager1Id" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="LineManager2Id" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="RemarksHr" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks1" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Remarks2" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <Property Name="DateModified" Type="DateTime" Precision="3" />
+          <Property Name="IsShortLeave" Type="Boolean" />
+          <Property Name="UserLeavePolicyID" Type="Int32" />
+          <Property Name="CreatedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ModifiedDate" Type="DateTime" Precision="3" />
+          <Property Name="HRBPManager" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="IsHRBPAccept" Type="Boolean" />
+          <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
+          <NavigationProperty Name="AspNetUser1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
+          <NavigationProperty Name="AspNetUser2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
+          <NavigationProperty Name="LeaveType" Relationship="LeaveONModels.FK_Leave_LeaveType" FromRole="Leave" ToRole="LeaveType" />
+        </EntityType>
+        <Association Name="FK_Leave_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Leave_CreatedBy_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="CreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Leave_ModifiedBy_AspNetUsers">
+          <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="0..1" />
+          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUser">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="ModifiedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Leave_LeaveType">
+          <End Type="LeaveONModels.LeaveType" Role="LeaveType" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="LeaveONModels.Leave" Role="Leave" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="LeaveType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Leave">
+              <PropertyRef Name="LeaveTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1505,58 +1581,6 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="ProviderKey" ColumnName="ProviderKey" />
                 <ScalarProperty Name="LoginProvider" ColumnName="LoginProvider" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="CountryNames">
-            <EntityTypeMapping TypeName="LeaveONModels.CountryName">
-              <MappingFragment StoreEntitySet="CountryNames">
-                <ScalarProperty Name="TimeZone" ColumnName="TimeZone" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Leaves">
-            <EntityTypeMapping TypeName="LeaveONModels.Leave">
-              <MappingFragment StoreEntitySet="Leave">
-                <ScalarProperty Name="ModifiedDate" ColumnName="ModifiedDate" />
-                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
-                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
-                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
-                <ScalarProperty Name="UserLeavePolicyID" ColumnName="UserLeavePolicyID" />
-                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
-                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
-                <ScalarProperty Name="Remarks2" ColumnName="Remarks2" />
-                <ScalarProperty Name="Remarks1" ColumnName="Remarks1" />
-                <ScalarProperty Name="RemarksHr" ColumnName="RemarksHr" />
-                <ScalarProperty Name="LineManager2Id" ColumnName="LineManager2Id" />
-                <ScalarProperty Name="LineManager1Id" ColumnName="LineManager1Id" />
-                <ScalarProperty Name="LineManagerHr" ColumnName="LineManagerHr" />
-                <ScalarProperty Name="IsAccepted2" ColumnName="IsAccepted2" />
-                <ScalarProperty Name="IsAccepted1" ColumnName="IsAccepted1" />
-                <ScalarProperty Name="IsAcceptedHr" ColumnName="IsAcceptedHr" />
-                <ScalarProperty Name="ResponseDate2" ColumnName="ResponseDate2" />
-                <ScalarProperty Name="ResponseDate1" ColumnName="ResponseDate1" />
-                <ScalarProperty Name="ResponseDateHr" ColumnName="ResponseDateHr" />
-                <ScalarProperty Name="IsQuotaRequest" ColumnName="IsQuotaRequest" />
-                <ScalarProperty Name="EmergencyContact" ColumnName="EmergencyContact" />
-                <ScalarProperty Name="TotalDays" ColumnName="TotalDays" />
-                <ScalarProperty Name="IsShortLeave" ColumnName="IsShortLeave" />
-                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
-                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
-                <ScalarProperty Name="Reason" ColumnName="Reason" />
-                <ScalarProperty Name="LeaveTypeId" ColumnName="LeaveTypeId" />
-                <ScalarProperty Name="UserId" ColumnName="UserId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="LeaveTypes">
-            <EntityTypeMapping TypeName="LeaveONModels.LeaveType">
-              <MappingFragment StoreEntitySet="LeaveType">
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1787,6 +1811,71 @@ warning 6002: The table/view 'LeaveON_09Sept26.dbo.HR_Monthly_Leaves_Report' doe
                 <ScalarProperty Name="RecordId" ColumnName="RecordId" />
                 <ScalarProperty Name="TableName" ColumnName="TableName" />
                 <ScalarProperty Name="AuditLogId" ColumnName="AuditLogId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CountryNames">
+            <EntityTypeMapping TypeName="LeaveONModels.CountryName">
+              <MappingFragment StoreEntitySet="CountryNames">
+                <ScalarProperty Name="TimeZone" ColumnName="TimeZone" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tblLeaveTypeCountries">
+            <EntityTypeMapping TypeName="LeaveONModels.tblLeaveTypeCountry">
+              <MappingFragment StoreEntitySet="tblLeaveTypeCountry">
+                <ScalarProperty Name="CountryID" ColumnName="CountryID" />
+                <ScalarProperty Name="LeaveTypeID" ColumnName="LeaveTypeID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="LeaveTypes">
+            <EntityTypeMapping TypeName="LeaveONModels.LeaveType">
+              <MappingFragment StoreEntitySet="LeaveType">
+                <ScalarProperty Name="IsCalenderDays" ColumnName="IsCalenderDays" />
+                <ScalarProperty Name="HrBPID" ColumnName="HrBPID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Leaves">
+            <EntityTypeMapping TypeName="LeaveONModels.Leave">
+              <MappingFragment StoreEntitySet="Leave">
+                <ScalarProperty Name="IsHRBPAccept" ColumnName="IsHRBPAccept" />
+                <ScalarProperty Name="HRBPManager" ColumnName="HRBPManager" />
+                <ScalarProperty Name="ModifiedDate" ColumnName="ModifiedDate" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="UserLeavePolicyID" ColumnName="UserLeavePolicyID" />
+                <ScalarProperty Name="IsShortLeave" ColumnName="IsShortLeave" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="Remarks2" ColumnName="Remarks2" />
+                <ScalarProperty Name="Remarks1" ColumnName="Remarks1" />
+                <ScalarProperty Name="RemarksHr" ColumnName="RemarksHr" />
+                <ScalarProperty Name="LineManager2Id" ColumnName="LineManager2Id" />
+                <ScalarProperty Name="LineManager1Id" ColumnName="LineManager1Id" />
+                <ScalarProperty Name="LineManagerHr" ColumnName="LineManagerHr" />
+                <ScalarProperty Name="IsAccepted2" ColumnName="IsAccepted2" />
+                <ScalarProperty Name="IsAccepted1" ColumnName="IsAccepted1" />
+                <ScalarProperty Name="IsAcceptedHr" ColumnName="IsAcceptedHr" />
+                <ScalarProperty Name="ResponseDate2" ColumnName="ResponseDate2" />
+                <ScalarProperty Name="ResponseDate1" ColumnName="ResponseDate1" />
+                <ScalarProperty Name="ResponseDateHr" ColumnName="ResponseDateHr" />
+                <ScalarProperty Name="IsQuotaRequest" ColumnName="IsQuotaRequest" />
+                <ScalarProperty Name="EmergencyContact" ColumnName="EmergencyContact" />
+                <ScalarProperty Name="TotalDays" ColumnName="TotalDays" />
+                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="Reason" ColumnName="Reason" />
+                <ScalarProperty Name="LeaveTypeId" ColumnName="LeaveTypeId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
