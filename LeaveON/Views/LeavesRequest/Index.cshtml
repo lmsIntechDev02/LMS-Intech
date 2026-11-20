@@ -86,19 +86,19 @@
         {
           data: 'DateCreated',
           render: function (data) {
-            return data ? moment(data).format('MM/DD/YYYY') : '';
+            return data ? moment(data, 'YYYY-MM-DD HH:mm:ss.SSS').format('MM/DD/YYYY') : '';
           }
         },
         {
           data: 'StartDate',
           render: function (data) {
-            return data ? moment(data).format('MM/DD/YYYY') : '';
+            return data ? moment(data, 'YYYY-MM-DD HH:mm:ss.SSS').format('MM/DD/YYYY') : '';
           }
         },
         {
           data: 'EndDate',
           render: function (data) {
-            return data ? moment(data).format('MM/DD/YYYY') : '';
+            return data ? moment(data, 'YYYY-MM-DD HH:mm:ss.SSS').format('MM/DD/YYYY') : '';
           }
         },
         {

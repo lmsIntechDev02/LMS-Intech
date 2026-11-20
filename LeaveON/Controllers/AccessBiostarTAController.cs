@@ -2049,18 +2049,20 @@ namespace LeaveON.Controllers
         // ----------------------------------------------------
 
         var query =
-            from a in dbLeaveOn.AttendanceDatas
-            join u in dbLeaveOn.AspNetUsers
-                on a.BioStarEmpNum equals u.BioStarEmpNum
-            where a.CreatedDate >= startDate.Date
-                  && a.CreatedDate < endDateExclusive
-                  && userIds.Contains(a.BioStarEmpNum.Value)
-            select new
-            {
-              Attendance = a,
-              UserId = u.Id,
-              UserLeavePolicyId = u.UserLeavePolicyId
-            };
+    from a in dbLeaveOn.AttendanceDatas
+    join u in dbLeaveOn.AspNetUsers on a.BioStarEmpNum equals u.BioStarEmpNum
+    join p in dbLeaveOn.UserLeavePolicies on u.UserLeavePolicyId equals p.Id
+    where a.CreatedDate >= startDate.Date
+          && a.CreatedDate < endDateExclusive
+          && a.BioStarEmpNum.HasValue &&  !String.IsNullOrEmpty(a.UserLeavePolicyID)
+          && userIds.Contains(a.BioStarEmpNum.Value)
+    select new
+    {
+      Attendance = a,
+      UserId = u.Id,
+      UserLeavePolicyId = u.UserLeavePolicyId,
+      UserWeekend = !String.IsNullOrEmpty(p.WeeklyOffDays) ?  p.WeeklyOffDays : String.Empty
+    };
 
 
         // ----------------------------------------------------
@@ -2291,6 +2293,8 @@ namespace LeaveON.Controllers
         TimeSpan totalHours = TimeSpan.Zero;
         foreach (var item in pageData)
         {
+        string weekends=   item.UserWeekend;
+         
           var record = item.Attendance;
 
           DateTime currentDate =
@@ -2333,8 +2337,24 @@ namespace LeaveON.Controllers
 
 
           // Weekend
-          if (currentDate.DayOfWeek == DayOfWeek.Saturday ||
-              currentDate.DayOfWeek == DayOfWeek.Sunday)
+          bool isWeakend = false;
+          if (!String.IsNullOrEmpty(weekends))
+          {
+            List<int> LstWeekEndDays = weekends.Split(',').Select(int.Parse).ToList();
+            if (LstWeekEndDays.Contains((int)currentDate.DayOfWeek))
+            {
+              isWeakend = true;
+            }
+          }
+          else {
+            if (currentDate.DayOfWeek == DayOfWeek.Saturday ||
+               currentDate.DayOfWeek == DayOfWeek.Sunday)
+            {
+              isWeakend = true;
+            }
+          }
+          
+          if (isWeakend)
           {
             status = "Weekend";
           }

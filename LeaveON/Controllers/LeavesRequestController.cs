@@ -903,11 +903,11 @@ namespace LeaveON.Controllers
             var userDepartment = leave.AspNetUser.DepartmentName;
 
             var department = db.DepartmentNames.FirstOrDefault(d => d.Name == userDepartment);
-
-            if (department != null && !string.IsNullOrEmpty(department.HRBPEmail))
+            var tblhrbl = department.tblHRBP;
+            if (tblhrbl != null && !string.IsNullOrEmpty(tblhrbl.HRBPEmail))
             {
               // HRBP Email found, get user with that email
-              admin1 = db.AspNetUsers.FirstOrDefault(u => u.Email == department.HRBPEmail);
+              admin1 = db.AspNetUsers.FirstOrDefault(u => u.Email == tblhrbl.HRBPEmail);
 
               if (admin1 != null)
               {
