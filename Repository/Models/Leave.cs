@@ -45,6 +45,7 @@ namespace Repository.Models
         public Nullable<System.DateTime> ModifiedDate { get; set; }
         public string HRBPManager { get; set; }
         public Nullable<bool> IsHRBPAccept { get; set; }
+        public string HRBPRemarks { get; set; }
     
         public virtual AspNetUser AspNetUser { get; set; }
         public virtual AspNetUser AspNetUser1 { get; set; }

@@ -44,7 +44,7 @@
         <AssociationConnector Association="LeaveONModels.FK_LeaveType_tblHRBP" />
         <AssociationConnector Association="LeaveONModels.FK_tblLeaveTypeCountry_tblLeaveTypeCountry" />
         <AssociationConnector Association="LeaveONModels.FK_UserLeavePolicyDetail_LeaveType" />
-        <EntityTypeShape EntityType="LeaveONModels.Leave" Width="1.5" PointX="15" PointY="22.75" />
+        <EntityTypeShape EntityType="LeaveONModels.Leave" Width="1.5" PointX="15" PointY="22.625" />
         <AssociationConnector Association="LeaveONModels.FK_Leave_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" />
         <AssociationConnector Association="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" />

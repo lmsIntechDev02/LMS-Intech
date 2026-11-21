@@ -217,6 +217,7 @@
           <Property Name="ModifiedDate" Type="datetime2" Precision="3" />
           <Property Name="HRBPManager" Type="nvarchar" MaxLength="128" />
           <Property Name="IsHRBPAccept" Type="bit" />
+          <Property Name="HRBPRemarks" Type="nchar" MaxLength="10" />
         </EntityType>
         <EntityType Name="LeaveBalance">
           <Key>
@@ -1229,7 +1230,7 @@ warning 6002: The table/view 'LeaveON_05Nov2026.dbo.HR_Monthly_Leaves_Report' do
           <NavigationProperty Name="Leaves" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="Leaves1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
           <NavigationProperty Name="Leaves2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="AspNetUser" ToRole="Leave" />
-        </EntityType>
+          </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="LeaveONModels.AspNetUser" Role="AspNetUser" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -1483,6 +1484,7 @@ warning 6002: The table/view 'LeaveON_05Nov2026.dbo.HR_Monthly_Leaves_Report' do
           <Property Name="ModifiedDate" Type="DateTime" Precision="3" />
           <Property Name="HRBPManager" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="IsHRBPAccept" Type="Boolean" />
+          <Property Name="HRBPRemarks" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
           <NavigationProperty Name="AspNetUser" Relationship="LeaveONModels.FK_Leave_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
           <NavigationProperty Name="AspNetUser1" Relationship="LeaveONModels.FK_Leave_CreatedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
           <NavigationProperty Name="AspNetUser2" Relationship="LeaveONModels.FK_Leave_ModifiedBy_AspNetUsers" FromRole="Leave" ToRole="AspNetUser" />
@@ -1845,6 +1847,7 @@ warning 6002: The table/view 'LeaveON_05Nov2026.dbo.HR_Monthly_Leaves_Report' do
           <EntitySetMapping Name="Leaves">
             <EntityTypeMapping TypeName="LeaveONModels.Leave">
               <MappingFragment StoreEntitySet="Leave">
+                <ScalarProperty Name="HRBPRemarks" ColumnName="HRBPRemarks" />
                 <ScalarProperty Name="IsHRBPAccept" ColumnName="IsHRBPAccept" />
                 <ScalarProperty Name="HRBPManager" ColumnName="HRBPManager" />
                 <ScalarProperty Name="ModifiedDate" ColumnName="ModifiedDate" />

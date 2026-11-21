@@ -763,10 +763,15 @@ namespace LeaveON.Controllers
      var aspNetUsers =  db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       UserLeavePolicy policy= aspNetUsers.UserLeavePolicy;
-      var tblhrbp = leave.LeaveType.tblHRBP;
-      if (tblhrbp != null)
+      tblHRBP tblhrbp = new tblHRBP();
+      if (leave?.LeaveType?.HrBPID.HasValue == true)
       {
-        leave.HRBPManager = tblhrbp.UserID;
+        tblhrbp = leave.LeaveType.tblHRBP;
+
+      if(tblhrbp != null)
+        {
+          leave.HRBPManager = tblhrbp.UserID;
+        }
       }
 
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
@@ -863,11 +868,6 @@ namespace LeaveON.Controllers
             {
               balanceCheck = casualLeave;
             }
-        
-
-            
-
-            
           }
           else
           {
@@ -1023,6 +1023,14 @@ namespace LeaveON.Controllers
         
           try
           {
+          //if (leave?.LeaveType?.HrBPID.HasValue == true)
+          //{
+          //  tblhrbp =leave.LeaveType.tblHRBP;
+          //  if(tblhrbp != null)
+          //  {
+          //    admin1
+          //  }
+          //}
             ViewBag.BalanceCheck = balanceCheck;
             db.Leaves.Add(leave);
             await db.SaveChangesAsync();
