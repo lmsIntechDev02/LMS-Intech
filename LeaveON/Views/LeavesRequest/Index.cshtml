@@ -85,20 +85,31 @@
          
         {
           data: 'DateCreated',
-          render: function (data) {
-            return data ? moment(data, 'YYYY-MM-DD HH:mm:ss.SSS').format('MM/DD/YYYY') : '';
+            render: function (data) {
+              debugger
+              if (!data) return '';
+
+              var timestamp = parseInt(data.match(/\d+/)[0]);
+              return moment(timestamp).format('MM/DD/YYYY');
+           // return data ? moment(data, 'YYYY-MM-DD', true).format('MM/DD/YYYY') : '';
           }
         },
         {
           data: 'StartDate',
           render: function (data) {
-            return data ? moment(data, 'YYYY-MM-DD HH:mm:ss.SSS').format('MM/DD/YYYY') : '';
+            if(!data) return '';
+
+            var timestamp = parseInt(data.match(/\d+/)[0]);
+            return moment(timestamp).format('MM/DD/YYYY')
           }
         },
         {
           data: 'EndDate',
           render: function (data) {
-            return data ? moment(data, 'YYYY-MM-DD HH:mm:ss.SSS').format('MM/DD/YYYY') : '';
+            if(!data) return '';
+
+            var timestamp = parseInt(data.match(/\d+/)[0]);
+            return moment(timestamp).format('MM/DD/YYYY')
           }
         },
         {
