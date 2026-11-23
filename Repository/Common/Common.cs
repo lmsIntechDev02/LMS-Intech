@@ -51,13 +51,13 @@ namespace Repository.Common
     UserLeavePolicy userLeavePolicy,
     int totalSelectedDays,
     Leave leave,
-    bool? iscalnderDays)
+    bool? iscalanderDays)
         {
             List<DayOfWeek> weeklyOffDays = GetWeekendDays(userLeavePolicy);
             var annualLeaveList = userLeavePolicy.AnnualOffDays?.ToList();
 
             // Calendar days - include weekends and holidays
-            if (iscalnderDays == true)
+            if (iscalanderDays == true)
             {
                 return totalSelectedDays;
             }
@@ -69,11 +69,18 @@ namespace Repository.Common
                     !weeklyOffDays.Contains(date.DayOfWeek) &&
 
                     // If WorkingDaysOnly is true, also exclude annual/public holidays
-                    (iscalnderDays != true ||
+                    (iscalanderDays != true ||
                      annualLeaveList == null ||
                      !annualLeaveList.Any(x =>
                          x.OffDay.HasValue &&
                          x.OffDay.Value.Date == date.Date))
+
+                    //// If WorkingDaysOnly is true, also exclude annual/public holidays
+                    //(isWorkingDaysOnly != true ||
+                    // annualLeaveList == null ||
+                    // !annualLeaveList.Any(x =>
+                    //     x.OffDay.HasValue &&
+                    //     x.OffDay.Value.Date == date.Date))
                 );
         }
 
