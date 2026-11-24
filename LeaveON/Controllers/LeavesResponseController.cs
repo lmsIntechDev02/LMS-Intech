@@ -347,38 +347,41 @@ namespace LeaveON.Controllers
         bool isManager1 = currentUserId == x.LineManager1Id;
         bool isManager2 = currentUserId == x.LineManager2Id;
         bool hrbp = currentUserId == x.HRBPManager;
-        //if (hrbp)
-        //{
-        //  if (x.IsHRBPAccept == null)
-        //  {
-        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
-        //  }
-        //  else if(x.IsHRBPAccept ==true && (x.IsAccepted1==null))
-        //  {
-        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
-        //  }
-        //  else if (x.IsAccepted1 == 1 && (x.IsAccepted2 == null))
-        //  {
-        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
-        //  }
-        //  else if (x.IsHRBPAccept == null)
-        //  {
-        //    actionHtml = x.LeaveType != "Annual Leaves" ?
-        //     "<p style='color:red;font-size:80%;'>" +
-        //        "Waiting for approval from HRBP Manager </p>"
-        //        :
-        //        "<p style='color:red;font-size:80%;'>" +
-        //        "Waiting for approval from HR Manager</p>";
-        //  }
-
-        //}
-       // else
+        if (x.HRBPManager != null)
         {
+
           if (hrbp && x.IsHRBPAccept == null)
           {
             actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
-           else if (isManager1 && x.IsAccepted1 == null)
+          if (isManager1 && x.IsHRBPAccept == true && (x.IsAccepted1 == null))
+          {
+            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+          }
+          if (isManager2 && x.IsAccepted1 == 1 && (x.IsAccepted2 == null))
+          {
+            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+          }
+
+          if ((isManager1 || isManager2) && x.IsHRBPAccept == null)
+          {
+            actionHtml =
+             "<p style='color:red;font-size:80%;'>" +
+                "Waiting for approval from HRBP Manager </p>";
+                 
+          }
+          else if ((  isManager2) && x.IsAccepted2 == null)
+          {
+            actionHtml =
+            "<p style='color:red;font-size:80%;'>" +
+               "Waiting for approval from  Manager 1 </p>";
+          }
+
+        }
+        else
+        {
+           
+            if (isManager1 && x.IsAccepted1 == null)
           {
             actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
@@ -821,16 +824,21 @@ namespace LeaveON.Controllers
       //ViewBag.LineManager1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id).UserName;
       //ViewBag.LineManager2 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id).UserName;
       List<AspNetUser> Seniors = GetSeniorStaff();
-     var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
+      var user = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       bool IsLineManager1 = false;
       bool isHRBPManager = false;
+
+      var hrbplist = db.tblHRBPs.Where(x => x.UserID == leave.HRBPManager).ToList();
 
       if (User.Identity.GetUserId() == leave.HRBPManager && leave.IsHRBPAccept!= true)
       {
         isHRBPManager = true;
+        ViewBag.IsHRPBManager = true;
+         
       }
       else
       {
+         
         if (User.Identity.GetUserId() == leave.LineManager1Id)
         {
           IsLineManager1 = true;
@@ -839,11 +847,14 @@ namespace LeaveON.Controllers
         {
           IsLineManager1 = false;
         }
+        
       }
  
       ViewBag.IsLineManager1 = IsLineManager1;
 
+    
       ViewBag.LineManagers = new SelectList(Seniors, "Id", "UserName");
+      ViewBag.HRBPManagers = new SelectList(hrbplist, "UserID", "HRBPName");
       ViewBag.LeaveTypeId = new SelectList(db.LeaveTypes, "Id", "Name", leave.LeaveTypeId);
       ViewBag.JoiningDate = user != null ? (user.JoiningDate.HasValue ? String.Format(LeaveON.UtilityClasses.Constants.DateFormatDayMonthYear, user.JoiningDate.Value) : String.Empty) : String.Empty;
 
