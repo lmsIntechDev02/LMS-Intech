@@ -19,8 +19,8 @@ namespace Repository.Models
         {
             this.LeaveBalances = new HashSet<LeaveBalance>();
             this.tblLeaveTypeCountries = new HashSet<tblLeaveTypeCountry>();
-            this.UserLeavePolicyDetails = new HashSet<UserLeavePolicyDetail>();
             this.Leaves = new HashSet<Leave>();
+            this.UserLeavePolicyDetails = new HashSet<UserLeavePolicyDetail>();
         }
     
         public int Id { get; set; }
@@ -34,8 +34,8 @@ namespace Repository.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<tblLeaveTypeCountry> tblLeaveTypeCountries { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Leave> Leaves { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
     }
 }

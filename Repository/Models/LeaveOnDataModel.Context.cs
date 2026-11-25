@@ -29,7 +29,6 @@ namespace Repository.Models
         public virtual DbSet<AnnualOffDay> AnnualOffDays { get; set; }
         public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
         public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
-        public virtual DbSet<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
         public virtual DbSet<C__MigrationHistory> C__MigrationHistory { get; set; }
         public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
         public virtual DbSet<AttendanceData> AttendanceDatas { get; set; }
@@ -46,5 +45,6 @@ namespace Repository.Models
         public virtual DbSet<tblLeaveTypeCountry> tblLeaveTypeCountries { get; set; }
         public virtual DbSet<LeaveType> LeaveTypes { get; set; }
         public virtual DbSet<Leave> Leaves { get; set; }
+        public virtual DbSet<UserLeavePolicyDetail> UserLeavePolicyDetails { get; set; }
     }
 }

@@ -754,25 +754,35 @@ namespace LeaveON.Controllers
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> Create([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,LineManager1Id,LineManager2Id, UserLeavePolicyID")] Leave leave, string StartDate)
     {
+      bool isDepartmentSetHRBP = true;
       leave.UserId = User.Identity.GetUserId();
       leave.AspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.DateCreated = DateTime.Now;
       leave.IsQuotaRequest = false;
       leave.LeaveType = db.LeaveTypes.FirstOrDefault(x => x.Id == leave.LeaveTypeId);
       var shortLeaveMessage = "";
-     var aspNetUsers =  db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
+      var aspNetUsers =  db.AspNetUsers.FirstOrDefault(x => x.Id == leave.UserId);
       leave.UserLeavePolicyID = leave.AspNetUser.UserLeavePolicyId;
       UserLeavePolicy policy= aspNetUsers.UserLeavePolicy;
-      tblHRBP tblhrbp = new tblHRBP();
-      if (leave?.LeaveType?.HrBPID.HasValue == true)
-      {
-        tblhrbp = leave.LeaveType.tblHRBP;
+      bool isCalenderDays = false;
+      UserLeavePolicyDetail leaveDetail = policy.UserLeavePolicyDetails.FirstOrDefault(k => k.LeaveTypeId == leave.LeaveTypeId );
 
-      if(tblhrbp != null)
-        {
-          leave.HRBPManager = tblhrbp.UserID;
-        }
+      if(leaveDetail !=null)
+      {
+        isCalenderDays = leaveDetail.IsCalenderDays ?? true;
       }
+      var department = db.DepartmentNames.FirstOrDefault(k => !String.IsNullOrEmpty(aspNetUsers.DepartmentName) && k.Name.Trim().ToLower().ToString() == aspNetUsers.DepartmentName.Trim().ToLower().ToString();
+      
+      tblHRBP tblhrbp = new tblHRBP();
+      if(isDepartmentSetHRBP==true && department != null && department.HRBPID.HasValue && department.tblHRBP != null)
+      {
+        tblhrbp = department.tblHRBP;
+          if (tblhrbp != null)
+          {
+            leave.HRBPManager = tblhrbp.UserID;
+          }
+      }
+     
 
       if (leave.LeaveTypeId == 7 && leave.StartDate.TimeOfDay.TotalSeconds != 0 && leave.EndDate.TimeOfDay.TotalSeconds != 0) //7 causal short leave
       {
@@ -871,8 +881,8 @@ namespace LeaveON.Controllers
           }
           else
           {
-            balanceCheck = db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == leave.LeaveTypeId &&
-            leaveDetail.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId).Select(detail => detail.Allowed).FirstOrDefault();
+            balanceCheck = db.UserLeavePolicyDetails.Where(k => k.LeaveTypeId == leave.LeaveTypeId &&
+            k.UserLeavePolicyId == leave.AspNetUser.UserLeavePolicyId).Select(detail => detail.Allowed).FirstOrDefault();
           }
         }
         var daysForFinalCompare = 0;
@@ -893,7 +903,7 @@ namespace LeaveON.Controllers
           //else
           //{
             daysForFinalCompare = Repository.Common.Common.GetLeaveCountByPolicy
-              (policy, daysCount, leave, leave.LeaveType.IsCalenderDays); //daysCount;
+              (policy, daysCount, leave, isCalenderDays); //daysCount;
             leave.TotalDays = daysForFinalCompare;
          // }
           if (daysForFinalCompare <= balanceCheck && daysForFinalCompare > 0)
@@ -959,7 +969,7 @@ namespace LeaveON.Controllers
               //}
               //else
               //{
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, isCalenderDays);
               //}
              // int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
 
@@ -984,7 +994,7 @@ namespace LeaveON.Controllers
               //}
               //else
               //{
-                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, leave.LeaveType.IsCalenderDays);
+                validDaysCount = Repository.Common.Common.GetLeaveCountByPolicy(policy, daysCount, leave, isCalenderDays);
               //}
                
               //  int validDaysCount = Repository.Common.Common.GetLeaveCounByPolicy(policy, daysCount, leave, true);
