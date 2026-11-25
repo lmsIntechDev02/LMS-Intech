@@ -28,7 +28,7 @@ namespace LeaveON.EmailSender
     /// <remarks>Text put here will not display in a Visual Studio summary box.  
     /// It is meant to add in further detail for anyone who might read this  
     /// code in the future </remarks>
-    public static void SendEmailUsingLeavON(Leave userLeave, AspNetUser sender, AspNetUser receiver, String MessageType)
+    public static void SendEmailUsingLeavON(Leave userLeave, AspNetUser sender, AspNetUser receiver, String MessageType, bool? isHrbp = null)
     {
       MailMessage mail = new MailMessage();
       SmtpClient smtpServer = new SmtpClient("mail.smtp2go.com");
@@ -48,6 +48,7 @@ namespace LeaveON.EmailSender
         if (!string.IsNullOrWhiteSpace(siteName))
         {
           receiverEmail = siteName;
+          baseUrl = "https://localhost:44380/";
         }
       }
       else
@@ -74,10 +75,13 @@ namespace LeaveON.EmailSender
         //-----------------
         string emailTemplate = System.IO.File.ReadAllText(Path.Combine(HttpContext.Current.Server.MapPath("~/Templates"), "Email.html"));
         emailTemplate = emailTemplate.Replace("<%EmpName%>", userLeave.AspNetUser.UserName);
+        //if (userLeave.IsHRBPAccept == true) emailTemplate = emailTemplate.Replace("<%Status%>", "accepted");
+        //if (userLeave.IsHRBPAccept == false) emailTemplate = emailTemplate.Replace("<%Status%>", "rejected");
         if (userLeave.IsAccepted1 == 0) emailTemplate = emailTemplate.Replace("<%Status%>", "rejected");
         if (userLeave.IsAccepted1 == 1) emailTemplate = emailTemplate.Replace("<%Status%>", "accepted");
         if (userLeave.IsAccepted1 == 2) emailTemplate = emailTemplate.Replace("<%Status%>", "accepted with comments");
         if (userLeave.IsAccepted1 == null) emailTemplate = emailTemplate.Replace("<%Status%>", "pending");
+
         emailTemplate = emailTemplate.Replace("<%EmpNo%>", userLeave.AspNetUser.BioStarEmpNum.ToString());
         emailTemplate = emailTemplate.Replace("<%Dept%>", userLeave.AspNetUser.DepartmentName);
         emailTemplate = emailTemplate.Replace("<%Purpose%>", userLeave.Reason);
@@ -153,24 +157,21 @@ namespace LeaveON.EmailSender
               else
               {
                 mail.Subject = sender.UserName + " posted a Leave response";
-                // emailTemplate = emailTemplate.Replace("<%Link%>", "http://lms-stage.intechww.com/LeavesResponse/Edit/" + userLeave.Id);
-                if (matchedLeave != null &&
-                      matchedLeave.IsAccepted1 == 1 &&
-                      matchedLeave.IsAccepted2 == 1)
+                
+                if (matchedLeave != null && matchedLeave.IsAccepted1 == 1 && matchedLeave.IsAccepted2 == 1)
                 {
-                  //"https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesRequest/Index"
                   string url = string.Concat(baseUrl, "LeavesRequest/Index");
-
                   emailTemplate = emailTemplate.Replace("<%Link%>", url);
 
                 }
                 else
                 {
-                  //"https://lms.intechww.com:1001/?ReturnUrl=https://lms.intechww.com:1002/LeavesResponse/Edit/" + userLeave.Id
+                  
                   string url = string.Concat(baseUrl, "LeavesResponse/Edit/" + userLeave.Id);
                   emailTemplate = emailTemplate.Replace("<%Link%>", url);
                 }
-                emailTemplate = emailTemplate.Replace("<%LineManager%>", sender.UserName);
+                
+                emailTemplate = isHrbp==true ? emailTemplate.Replace("<%HRBP Manager%>", sender.UserName) : emailTemplate.Replace("<%LineManager%>", sender.UserName);
                 break;
               }
             }

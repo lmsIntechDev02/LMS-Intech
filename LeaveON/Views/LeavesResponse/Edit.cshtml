@@ -36,8 +36,9 @@
 
       @Html.ValidationSummary(true, "", new { @class = "text-danger" })
       @Html.HiddenFor(model => model.Id)
-      @*@Html.Hidden("IsLineManager1",ViewBag.IsLineManager1)*@
+      
       <input name="IsLineManager1" type="hidden" value="@(Convert.ToString(ViewBag.IsLineManager1))" />
+      <input name="IsHRPBManager" type="hidden" value="@(Convert.ToString(ViewBag.IsHRPBManager))" />
       <div class="form-group">
         @*@Html.LabelFor(model => model.UserId, "User", htmlAttributes: new { @class = " " })
 
@@ -117,7 +118,7 @@
       @if (ViewBag.IsHRPBManager == true)
       {
         <div class="form-group">
-          @Html.LabelFor(model => model.HRBPManager, "Line Manager 1", htmlAttributes: new { @class = " " })
+          @Html.LabelFor(model => model.HRBPManager, "HRBP Manager", htmlAttributes: new { @class = " " })
 
 
           @Html.DropDownList("HRBPManager", (IEnumerable<SelectListItem>)ViewBag.HRBPManagers, null, new { @class = "form-control", disabled = "disabled" })
@@ -125,11 +126,38 @@
           @Html.ValidationMessageFor(model => model.HRBPManager, "", new { @class = "text-danger" })
 
         </div>
-         <div class="form-group" id="divRemarks1">
+
+
+        <div class="form-group">
+          <div class="custom-radio-group">
+
+
+
+
+            <input type="radio" name="IsHRBPAccept" id="rdoHRBPAccepted" value="true" checked>
+            
+            <label for="rdoHRBPAccepted" class="radio-success">
+              <i class="fa fa-check-circle"></i>
+              Approved
+            </label>
+
+            <input type="radio" name="IsHRBPAccept" id="rdoHRBPRejected" value="false">
+            <label for="rdoHRBPRejected" class="radio-danger">
+              <i class="fa fa-times-circle"></i>
+              Rejected
+            </label>
+
+
+          </div>
+        </div>
+
+                  
+
+                  <div class="form-group" id="divRemarks1">
                     @Html.LabelFor(model => model.HRBPRemarks, "HRBP Remarks", htmlAttributes: new { @class = " " })
                     @Html.EditorFor(model => model.HRBPRemarks, new { htmlAttributes = new { @class = "form-control", placeholder = "Remarks..." } })
                     @Html.ValidationMessageFor(model => model.HRBPRemarks, "", new { @class = "text-danger" })
-            </div>
+                  </div>
                 }
                 else
                 {
@@ -146,51 +174,72 @@
                     </div>
 
                     <div class="form-group">
-                      <input type="radio" name="IsAccepted1" id="rdoAccepted1" value="1" checked> Approved |
-                      <input type="radio" name="IsAccepted1" id="rdoRejected1" value="0" checked="@(ViewBag.AcceptStatus1)"> Rejected
-                    </div>
-                    <div class="form-group" id="divRemarks1">
-                      @Html.LabelFor(model => model.Remarks1, "Remarks", htmlAttributes: new { @class = " " })
-                      @Html.EditorFor(model => model.Remarks1, new { htmlAttributes = new { @class = "form-control", placeholder = "Remarks..." } })
-                      @Html.ValidationMessageFor(model => model.Remarks1, "", new { @class = "text-danger" })
-                    </div>
-                  }
-                  else
-                  {
+                      <div class="custom-radio-group">
+                        <input type="radio" name="IsAccepted1" id="rdoAccepted1" value="1" checked>
+                        <label for="rdoAccepted1" class="radio-success">
+                          <i class="fa fa-check-circle"></i>
+                          Approved
+                        </label>
+                         
+                        <input type="radio" name="IsAccepted1" id="rdoRejected1" value="0" checked="@(ViewBag.AcceptStatus1)"> 
+                        <label for="rdoRejected1" class="radio-danger">
+                          <i class="fa fa-times-circle"></i>
+                          Rejected
+                        </label>
+                      </div>
+                      </div>
+                      <div class="form-group" id="divRemarks1">
+                        @Html.LabelFor(model => model.Remarks1, "Remarks", htmlAttributes: new { @class = " " })
+                        @Html.EditorFor(model => model.Remarks1, new { htmlAttributes = new { @class = "form-control", placeholder = "Remarks..." } })
+                        @Html.ValidationMessageFor(model => model.Remarks1, "", new { @class = "text-danger" })
+                      </div>
+                      }
+                      else
+                      {
 
-                    <div class="form-group">
-                      @Html.LabelFor(model => model.LineManager1Id, "Line Manager 1", htmlAttributes: new { @class = " " })
-                      @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", disabled = "disabled" })
-                      @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
-                    </div>
+                      <div class="form-group">
+                        @Html.LabelFor(model => model.LineManager1Id, "Line Manager 1", htmlAttributes: new { @class = " " })
+                        @Html.DropDownList("LineManager1Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", disabled = "disabled" })
+                        @Html.ValidationMessageFor(model => model.LineManager1Id, "", new { @class = "text-danger" })
+                      </div>
 
-                    <div class="form-group">
-                      @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
-                      @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", disabled = "disabled" })
-                      @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
-                    </div>
+                      <div class="form-group">
+                        @Html.LabelFor(model => model.LineManager2Id, "Line Manager 2", htmlAttributes: new { @class = " " })
+                        @Html.DropDownList("LineManager2Id", (IEnumerable<SelectListItem>)ViewBag.LineManagers, null, new { @class = "form-control", disabled = "disabled" })
+                        @Html.ValidationMessageFor(model => model.LineManager2Id, "", new { @class = "text-danger" })
+                      </div>
 
-                    <div class="form-group">
-                      <input type="radio" name="IsAccepted2" id="rdoAccepted2" value="1" checked>Approved
-                      <input type="radio" name="IsAccepted2" id="rdoRejected2" value="0" checked="@(ViewBag.AcceptStatus2)">Rejected
-                    </div>
-                    <div class="form-group" id="divRemarks2">
-                      @Html.LabelFor(model => model.Remarks2, "Remarks", htmlAttributes: new { @class = " " })
-                      @Html.EditorFor(model => model.Remarks2, new { htmlAttributes = new { @class = "form-control", placeholder = "Remarks..." } })
-                      @Html.ValidationMessageFor(model => model.Remarks2, "", new { @class = "text-danger" })
-                    </div>
-                  }
-                }
-      <div class="form-group">
-        <div class="class=" card-footer">
-          <input type="submit" id="sendResponse" value="Send" class="btn btn-primary" />
-        </div>
-      </div>
-      <div id="loader" style="display:none; text-align:center; font-size:24px; color:#007bff;">Loading...</div>
+                      <div class="form-group">
+                        <div class="custom-radio-group">
+                          <input type="radio" name="IsAccepted2" id="rdoAccepted2" value="1" checked>
+                          <label for="rdoAccepted2" class="radio-success">
+                            <i class="fa fa-check-circle"></i>
+                            Approved
+                          </label>
+                          <input type="radio" name="IsAccepted2" id="rdoRejected2" value="0" checked="@(ViewBag.AcceptStatus2)">
+                          <label for="rdoRejected2" class="radio-danger">
+                            <i class="fa fa-times-circle"></i>
+                            Rejected
+                          </label>
+                        </div>
+                        </div>
+                        <div class="form-group" id="divRemarks2">
+                          @Html.LabelFor(model => model.Remarks2, "Remarks", htmlAttributes: new { @class = " " })
+                          @Html.EditorFor(model => model.Remarks2, new { htmlAttributes = new { @class = "form-control", placeholder = "Remarks..." } })
+                          @Html.ValidationMessageFor(model => model.Remarks2, "", new { @class = "text-danger" })
+                        </div>
+                        }
+                        }
+                        <div class="form-group">
+                          <div class="class=" card-footer">
+                            <input type="submit" id="sendResponse" value="Send" class="btn btn-primary" />
+                          </div>
+                        </div>
+                        <div id="loader" style="display:none; text-align:center; font-size:24px; color:#007bff;">Loading...</div>
 
-      <br />
-      @Html.ActionLink("Back to List", "Index")
-    </div>
+                        <br />
+                        @Html.ActionLink("Back to List", "Index")
+                      </div>
 
       }
     </div>
@@ -245,7 +294,8 @@
       handleFormSubmission(event, 'loader', 'sendResponse', this.form); // Pass the form to the function
     });
 
-    function handleFormSubmission(event, loaderId, buttonId, form) {
+    function handleFormSubmission(event, loaderId, buttonId, form)
+    {
       var loader = document.getElementById(loaderId);
       var button = document.getElementById(buttonId);
       button.disabled = true;

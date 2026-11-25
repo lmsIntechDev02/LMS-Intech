@@ -252,153 +252,351 @@ namespace LeaveON.Controllers
 
       var result = data.Select(x =>
       {
-        string currentStatus = "pending";
-        if (x.HRBPManager != null)
+        string currentStatus =String.Empty;
+
+        if (x.IsHRBPAccept == false || x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
         {
-          if (x.IsHRBPAccept == true && x.IsAccepted1 == 1 && x.IsAccepted2 == 1)
-          {
-            currentStatus = "Approved";
-          }
-          else if (x.IsHRBPAccept == false ||  x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
-          {
-            currentStatus = "Rejected";
-          }
-          else
-          {
-            currentStatus = "Pending";
-          }
-        }
-        else {
-
-          if (x.IsAccepted1 == 1 && (x.LineManager2Id == null || x.IsAccepted2 == 1))
-          {
-            currentStatus = "approved";
-          }
-          else if (x.IsAccepted1 == null || (x.LineManager2Id != null && x.IsAccepted2 == null))
-          {
-            currentStatus = "pending";
-          }
-          else if (x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
-          {
-            currentStatus = "rejected";
-          }
-        }
-
-        
-          string managerHRBPHtml = "";
-        if (x.HRBPManager != null && x.IsHRBPAccept==true)
-        {
-            managerHRBPHtml =  
- 
-              "<p style='color:green'><b>Approved</b></p>" +
-              "<p style='color:green;font-size:80%;'>" +
-              (x.HRBPRemarks ?? "") +
-              "</p>";
-        }
-        else if (x.IsAccepted1 != null && x.IsAccepted1 == 0)
-        {
-          managerHRBPHtml =
-              "<p style='color:red'><b>Rejected</b></p>" +
-              "<p style='color:red;font-size:80%;'>" +
-              (x.HRBPRemarks ?? "") +
-              "</p>";
-        }
-
-        string manager1Html = "";
-
-        if (x.IsAccepted1 != null && x.IsAccepted1 > 0)
-        {
-          manager1Html =
-              "<p style='color:green'><b>Approved</b></p>" +
-              "<p style='color:green;font-size:80%;'>" +
-              (x.Remarks1 ?? "") +
-              "</p>";
-        }
-        else if (x.IsAccepted1 != null && x.IsAccepted1 == 0)
-        {
-          manager1Html =
-              "<p style='color:red'><b>Rejected</b></p>" +
-              "<p style='color:red;font-size:80%;'>" +
-              (x.Remarks1 ?? "") +
-              "</p>";
-        }
-
-        string manager2Html = "";
-
-        if (x.IsAccepted2 != null && x.IsAccepted2 > 0)
-        {
-          manager2Html =
-              "<p style='color:green'><b>Approved</b></p>" +
-              "<p style='color:green;font-size:80%;'>" +
-              (x.Remarks2 ?? "") +
-              "</p>";
-        }
-        else if (x.IsAccepted2 != null && x.IsAccepted2 == 0)
-        {
-          manager2Html =
-              "<p style='color:red'><b>Rejected</b></p>" +
-              "<p style='color:red;font-size:80%;'>" +
-              (x.Remarks2 ?? "") +
-              "</p>";
-        }
-
-        string actionHtml = "";
-
-        bool isManager1 = currentUserId == x.LineManager1Id;
-        bool isManager2 = currentUserId == x.LineManager2Id;
-        bool hrbp = currentUserId == x.HRBPManager;
-        if (x.HRBPManager != null)
-        {
-
-          if (hrbp && x.IsHRBPAccept == null)
-          {
-            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
-          }
-          if (isManager1 && x.IsHRBPAccept == true && (x.IsAccepted1 == null))
-          {
-            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
-          }
-          if (isManager2 && x.IsAccepted1 == 1 && (x.IsAccepted2 == null))
-          {
-            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
-          }
-
-          if ((isManager1 || isManager2) && x.IsHRBPAccept == null)
-          {
-            actionHtml =
-             "<p style='color:red;font-size:80%;'>" +
-                "Waiting for approval from HRBP Manager </p>";
-                 
-          }
-          else if ((  isManager2) && x.IsAccepted2 == null)
-          {
-            actionHtml =
-            "<p style='color:red;font-size:80%;'>" +
-               "Waiting for approval from  Manager 1 </p>";
-          }
-
+          currentStatus = "Rejected";
         }
         else
         {
+
+          if (x.HRBPManager != null)
+          {
+            if (x.IsHRBPAccept == true && x.IsAccepted1 == 1 && x.IsAccepted2 == 1)
+            {
+              currentStatus = "Approved";
+            }
+            else
+            {
+              currentStatus = "Pending";
+            }
            
-            if (isManager1 && x.IsAccepted1 == null)
-          {
-            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
           }
-          else if (isManager2 && x.IsAccepted2 == null && x.IsAccepted1 == 1)
+          else
           {
-            actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+            if (x.IsAccepted1 == 1 && ( x.IsAccepted2 == 1))
+            {
+              currentStatus = "Approved";
+            }
+             else
+            {
+              currentStatus = "Pending"; currentStatus = "pending";
+            }
+             
           }
-          else if (x.IsAccepted1 == null)
-          {
-            actionHtml = x.LeaveType != "Annual Leaves" ?
-             "<p style='color:red;font-size:80%;'>" +
-                "Waiting for approval from Line Manager 1</p>"
-                :
-                "<p style='color:red;font-size:80%;'>" +
-                "Waiting for approval from HR Manager</p>";
-          }
+
         }
+
+        //  if (x.HRBPManager != null)
+        //{
+
+        //  if (x.IsHRBPAccept == true && x.IsAccepted1 == 1 && x.IsAccepted2 == 1)
+        //  {
+        //    currentStatus = "Approved";
+        //  }
+        //  else if (x.IsHRBPAccept == false || x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
+        //  {
+        //    currentStatus = "Rejected";
+        //  }
+        //  else
+        //  {
+        //    currentStatus = "Pending";
+        //  }
+        //  if (x.IsHRBPAccept == true && x.IsAccepted1 == 1 && x.IsAccepted2 == 1)
+        //  {
+        //    currentStatus = "Approved";
+        //  }
+        //  else if (x.IsHRBPAccept == false ||  x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
+        //  {
+        //    currentStatus = "Rejected";
+        //  }
+        //  else
+        //  {
+        //    currentStatus = "Pending";
+        //  }
+        //}
+        //else {
+
+        //  if (x.IsAccepted1 == 1 && (x.LineManager2Id == null || x.IsAccepted2 == 1))
+        //  {
+        //    currentStatus = "approved";
+        //  }
+        //  else if (x.IsAccepted1 == null || (x.LineManager2Id != null && x.IsAccepted2 == null))
+        //  {
+        //    currentStatus = "pending";
+        //  }
+        //  else if (x.IsAccepted1 == 0 || x.IsAccepted2 == 0)
+        //  {
+        //    currentStatus = "rejected";
+        //  }
+        //}
+          string managerHRBPHtml = String.Empty;
+          string manager1Html = String.Empty;
+        string manager2Html = String.Empty;
+        string actionHtml = "";
+        bool isManager1 = currentUserId == x.LineManager1Id;
+        bool isManager2 = currentUserId == x.LineManager2Id;
+        bool ishrbp = currentUserId == x.HRBPManager;
+        if (currentStatus == "Approved")
+        {
+          managerHRBPHtml = x.HRBPManager != null?
+
+              "<p style='color:green'><b>Approved</b></p>" +
+              "<p style='color:green;font-size:80%;'>" +
+              (x.HRBPRemarks ?? "") +
+              "</p>":  "No";
+          manager1Html =
+             "<p style='color:green'><b>Approved</b></p>" +
+             "<p style='color:green;font-size:80%;'>" +
+             (x.Remarks1 ?? "") +
+             "</p>";
+          manager2Html =
+             "<p style='color:green'><b>Approved</b></p>" +
+             "<p style='color:green;font-size:80%;'>" +
+             (x.Remarks1 ?? "") +
+             "</p>";
+        }
+        else  if (currentStatus == "Rejected")
+        {
+          managerHRBPHtml = x.HRBPManager != null ?
+
+              "<p style='color:red'><b>Rejected</b></p>" +
+              "<p style='color:red;font-size:80%;'>" +
+              (x.HRBPRemarks ?? "") +
+              "</p>" : "No";
+          manager1Html =
+             "<p style='color:red'><b>Rejected</b></p>" +
+             "<p style='color:red;font-size:80%;'>" +
+             (x.Remarks1 ?? "") +
+             "</p>";
+          manager2Html =
+             "<p style='color:red'><b>Rejected</b></p>" +
+             "<p style='color:red;font-size:80%;'>" +
+             (x.Remarks1 ?? "") +
+             "</p>";
+        }
+        else
+        {
+          actionHtml = "";
+
+          if (x.HRBPManager != null)
+          {
+            // Step 1: HRBP approval
+            if (ishrbp && x.IsHRBPAccept == null)
+            {
+              actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+            }
+            // Step 2: Line Manager 1
+            else if (isManager1 && x.IsHRBPAccept == true && x.IsAccepted1 == null)
+            {
+              actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+            }
+            // Step 3: Line Manager 2
+            else if (isManager2 && x.IsHRBPAccept == true && x.IsAccepted1 == 1 && x.IsAccepted2 == null)
+            {
+              actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+            }
+            // Waiting for HRBP
+            else if (x.IsHRBPAccept == null)
+            {
+              actionHtml = "<p style='color:red;font-size:80%;'>Waiting for approval from HRBP</p>";
+            }
+            // Waiting for Manager 1
+            else if (x.IsHRBPAccept == true && x.IsAccepted1 == null)
+            {
+              actionHtml = "<p style='color:red;font-size:80%;'>Waiting for approval from Line Manager 1</p>";
+              managerHRBPHtml =
+                "<p style='color:green'><b>Approved</b></p>" +
+              "<p style='color:green;font-size:80%;'>" +
+              (x.HRBPRemarks ?? "") +
+              "</p>";
+
+
+            }
+            // Waiting for Manager 2
+            else if (x.IsHRBPAccept == true && x.IsAccepted1 == 1 && x.IsAccepted2 == null)
+            {
+              managerHRBPHtml =
+                "<p style='color:green'><b>Approved</b></p>" +
+              "<p style='color:green;font-size:80%;'>" +
+              (x.HRBPRemarks ?? "") +
+              "</p>";
+              manager1Html =
+           "<p style='color:green'><b>Approved</b></p>" +
+           "<p style='color:green;font-size:80%;'>" +
+           (x.Remarks1 ?? "") +
+           "</p>";
+              actionHtml = "<p style='color:red;font-size:80%;'>Waiting for approval from Line Manager 2</p>";
+            }
+          }
+          else
+          {
+            // Step 1: Line Manager 1
+            if (isManager1 && x.IsAccepted1 == null)
+            {
+              actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+            }
+            // Step 2: Line Manager 2
+            else if (isManager2 && x.IsAccepted1 == 1 && x.IsAccepted2 == null)
+            {
+              actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+            }
+            // Waiting for Manager 1
+            else if (x.IsAccepted1 == null)
+            {
+              actionHtml = "<p style='color:red;font-size:80%;'>Waiting for approval from Line Manager 1</p>";
+            }
+            // Waiting for Manager 2
+            else if (x.IsAccepted1 == 1 && x.IsAccepted2 == null)
+            {
+              actionHtml = "<p style='color:red;font-size:80%;'>Waiting for approval from Line Manager 2</p>";
+            }
+          }
+
+
+        }
+        
+
+        //if (x.HRBPManager != null && x.IsHRBPAccept==true)
+        //{
+        //    managerHRBPHtml =  
+ 
+        //      "<p style='color:green'><b>Approved</b></p>" +
+        //      "<p style='color:green;font-size:80%;'>" +
+        //      (x.HRBPRemarks ?? "") +
+        //      "</p>";
+        //}
+        //else if (x.IsAccepted1 != null && x.IsAccepted1 == 0)
+        //{
+        //  managerHRBPHtml =
+        //      "<p style='color:red'><b>Rejected</b></p>" +
+        //      "<p style='color:red;font-size:80%;'>" +
+        //      (x.HRBPRemarks ?? "") +
+        //      "</p>";
+        //}
+
+     
+
+        //if (x.IsAccepted1 != null && x.IsAccepted1 > 0)
+        //{
+        //  manager1Html =
+        //      "<p style='color:green'><b>Approved</b></p>" +
+        //      "<p style='color:green;font-size:80%;'>" +
+        //      (x.Remarks1 ?? "") +
+        //      "</p>";
+        //}
+        //else if (x.IsAccepted1 != null && x.IsAccepted1 == 0)
+        //{
+        //  manager1Html =
+        //      "<p style='color:red'><b>Rejected</b></p>" +
+        //      "<p style='color:red;font-size:80%;'>" +
+        //      (x.Remarks1 ?? "") +
+        //      "</p>";
+        //}
+
+       
+
+        //if (x.IsAccepted2 != null && x.IsAccepted2 > 0)
+        //{
+        //  manager2Html =
+        //      "<p style='color:green'><b>Approved</b></p>" +
+        //      "<p style='color:green;font-size:80%;'>" +
+        //      (x.Remarks2 ?? "") +
+        //      "</p>";
+        //}
+        //else if (x.IsAccepted2 != null && x.IsAccepted2 == 0)
+        //{
+        //  manager2Html =
+        //      "<p style='color:red'><b>Rejected</b></p>" +
+        //      "<p style='color:red;font-size:80%;'>" +
+        //      (x.Remarks2 ?? "") +
+        //      "</p>";
+        //}
+
+      
+
+        //bool isManager1 = currentUserId == x.LineManager1Id;
+        //bool isManager2 = currentUserId == x.LineManager2Id;
+        //bool hrbp = currentUserId == x.HRBPManager;
+
+
+
+
+
+        //if (x.HRBPManager != null)
+        //{
+
+
+        //  if (hrbp)
+        //  {
+        //    if (x.IsHRBPAccept == null)
+        //    {
+
+        //    }
+        //  }
+        //  else if (isManager1)
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+             
+        //  }
+        //  else if (isManager2)
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+        //  }
+        //  if (hrbp && x.IsHRBPAccept == null)
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+        //  }
+        //  if (isManager1 && x.IsHRBPAccept == true && (x.IsAccepted1 == null))
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+        //  }
+        //  if (isManager2 && x.IsAccepted1 == 1 && (x.IsAccepted2 == null))
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+        //  }
+
+        //  if ((isManager1 || isManager2) && x.IsHRBPAccept == null)
+        //  {
+        //    actionHtml =
+        //     "<p style='color:red;font-size:80%;'>" +"Waiting for approval from HRBP Manager </p>";
+        //  }
+        //  else if (((isManager1 || isManager2) && x.IsAccepted2 == null))
+        //  {
+        //    actionHtml =
+        //    "<p style='color:red;font-size:80%;'>" +
+        //       "Waiting for approval from  Manager 1 </p>";
+        //  }
+        //  else if ((isManager2) && x.IsAccepted2 == null)
+        //  {
+        //    actionHtml =
+        //    "<p style='color:red;font-size:80%;'>" +
+        //       "Waiting for approval from  Manager 1 </p>";
+        //  }
+
+        //}
+        //else
+        //{
+           
+        //    if (isManager1 && x.IsAccepted1 == null)
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+        //  }
+        //  else if (isManager2 && x.IsAccepted2 == null && x.IsAccepted1 == 1)
+        //  {
+        //    actionHtml = "<a href='/LeavesResponse/Edit/" + x.Id + "'>Approve</a>";
+        //  }
+        //  else if (x.IsAccepted1 == null)
+        //  {
+        //    actionHtml = x.LeaveType != "Annual Leaves" ?
+        //     "<p style='color:red;font-size:80%;'>" +
+        //        "Waiting for approval from Line Manager 1</p>"
+        //        :
+        //        "<p style='color:red;font-size:80%;'>" +
+        //        "Waiting for approval from HR Manager</p>";
+        //  }
+        //}
 
         //if (x.LeaveType != "Annual Leaves")
         //{
@@ -830,15 +1028,12 @@ namespace LeaveON.Controllers
 
       var hrbplist = db.tblHRBPs.Where(x => x.UserID == leave.HRBPManager).ToList();
 
-      if (User.Identity.GetUserId() == leave.HRBPManager && leave.IsHRBPAccept!= true)
+      if (User.Identity.GetUserId() == leave.HRBPManager && leave.IsHRBPAccept ==null )
       {
         isHRBPManager = true;
-        ViewBag.IsHRPBManager = true;
-         
       }
       else
       {
-         
         if (User.Identity.GetUserId() == leave.LineManager1Id)
         {
           IsLineManager1 = true;
@@ -847,9 +1042,8 @@ namespace LeaveON.Controllers
         {
           IsLineManager1 = false;
         }
-        
       }
- 
+      ViewBag.IsHRPBManager = isHRBPManager;
       ViewBag.IsLineManager1 = IsLineManager1;
 
     
@@ -870,25 +1064,33 @@ namespace LeaveON.Controllers
     // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult> Edit([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,ResponseDate1,ResponseDate2,IsAccepted1,IsAccepted2,LineManager1Id,LineManager2Id,Remarks1,Remarks2,DateCreated,DateModified,UserLeavePolicyId")] Leave leave, string IsLineManager1)
+    public async Task<ActionResult> Edit([Bind(Include = "Id,UserId,LeaveTypeId,Reason,StartDate,EndDate,TotalDays,EmergencyContact,ResponseDate1,ResponseDate2,IsAccepted1,IsAccepted2,LineManager1Id,LineManager2Id,Remarks1,Remarks2,DateCreated,DateModified,UserLeavePolicyId,IsHRBPAccept,HRBPRemarks")] Leave leave, string IsLineManager1, string IsHRPBManager)
     {
       //assign values to variable as we will reassing these values to the object
       leave.IsQuotaRequest = false;
       Nullable<int> IsAccepted1 = null;
+      Nullable<bool> IsHRPBManagerApproving = null;
       Nullable<int> IsAccepted2 = null;
       string Remarks1 = string.Empty;
       string Remarks2 = string.Empty;
-      
-      if (IsLineManager1 == "True")
+      string hRBPRemarks = string.Empty;
+      if (IsHRPBManager == "True")
       {
-        IsAccepted1 = leave.IsAccepted1;
-        Remarks1 = leave.Remarks1;
-      
+        IsHRPBManagerApproving = leave.IsHRBPAccept;
+        hRBPRemarks = leave.HRBPRemarks;
       }
       else
       {
-        IsAccepted2 = leave.IsAccepted2;
-        Remarks2 = leave.Remarks2;
+        if (IsLineManager1 == "True")
+        {
+          IsAccepted1 = leave.IsAccepted1;
+          Remarks1 = leave.Remarks1;
+        }
+        else
+        {
+          IsAccepted2 = leave.IsAccepted2;
+          Remarks2 = leave.Remarks2;
+        }
       }
       //--------------------------------------------------
       Leave leaveOld = db.Leaves.FirstOrDefault(x => x.Id == leave.Id);
@@ -972,35 +1174,70 @@ namespace LeaveON.Controllers
       leave = leaveOld;
 
 
-
-
-
-      if (IsLineManager1 == "True")
+      if (IsHRPBManagerApproving == true)
       {
-        leave.IsAccepted1 = IsAccepted1;
-        leave.Remarks1 = Remarks1;
-        leave.ResponseDate1 = DateTime.Now;
 
-        //if (IsAccepted1 == Consts.ApprovedWithComments)
-        //{
-        //  leave.Remarks1 = string.Empty;
-        //  leave.TotalDays = decimal.Parse(Remarks1);
-        //}
+       
 
-        if (leave.LineManager1Id == leave.LineManager2Id)
+        if (leave.HRBPManager == leave.LineManager1Id && leave.HRBPManager == leave.LineManager2Id)
         {
+          leave.IsHRBPAccept = true;
+          leave.HRBPRemarks = hRBPRemarks;
+          leave.ResponseDateHr = DateTime.Now;
+
+          leave.IsAccepted1 = IsAccepted1;
+          leave.Remarks1 = Remarks1;
+          leave.ResponseDate1 = DateTime.Now;
+
           leave.IsAccepted2 = IsAccepted1;
           leave.Remarks2 = leave.Remarks1;
           leave.ResponseDate2 = DateTime.Now;
+
           if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
+        }
+        else if(leave.HRBPManager == leave.LineManager1Id)
+        {
+          leave.IsHRBPAccept = true;
+          leave.HRBPRemarks = hRBPRemarks;
+          leave.ResponseDateHr = DateTime.Now;
+
+          leave.IsAccepted1 = IsAccepted1;
+          leave.Remarks1 = Remarks1;
+          leave.ResponseDate1 = DateTime.Now;
+        }
+           else  
+        {
+          leave.IsHRBPAccept = true;
+          leave.HRBPRemarks = hRBPRemarks;
+          leave.ResponseDateHr = DateTime.Now;
         }
       }
       else
       {
-        leave.IsAccepted2 = IsAccepted2;
-        leave.Remarks2 = Remarks2;
-        leave.ResponseDate2 = DateTime.Now;
-        if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
+
+        if (IsLineManager1 == "True")
+        {
+          leave.IsAccepted1 = IsAccepted1;
+          leave.Remarks1 = Remarks1;
+          leave.ResponseDate1 = DateTime.Now;
+
+           
+
+          if (leave.LineManager1Id == leave.LineManager2Id)
+          {
+            leave.IsAccepted2 = IsAccepted1;
+            leave.Remarks2 = leave.Remarks1;
+            leave.ResponseDate2 = DateTime.Now;
+            if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
+          }
+        }
+        else
+        {
+          leave.IsAccepted2 = IsAccepted2;
+          leave.Remarks2 = Remarks2;
+          leave.ResponseDate2 = DateTime.Now;
+          if (leave.IsAccepted2 > Consts.Rejected) CalculateAndChangeLeaveBalance(ref leave);
+        }
       }
       //---------------------save and send emails------------------------------------------------
       if (ModelState.IsValid) 
@@ -1008,7 +1245,33 @@ namespace LeaveON.Controllers
         db.Entry(leave).State = EntityState.Modified;
 
         await db.SaveChangesAsync();
-        if (IsLineManager1 == "True")
+        if (IsHRPBManager == "True")
+        {
+          AspNetUser admin = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager);
+          SendEmail.SendEmailUsingLeavON(leave, admin, leave.AspNetUser, "LeaveResponse", true); //Approva Email
+
+          if (!(leave.HRBPManager == leave.LineManager1Id && leave.HRBPManager == leave.LineManager2Id))
+          {
+            if (leave.HRBPManager == leave.LineManager1Id)
+            {
+              AspNetUser admin2s = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager2Id);
+              SendEmail.SendEmailUsingLeavON(leave, leave.AspNetUser, admin2s, "LeaveRequest");
+            }
+            else
+            {
+              AspNetUser admin1 = db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+              SendEmail.SendEmailUsingLeavON(leave, leave.AspNetUser, admin1, "LeaveRequest");
+            }
+
+          }
+           
+          //sending eamil to employee from first HRPB //approved or disapproved
+       
+
+       
+        }
+
+         else if (IsLineManager1 == "True")
         {
           // Sending email to LineManager2 only if LineManager1Id is not equal to LineManager2Id
           if (leave.LineManager1Id != leave.LineManager2Id)
