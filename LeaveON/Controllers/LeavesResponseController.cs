@@ -1212,8 +1212,8 @@ namespace LeaveON.Controllers
       else
       {
         //old
-        leaveBalance.Taken += leave.TotalDays;
-        leaveBalance.Balance -= leave.TotalDays;
+      
+
         if (leave.LeaveTypeId == 7) // Assuming 7 is the ID for casual short day
         {
           int hoursToAdd = (int)(leave.EndDate - leave.StartDate).TotalHours;
@@ -1240,7 +1240,7 @@ namespace LeaveON.Controllers
               leaveBalance = new LeaveBalance(ref leave);
               leaveBalance.Taken = 1;
               leaveBalance.Balance = (db.UserLeavePolicyDetails.Where(leaveDetail => leaveDetail.LeaveTypeId == 1 &&
-                    leaveDetail.UserLeavePolicyId == leavePolicyID).Select(detail => detail.Allowed).FirstOrDefault()) - 1;
+              leaveDetail.UserLeavePolicyId == leavePolicyID).Select(detail => detail.Allowed).FirstOrDefault()) - 1;
               leaveBalance.UserId = leaveUserID;
               leaveBalance.LeaveTypeId = 1;
               leaveBalance.UserLeavePolicyId = leave.UserLeavePolicyID;
@@ -1259,6 +1259,11 @@ namespace LeaveON.Controllers
               leaveBalance.HoursTaken = hoursToAdd;
             }
           }
+        }
+        else
+        {
+          leaveBalance.Taken += leave.TotalDays;
+          leaveBalance.Balance -= leave.TotalDays;
         }
         db.Entry(leaveBalance).State = EntityState.Modified;
         db.SaveChanges();

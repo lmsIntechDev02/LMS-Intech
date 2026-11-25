@@ -77,8 +77,8 @@
                                   if (leaveTypeIds.Contains(item.LeaveTypeId.ToString()))
                                   {
                                     leaveBalance = Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == item.LeaveTypeId && x.UserId == LeaveUserId);
-                                    Taken = leaveBalance != null ? leaveBalance.Taken.ToString() : "";
-                                    Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
+                                    Taken = item.LeaveTypeId == 7? leaveBalance.HoursTaken != null ? leaveBalance.HoursTaken.ToString():"" : leaveBalance != null ? leaveBalance.Taken.ToString() : "";
+                                    //Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
                                     if (item.LeaveTypeId == 2 && leaveBalance != null && leaveBalance.AnnualAmountAjustmesnt.HasValue) //annual leave
                                     {
                                       allow = (item.Allowed + Convert.ToInt32(leaveBalance.AnnualAmountAjustmesnt)).ToString();
@@ -96,7 +96,7 @@
                                           @class = "form-control"@*, style = "width: 300px;"*@})
                                       </td>
                                       <td><input name="UserLeavePolicyDetail[@sNo].Allowed" value="@(allow)" class="form-control" placeholder="Allowed"> </td>
-                                      <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(leaveBalance != null ? leaveBalance.Taken.ToString() : "")" class="form-control" placeholder="Taken"> </td>
+                                      <td><input name="UserLeavePolicyDetail[@sNo].Taken" value="@(Taken)" class="form-control" placeholder="Taken"> </td>
                                       <td><input name="UserLeavePolicyDetail[@sNo].Balance" value="@(leaveBalance != null ? leaveBalance.Balance.ToString() : (item.Allowed != null ? item.Allowed.ToString() : ""))" class="form-control" placeholder="Balance"></td>
 
                                     </tr>
