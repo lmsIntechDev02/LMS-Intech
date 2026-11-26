@@ -77,7 +77,7 @@
                                   if (leaveTypeIds.Contains(item.LeaveTypeId.ToString()))
                                   {
                                     leaveBalance = Model.userLeavePolicy.LeaveBalances.FirstOrDefault(x => x.LeaveTypeId == item.LeaveTypeId && x.UserId == LeaveUserId);
-                                    Taken = item.LeaveTypeId == 7? leaveBalance.HoursTaken != null ? leaveBalance.HoursTaken.ToString():"" : leaveBalance != null ? leaveBalance.Taken.ToString() : "";
+                                    Taken = item.LeaveTypeId == 7? leaveBalance != null && leaveBalance.HoursTaken != null ? leaveBalance.HoursTaken.ToString():"0" : leaveBalance != null ? leaveBalance.Taken.ToString() : "0";
                                     //Balance = leaveBalance != null ? leaveBalance.Balance.ToString() : "";
                                     if (item.LeaveTypeId == 2 && leaveBalance != null && leaveBalance.AnnualAmountAjustmesnt.HasValue) //annual leave
                                     {
