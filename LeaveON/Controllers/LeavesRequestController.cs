@@ -771,7 +771,7 @@ namespace LeaveON.Controllers
       {
         isCalenderDays = leaveDetail.IsCalenderDays ?? true;
       }
-      var department = db.DepartmentNames.FirstOrDefault(k => !String.IsNullOrEmpty(aspNetUsers.DepartmentName) && k.Name.Trim().ToLower().ToString() == aspNetUsers.DepartmentName.Trim().ToLower().ToString();
+      var department = db.DepartmentNames.FirstOrDefault(k => !String.IsNullOrEmpty(aspNetUsers.DepartmentName) && k.Name.Trim().ToLower().ToString() == aspNetUsers.DepartmentName.Trim().ToLower().ToString());
       
       tblHRBP tblhrbp = new tblHRBP();
       if(isDepartmentSetHRBP==true && department != null && department.HRBPID.HasValue && department.tblHRBP != null)
@@ -911,6 +911,9 @@ namespace LeaveON.Controllers
             //for annual leaves, LineManager1Id will be that of Annual Leave Manager
 
             admin1 = leave.HRBPManager != null ? db.AspNetUsers.FirstOrDefault(x => x.Id == leave.HRBPManager) : db.AspNetUsers.FirstOrDefault(x => x.Id == leave.LineManager1Id);
+           
+            
+            
             //var userDepartment = leave.AspNetUser.DepartmentName;
 
             /// var department = db.DepartmentNames.FirstOrDefault(d => d.Name == userDepartment);
